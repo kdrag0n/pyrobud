@@ -42,10 +42,11 @@ class Bot():
             self.config['stats']: Dict[str, int] = {
                 'sent': 0,
                 'received': 0,
-                'processed': 0
+                'processed': 0,
+                'replaced': 0
             }
         else:
-            for k in ['sent', 'received', 'processed']:
+            for k in ['sent', 'received', 'processed', 'replaced']:
                 if k not in self.config['stats']:
                     self.config['stats'][k] = 0
 
@@ -103,6 +104,7 @@ class Bot():
             # Snippets
             def snip_repl(m) -> None:
                 if m.group(1) in self.config['snippets']:
+                    self.config['stats']['replaced'] += 1
                     return self.config['snippets'][m.group(1)]
                 
                 return m.group(0)
@@ -389,4 +391,5 @@ Time: {el_str}'''
         return f'''Stats:
     \u2022 Messages received: {st['received']}
     \u2022 Messages sent: {st['sent']}
-    \u2022 Commands processed: {st['processed']}'''
+    \u2022 Commands processed: {st['processed']}
+    \u2022 Snippets replaced: {st['replaced']}'''
