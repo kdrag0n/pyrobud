@@ -146,13 +146,30 @@ Time: {el_str}'''
         return 'Evaulated.'
 
     @command.desc('Paste message text to Hastebin')
-    def cmd_haste(self, msg: tg.Message) -> str:
+    def cmd_haste(self, msg: tg.Message, text: str) -> str:
         orig: tg.Message = msg.reply_to_message
-        resp: Dict[str, Union[bool, str]] = requests.post('https://hastebin.com/documents', data=orig.text).json()
+        if orig is None:
+            if len(text) > 0:
+                txt = text
+            else:
+                return '__Reply to a message or provide text in command.__'
+        else:
+            txt = orig.text
+
+        resp: Dict[str, Union[bool, str]] = requests.post('https://hastebin.com/documents', data=txt).json()
         return f'https://hastebin.com/{resp["key"]}'
     
     @command.desc('Paste message text to Dogbin')
-    def cmd_dog(self, msg: tg.Message) -> str:
+    def cmd_dog(self, msg: tg.Message, text: str) -> str:
         orig: tg.Message = msg.reply_to_message
-        resp: Dict[str, Union[bool, str]] = requests.post('https://del.dog/documents', data=orig.text).json()
+        if orig is None:
+            if len(text) > 0:
+                txt = text
+            else:
+                return '__Reply to a message or provide text in command.__'
+        else:
+            txt = orig.text
+
+        orig: tg.Message = msg.reply_to_message
+        resp: Dict[str, Union[bool, str]] = requests.post('https://del.dog/documents', data=txt).json()
         return f'https://del.dog/{resp["key"]}'
