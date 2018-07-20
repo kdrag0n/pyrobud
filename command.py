@@ -1,11 +1,16 @@
 '''Command class'''
 
-from typing import Callable, Union
+from typing import Callable, Union, NewType
 import pyrogram as tg
 
+CommandFunc = NewType('CommandFunc', Callable[[tg.Message], Union[None, str]])
+CommandDecorator = NewType('CommandDecorator', Callable[[CommandFunc], CommandFunc])
 
-def desc(_desc: str) -> Callable[[str], Callable[[Callable[[tg.Message], Union[None, str]]], Callable[[tg.Message], Union[None, str]]]]:
-    def desc_decorator(func: Callable[[tg.Message], Union[None, str]]) -> Callable[[Callable[[tg.Message], Union[None, str]]], Callable[[tg.Message], Union[None, str]]]:
+Func = CommandFunc
+Decorator = CommandDecorator
+
+def desc(_desc: str) -> Callable[[str], CommandDecorator]:
+    def desc_decorator(func: CommandFunc) -> CommandDecorator:
         func.description: str = _desc
         return func
 
