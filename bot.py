@@ -208,10 +208,8 @@ Time: {el_str}'''
 
             if not resp['success']:
                 return '__Error uploading file__'
-            link = resp['link']
 
-            # Avoid fetching as this is ephemeral with Markdown []() format
-            return f'[{link}]({link})'
+            return resp['link']
     
     @command.desc('Upload replied-to file to transfer.sh')
     def cmd_transfer(self, msg: tg.Message) -> str:
