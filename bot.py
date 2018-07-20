@@ -150,7 +150,7 @@ Time: {el_str}'''
     def cmd_haste(self, msg: tg.Message, text: str) -> str:
         orig: tg.Message = msg.reply_to_message
         if orig is None:
-            if len(text) > 0:
+            if text:
                 txt = text
             else:
                 return '__Reply to a message or provide text in command.__'
@@ -164,7 +164,7 @@ Time: {el_str}'''
     def cmd_dog(self, msg: tg.Message, text: str) -> str:
         orig: tg.Message = msg.reply_to_message
         if orig is None:
-            if len(text) > 0:
+            if text:
                 txt = text
             else:
                 return '__Reply to a message or provide text in command.__'
@@ -176,10 +176,23 @@ Time: {el_str}'''
         return f'https://del.dog/{resp["key"]}'
 
     @command.desc('Upload replied-to file to file.io')
-    def cmd_fileio(self, msg: tg.Message) -> str:
+    def cmd_fileio(self, msg: tg.Message, expires: str) -> str:
         if msg.reply_to_message is None:
             return '__Reply to a message with the file to upload.__'
         
+        if expires == 'help':
+            return '__Expiry format: 1y/12m/52w/365d__'
+        elif expires:
+            if expires[-1] not in ['y', 'm', 'w', 'd']:
+                return '__Unknown unit. Expiry format: 1y/12m/52w/365d__'
+            else:
+                try:
+                    int(expires[:-1])
+                except ValueError:
+                    return '__Invalid number. Expiry format: 1y/12m/52w/365d__'
+        else:
+            expires = '1w'
+
         def prog_func(cl: tg.Client, current: int, total: int):
             self.mresult(msg, f'Downloading...\nProgress: `{float(current) / 1000.0}/{float(total) / 1000.0}` KB')
 
@@ -190,7 +203,7 @@ Time: {el_str}'''
 
             self.mresult(msg, 'Uploading...')
             with open(path, 'rb') as f:
-                resp = requests.post('https://file.io/?expires=2w', files={'file': f}).json()
+                resp = requests.post(f'https://file.io/?expires={expires}', files={'file': f}).json()
 
             if not resp['success']:
                 return '__Error uploading file__'
