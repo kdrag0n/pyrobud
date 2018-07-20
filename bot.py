@@ -7,6 +7,7 @@ import inspect
 import traceback
 import util
 import re
+import requests
 
 
 class Bot():
@@ -120,7 +121,7 @@ class Bot():
         after = util.time_us()
 
         el_us = after - before
-        el_str = '%.3f ms, %.2f μs, %.0f ns' % (el_us / 1000.0, el_us, el_us * 1000.0)
+        el_str = '%.3f ms, %.2f μs' % (el_us / 1000.0, el_us)
 
         return f'''In:
 ```{raw_args}```
@@ -143,3 +144,15 @@ Time: {el_str}'''
     def cmd_exec(self, msg: tg.Message) -> str:
         exec(msg)
         return 'Evaulated.'
+
+    @command.desc('Paste message text to Hastebin')
+    def cmd_haste(self, msg: tg.Message) -> str:
+        orig: tg.Message = msg.reply_to_message
+        resp: Dict[str, Union[bool, str]] = requests.post('https://hastebin.com/documents', data=orig.text).json()
+        return f'https://hastebin.com/{resp["key"]}'
+    
+    @command.desc('Paste message text to Dogbin')
+    def cmd_dog(self, msg: tg.Message) -> str:
+        orig: tg.Message = msg.reply_to_message
+        resp: Dict[str, Union[bool, str]] = requests.post('https://del.dog/documents', data=orig.text).json()
+        return f'https://del.dog/{resp["key"]}'
