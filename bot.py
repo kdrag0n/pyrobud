@@ -115,6 +115,11 @@ class Bot():
     @command.desc('z e r o')
     def cmd_zwsp(self, msg: tg.Message) -> str:
         return '>\u200b'
+    
+    @command.desc('Unicode character from hex codepoint')
+    def cmd_uni(self, msg: tg.Message, codepoint: str) -> str:
+        if not str: return '__Hex codepoint required__'
+        return chr(int(codepoint, 16))
 
     @command.desc('Evaluate code')
     def cmd_eval(self, msg: tg.Message, raw_args: str) -> str:
