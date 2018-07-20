@@ -221,7 +221,7 @@ class Bot():
             return '__Specify a name for the snippet, then reply to a message or provide text.__'
 
         if msg.reply_to_message:
-            content = msg.text
+            content = msg.reply_to_message.text
             if not content:
                 if len(args) > 1:
                     content = ' '.join(args[1:])
