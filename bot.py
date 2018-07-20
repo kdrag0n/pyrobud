@@ -111,7 +111,7 @@ class Bot():
 
     @command.desc('z e r o')
     def cmd_zwsp(self, msg: tg.Message) -> str:
-        return '\u200b'
+        return '>\u200b'
 
     @command.desc('Evaluate code')
     def cmd_eval(self, msg: tg.Message, raw_args: str) -> str:
