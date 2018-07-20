@@ -9,6 +9,7 @@ import util
 import re
 import requests
 import tempfile
+import os
 
 
 class Bot():
@@ -211,3 +212,25 @@ Time: {el_str}'''
 
             # Avoid fetching as this is ephemeral with Markdown []() format
             return f'[{link}]({link})'
+    
+    @command.desc('Upload replied-to file to transfer.sh')
+    def cmd_transfer(self, msg: tg.Message) -> str:
+        if msg.reply_to_message is None:
+            return '__Reply to a message with the file to upload.__'
+        
+        def prog_func(cl: tg.Client, current: int, total: int):
+            self.mresult(msg, f'Downloading...\nProgress: `{float(current) / 1000.0}/{float(total) / 1000.0}` KB')
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = self.client.download_media(msg.reply_to_message, file_name=tmpdir + '/', progress=prog_func, progress_args=())
+            if not path:
+                return '__Error downloading file__'
+
+            self.mresult(msg, 'Uploading...')
+            with open(path, 'rb') as f:
+                resp = requests.put(f'https://transfer.sh/{os.path.basename(path)}', data=f)
+
+            if not resp.ok:
+                return '__Error uploading file__'
+
+            return resp.text
