@@ -1,0 +1,4 @@
+toml
+pyrogram
+tgcrypto
+requests
