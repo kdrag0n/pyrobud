@@ -1,6 +1,7 @@
 '''Main bot class'''
 
 from typing import Dict, Union, List, NewType
+from urllib.parse import urlparse
 import pyrogram as tg
 import command
 import inspect
@@ -128,7 +129,11 @@ class Bot():
 
         args: List[str] = []
         if len(cmd_args) == 3:
-            args = [msg.text.markdown[len(self.prefix) + len(msg.command[0]) + 1:]]
+            txt = msg.text.markdown
+            if cmd_args[2].startswith('plain_'):
+                txt = msg.text
+
+            args = [txt[len(self.prefix) + len(msg.command[0]) + 1:]]
         elif cmd_spec.varargs is not None and len(cmd_spec.varargs) > 0:
             args = msg.command[1:]
 
@@ -225,7 +230,7 @@ class Bot():
             return '__Specify a name for the snippet, then reply to a message or provide text.__'
 
         if msg.reply_to_message:
-            content = msg.reply_to_message.markdown
+            content = msg.reply_to_message.text.markdown
             if not content:
                 if len(args) > 1:
                     content = ' '.join(args[1:])
@@ -405,3 +410,96 @@ Time: {el_str}'''
     def cmd_echo(self, msg: tg.Message, text: str) -> str:
         if not text: return '__Provide text to send.__'
         return text
+
+    @command.desc('Set up @KarafuruBot')
+    def cmd_ksetup(self, msg: tg.Message, plain_params: str) -> str:
+        if not msg.chat: return '__This can only be used in groups.__'
+
+        cfg_err: str = '''**Invalid TOML config.** The following options are supported:
+
+```rules = ["No spam", "English only"]
+extra_rules = ["Respect others"]
+
+[buttons]
+"XDA Thread" = "https://forum.xda-developers.com/"
+GitHub = "https://github.com/"```
+
+{}'''
+
+        extra_btn: str = ''
+        rules: List[str] = [
+            'No spam',
+            'English only',
+            'Respect others',
+            'No NSFW',
+            'No extreme off-topic'
+        ]
+
+        ex_btn_map: Dict[str, str] = {}
+
+        if plain_params:
+            try:
+                cfg = toml.loads(plain_params)
+            except Exception as e:
+                return cfg_err.format(str(e))
+
+            if 'rules' in cfg:
+                rules = cfg['rules']
+            if 'extra_rules' in cfg:
+                rules.extend(cfg['extra_rules'])
+            
+            if 'buttons' in cfg:
+                for name, dest in cfg['buttons'].items():
+                    if '://' in dest:
+                        p_dest = urlparse(dest)
+                        ex_btn_map[name] = f'{p_dest.netloc}{p_dest.path}'
+                    else:
+                        ex_btn_map[name] = dest
+
+        rule_str = f'    \u2022 {rules[0]}'
+        for rule in rules[1:]:
+            rule_str += f'\n    \u2022 {rule}'
+        
+        for name, dest in ex_btn_map.items():
+            extra_btn += f'\n[{name}](buttonurl://{dest})'
+
+        before = util.time_ms()
+
+        try:
+            self.client.promote_chat_member(msg.chat.id, 'KarafuruBot', can_change_info=False)
+        except Exception:
+            self.mresult(msg, '**WARNING**: Unable to promote @KarafuruBot')
+
+        first = 'first'
+        commands: List[str] = [
+            'welcome on',
+            'goodbye off',
+            'disable afk',
+            'warnlimit 3',
+            'strongwarn off'
+            f'''setwelcome **Welcome**, {first}!
+Please read the rules __before__ chatting.
+[Rules](buttonurl://t.me/KarafuruBot?start={msg.chat.id}{extra_btn}''',
+            'cleanwelcome on',
+            f'setrules \u200b{rule_str}',
+            'setflood 16',
+            'gbanstat on',
+            'gmutestat on',
+            'reports on'
+        ]
+
+        for cmd in commands:
+            csplit = cmd.split(' ')
+            _cmd = '/' + csplit[0] + '@KarafuruBot ' + ' '.join(csplit[1:])
+            self.client.send_message(msg.chat.id, _cmd, parse_mode='MARKDOWN')
+            time.sleep(0.200) # ratelimit
+        
+        # Clean up the mess
+        if msg.reply_to_message:
+            msg.reply_to_message.reply('/purge@KarafuruBot')
+        else:
+            msg.reply('/purge@KarafuruBot')
+
+        after = util.time_ms()
+
+        return f'Finished in `{(after - before) / 1000.0}` seconds.'
