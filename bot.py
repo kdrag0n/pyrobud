@@ -16,6 +16,8 @@ import toml
 import threading
 import time
 import sys
+import yaml
+import json
 
 Config = NewType('Config', Dict[str, Dict[str, Union[int, str]]])
 CommandMap = NewType('CommandMap', Dict[str, command.Func])
@@ -575,3 +577,27 @@ Please read the rules __before__ chatting.
         self.save_config()
 
         return f'Item `{item}`, #{idx + 1} deleted.'
+
+    @command.desc('Dump all the data of a message')
+    def cmd_mdump(self, msg: tg.Message) -> str:
+        if not msg.reply_to_message:
+            return '__Reply to a message to get its data.__'
+
+        j = str(msg.reply_to_message)
+        dat = json.loads(j)
+
+        def _filter(obj):
+            if '_' in obj:
+                del obj['_']
+            if 'phone_number' in obj:
+                del obj['phone_number']
+
+            for item in obj.values():
+                if isinstance(item, dict):
+                    _filter(item)
+
+        _filter(dat)
+
+        t = yaml.dump(dat, default_flow_style=False)
+
+        return f'```{t}```\u200b'

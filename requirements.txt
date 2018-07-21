@@ -2,3 +2,4 @@ toml
 pyrogram
 tgcrypto
 requests
+pyyaml
