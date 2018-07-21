@@ -492,7 +492,7 @@ Please read the rules __before__ chatting.
             csplit = cmd.split(' ')
             _cmd = '/' + csplit[0] + '@KarafuruBot ' + ' '.join(csplit[1:])
             self.client.send_message(msg.chat.id, _cmd, parse_mode='MARKDOWN')
-            time.sleep(0.200) # ratelimit
+            time.sleep(0.180) # ratelimit
         
         # Clean up the mess
         if msg.reply_to_message:
