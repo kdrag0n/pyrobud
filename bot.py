@@ -99,6 +99,17 @@ class Bot():
         self.writer_thread.start()
 
     def mresult(self, msg: tg.Message, new: str) -> None:
+        t = self.config['telegram']
+        api_id = str(t['api_id'])
+        api_hash = t['api_hash']
+
+        if api_id in new:
+            new = new.replace(api_id, '[REDACTED]')
+        if api_hash in new:
+            new = new.replace(api_hash, '[REDACTED]')
+        if self.user.phone_number in new:
+            new = new.replace(self.user.phone_number, '[REDACTED]')
+
         self.client.edit_message_text(msg.chat.id, msg.message_id, new, parse_mode='MARKDOWN')
 
     def on_message(self, cl: tg.Client, msg: tg.Message) -> None:
