@@ -99,8 +99,8 @@ class Bot():
     def on_message(self, cl: tg.Client, msg: tg.Message) -> None:
         if msg.from_user and msg.from_user.id == self.uid:
             if msg.text:
-                orig_txt = msg.text
-                txt = msg.text
+                orig_txt = msg.text.markdown
+                txt = msg.text.markdown
 
                 # Snippets
                 def snip_repl(m) -> None:
@@ -128,7 +128,7 @@ class Bot():
 
         args: List[str] = []
         if len(cmd_args) == 3:
-            args = [msg.text[len(self.prefix) + len(msg.command[0]) + 1:]]
+            args = [msg.text.markdown[len(self.prefix) + len(msg.command[0]) + 1:]]
         elif cmd_spec.varargs is not None and len(cmd_spec.varargs) > 0:
             args = msg.command[1:]
 
@@ -191,22 +191,22 @@ class Bot():
 
     @command.desc(r'¯\_(ツ)_/¯')
     def cmd_shrug(self, msg: tg.Message, raw_args: str) -> str:
-        if len(msg.text) > 0:
-            return msg.text[len(self.prefix) + 6:] + r' ¯\_(ツ)_/¯'
+        if len(msg.text.markdown) > 0:
+            return msg.text.markdown[len(self.prefix) + 6:] + r' ¯\_(ツ)_/¯'
         else:
             return r'¯\_(ツ)_/¯'
 
     @command.desc(r'(╯°□°）╯︵ ┻━┻')
     def cmd_tableflip(self, msg: tg.Message, raw_args: str) -> str:
-        if len(msg.text) > 0:
-            return msg.text[len(self.prefix) + 6:] + r' (╯°□°）╯︵ ┻━┻'
+        if len(msg.text.markdown) > 0:
+            return msg.tex.markdownt[len(self.prefix) + 6:] + r' (╯°□°）╯︵ ┻━┻'
         else:
             return r'(╯°□°）╯︵ ┻━┻'
 
     @command.desc(r'┬─┬ ノ( ゜-゜ノ)')
     def cmd_unflip(self, msg: tg.Message, raw_args: str) -> str:
-        if len(msg.text) > 0:
-            return msg.text[len(self.prefix) + 6:] + r' ┬─┬ ノ( ゜-゜ノ)'
+        if len(msg.text.markdown) > 0:
+            return msg.text.markdown[len(self.prefix) + 6:] + r' ┬─┬ ノ( ゜-゜ノ)'
         else:
             return r'┬─┬ ノ( ゜-゜ノ)'
 
@@ -225,7 +225,7 @@ class Bot():
             return '__Specify a name for the snippet, then reply to a message or provide text.__'
 
         if msg.reply_to_message:
-            content = msg.reply_to_message.text
+            content = msg.reply_to_message.markdown
             if not content:
                 if len(args) > 1:
                     content = ' '.join(args[1:])
@@ -396,7 +396,7 @@ Time: {el_str}'''
     \u2022 Commands processed: {st['processed']}
     \u2022 Snippets replaced: {st['replaced']}'''
 
-    @command.desc('Get text of a message (debug)')
+    @command.desc('Get plain text of a message (debug)')
     def cmd_gtx(self, msg: tg.Message) -> str:
         if not msg.reply_to_message: return '__Reply to a message to get the text of.__'
         return f'```{msg.reply_to_message.text}```'
