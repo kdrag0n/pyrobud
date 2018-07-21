@@ -98,21 +98,22 @@ class Bot():
 
     def on_message(self, cl: tg.Client, msg: tg.Message) -> None:
         if msg.from_user and msg.from_user.id == self.uid:
-            orig_txt = msg.text
-            txt = msg.text
+            if msg.text:
+                orig_txt = msg.text
+                txt = msg.text
 
-            # Snippets
-            def snip_repl(m) -> None:
-                if m.group(1) in self.config['snippets']:
-                    self.config['stats']['replaced'] += 1
-                    return self.config['snippets'][m.group(1)]
+                # Snippets
+                def snip_repl(m) -> None:
+                    if m.group(1) in self.config['snippets']:
+                        self.config['stats']['replaced'] += 1
+                        return self.config['snippets'][m.group(1)]
+                    
+                    return m.group(0)
+
+                txt = re.sub(r'\(\(([^ ]+?)\)\)', snip_repl, orig_txt)
                 
-                return m.group(0)
-
-            txt = re.sub(r'\(\(([^ ]+?)\)\)', snip_repl, orig_txt)
-            
-            if txt != orig_txt:
-                self.mresult(msg, txt)
+                if txt != orig_txt:
+                    self.mresult(msg, txt)
 
             # Stats
             self.config['stats']['sent'] += 1
