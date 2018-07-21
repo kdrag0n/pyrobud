@@ -184,7 +184,8 @@ class Bot():
         out = 'Command list:'
 
         for name, cmd in self.commands.items():
-            out += f'\n    \u2022 **{name}**: {cmd.description}'
+            desc = getattr(cmd, 'description', '__No description provided.__')
+            out += f'\n    \u2022 **{name}**: {desc}'
 
         return out
 
@@ -394,3 +395,13 @@ Time: {el_str}'''
     \u2022 Messages sent: {st['sent']}
     \u2022 Commands processed: {st['processed']}
     \u2022 Snippets replaced: {st['replaced']}'''
+
+    @command.desc('Get text of a message (debug)')
+    def cmd_gtx(self, msg: tg.Message) -> str:
+        if not msg.reply_to_message: return '__Reply to a message to get the text of.__'
+        return f'```{msg.reply_to_message.text}```'
+    
+    @command.desc('Send text (debug)')
+    def cmd_echo(self, msg: tg.Message, text: str) -> str:
+        if not text: return '__Provide text to send.__'
+        return text
