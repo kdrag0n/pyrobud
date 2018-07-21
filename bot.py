@@ -217,6 +217,13 @@ class Bot():
         else:
             return r'┬─┬ ノ( ゜-゜ノ)'
 
+    @command.desc(r'( ͡° ͜ʖ ͡°)')
+    def cmd_lenny(self, msg: tg.Message, raw_args: str) -> str:
+        if len(msg.text.markdown) > 0:
+            return msg.text.markdown[len(self.prefix) + 6:] + r' ( ͡° ͜ʖ ͡°)'
+        else:
+            return r'( ͡° ͜ʖ ͡°)'
+    
     @command.desc('z e r o')
     def cmd_zwsp(self, msg: tg.Message) -> str:
         return '>\u200b'
