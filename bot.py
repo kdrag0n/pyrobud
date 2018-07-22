@@ -337,6 +337,20 @@ Time: {el_str}'''
                 return '__Reply to a message or provide text in command.__'
         else:
             txt = orig.text
+            if not txt:
+                if orig.document:
+                    def prog_func(cl: tg.Client, current: int, total: int):
+                        self.mresult(msg, f'Downloading...\nProgress: `{float(current) / 1000.0}/{float(total) / 1000.0}` KB')
+
+                    with tempfile.TemporaryDirectory() as tmpdir:
+                        path = self.client.download_media(msg.reply_to_message, file_name=tmpdir + '/', progress=prog_func, progress_args=())
+                        if not path:
+                            return '__Error downloading file__'
+
+                        with open(path, 'rb') as f:
+                            txt = f.read().decode('utf-8')
+                else:
+                    return '__Reply to a message with text or a text file, or provide text in command.__'
 
         resp: Dict[str, Union[bool, str]] = requests.post('https://hastebin.com/documents', data=txt).json()
         return f'https://hastebin.com/{resp["key"]}'
@@ -351,8 +365,21 @@ Time: {el_str}'''
                 return '__Reply to a message or provide text in command.__'
         else:
             txt = orig.text
+            if not txt:
+                if orig.document:
+                    def prog_func(cl: tg.Client, current: int, total: int):
+                        self.mresult(msg, f'Downloading...\nProgress: `{float(current) / 1000.0}/{float(total) / 1000.0}` KB')
 
-        orig: tg.Message = msg.reply_to_message
+                    with tempfile.TemporaryDirectory() as tmpdir:
+                        path = self.client.download_media(msg.reply_to_message, file_name=tmpdir + '/', progress=prog_func, progress_args=())
+                        if not path:
+                            return '__Error downloading file__'
+
+                        with open(path, 'rb') as f:
+                            txt = f.read().decode('utf-8')
+                else:
+                    return '__Reply to a message with text or a text file, or provide text in command.__'
+
         resp: Dict[str, Union[bool, str]] = requests.post('https://del.dog/documents', data=txt).json()
         return f'https://del.dog/{resp["key"]}'
 
