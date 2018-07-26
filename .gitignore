@@ -109,3 +109,4 @@ venv.bak/
 # Telegram sessions
 *.session
 /unknown_errors.txt
+/stickers

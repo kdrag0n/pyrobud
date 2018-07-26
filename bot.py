@@ -57,6 +57,8 @@ class Bot():
             self.config['todo']: Dict[str, List[str]] = {}
         if 'user' not in self.config:
             self.config['user']: Dict[str, str] = {}
+        if 'stickers' not in self.config:
+            self.config['stickers']: Dict[str, str] = {}
 
         self.last_saved_cfg: str = toml.dumps(self.config)
     
@@ -643,7 +645,7 @@ Please read the rules __before__ chatting.
 
         return f'```{t}```\u200b'
 
-    @command.desc('Kang a sticker into configured/provided pack.')
+    @command.desc('Kang a sticker into configured/provided pack')
     def cmd_kang(self, msg: tg.Message, pack_name: str) -> str:
         if not msg.reply_to_message or not msg.reply_to_message.sticker:
             return '__Reply to a sticker message to kang it.__'
@@ -651,6 +653,7 @@ Please read the rules __before__ chatting.
             return '__Specify a sticker pack name.__'
         if pack_name:
             self.config['user']['sticker_pack'] = pack_name
+            self.save_config()
         
         self.mresult(msg, 'Kanging...')
 
@@ -680,3 +683,73 @@ Please read the rules __before__ chatting.
 
             self.client.send_message(st_bot, '/done')
             return 'Kanged.'
+
+    @command.desc('Save a sticker with a name as reference')
+    def cmd_save(self, msg: tg.Message, name: str) -> str:
+        if not msg.reply_to_message or not msg.reply_to_message.sticker:
+            return '__Reply to a sticker message to save it.__'
+        if not name:
+            return '__Provide a name to save the sticker as.__'
+        if name in self.config['stickers']:
+            return '__There\'s already a sticker with that name.__'
+        
+        self.config['stickers'][name] = msg.reply_to_message.sticker.file_id
+        self.save_config()
+
+        return f'Sticker saved as `{name}`.'
+
+    @command.desc('Save a sticker with a name to disk')
+    def cmd_saved(self, msg: tg.Message, name: str) -> str:
+        if not msg.reply_to_message or not msg.reply_to_message.sticker:
+            return '__Reply to a sticker message to save it.__'
+        if not name:
+            return '__Provide a name to save the sticker as.__'
+        if name in self.config['stickers']:
+            return '__There\'s already a sticker with that name.__'
+
+        path = self.client.download_media(msg.reply_to_message, file_name=f'stickers/{name}01.webp')
+        if not path:
+            return '__Error downloading sticker__'
+        
+        self.config['stickers'][name] = path
+        self.save_config()
+
+        return f'Sticker saved to disk as `{name}`.'
+    
+    @command.desc('List saved stickers')
+    def cmd_stickers(self, msg: tg.Message) -> str:
+        if not self.config['stickers']:
+            return '__No stickers saved.__'
+
+        out = 'Stickers saved:'
+
+        for item in self.config['stickers']:
+            s_type = 'local' if self.config['stickers'][item].endswith('.webp') else 'reference'
+            out += f'\n    \u2022 **{item}** ({s_type})'
+
+        return out
+    
+    @command.desc('Delete a saved sticker')
+    def cmd_sdel(self, msg: tg.Message, name: str) -> str:
+        if not name: return '__Provide the name of a sticker to delete.__'
+
+        s_type = 'local' if self.config['stickers'][name].endswith('.webp') else 'reference'
+
+        del self.config['stickers'][name]
+        self.save_config()
+
+        return f'{s_type.title()} sticker `{name}` deleted.'
+    
+    @command.desc('Get a sticker by name')
+    def cmd_s(self, msg: tg.Message, name: str):
+        if not name:
+            self.mresult(msg, '__Provide the name of a sticker.__')
+            return
+        if name not in self.config['stickers']:
+            self.mresult(msg, '__That sticker doesn\'t exist.__')
+            return
+        
+        chat_id: int = msg.chat.id
+        reply_id = msg.reply_to_message.id if msg.reply_to_message else None
+        self.client.delete_messages(msg.chat.id, msg.message_id, revoke=True)
+        self.client.send_sticker(chat_id, self.config['stickers'][name], reply_to_message_id=reply_id)
