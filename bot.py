@@ -2,6 +2,7 @@
 
 from typing import Dict, Union, List, NewType
 from urllib.parse import urlparse
+from PIL import Image
 import pyrogram as tg
 import command
 import inspect
@@ -54,6 +55,8 @@ class Bot():
                     self.config['stats'][k] = 0
         if 'todo' not in self.config:
             self.config['todo']: Dict[str, List[str]] = {}
+        if 'user' not in self.config:
+            self.config['user']: Dict[str, str] = {}
 
         self.last_saved_cfg: str = toml.dumps(self.config)
     
@@ -639,3 +642,41 @@ Please read the rules __before__ chatting.
         t = yaml.dump(dat, default_flow_style=False)
 
         return f'```{t}```\u200b'
+
+    @command.desc('')
+    def cmd_kang(self, msg: tg.Message, pack_name: str) -> str:
+        if not msg.reply_to_message or not msg.reply_to_message.sticker:
+            return '__Reply to a sticker message to kang it.__'
+        if 'sticker_pack' not in self.config['user'] and not pack_name:
+            return '__Specify a sticker pack name.__'
+        if pack_name:
+            self.config['user']['sticker_pack'] = pack_name
+        
+        self.mresult(msg, 'Kanging...')
+
+        st: tg.Sticker = msg.reply_to_message.sticker
+        st_bot: str = 'Stickers'
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = self.client.download_media(msg.reply_to_message, file_name=tmpdir + '/')
+            if not path:
+                return '__Error downloading sticker__'
+            
+            im = Image.open(path).convert('RGB')
+            im.save(path + '.png', 'png')
+            
+            self.client.send_message(st_bot, '/addsticker')
+            time.sleep(0.100)
+            self.client.send_message(st_bot, self.config['user']['sticker_pack'])
+            time.sleep(0.100)
+            self.client.send_document(st_bot, path + '.png')
+            time.sleep(0.100)
+            
+            if st.emoji:
+                self.client.send_message(st_bot, st.emoji)
+            else:
+                self.client.send_message(st_bot, '❓')
+            time.sleep(0.100)
+
+            self.client.send_message(st_bot, '/done')
+            return 'Kanged.'
