@@ -126,7 +126,7 @@ class Bot():
                     
                     return m.group(0)
 
-                txt = re.sub(r'\(\(([^ ]+?)\)\)', snip_repl, orig_txt)
+                txt = re.sub(r'/([^ ]+?)/', snip_repl, orig_txt)
                 
                 if txt != orig_txt:
                     self.mresult(msg, txt)
@@ -246,7 +246,7 @@ class Bot():
         if not str: return '__Hex codepoint required.__'
         return chr(int(codepoint, 16))
 
-    @command.desc('Save a snippet (fetch: `((snippet))`)')
+    @command.desc('Save a snippet (fetch: `/snippet/`)')
     def cmd_snip(self, msg: tg.Message, *args: List[str]) -> str:
         if not args:
             return '__Specify a name for the snippet, then reply to a message or provide text.__'
