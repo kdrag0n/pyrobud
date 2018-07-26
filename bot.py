@@ -643,7 +643,7 @@ Please read the rules __before__ chatting.
 
         return f'```{t}```\u200b'
 
-    @command.desc('')
+    @command.desc('Kang a sticker into configured/provided pack.')
     def cmd_kang(self, msg: tg.Message, pack_name: str) -> str:
         if not msg.reply_to_message or not msg.reply_to_message.sticker:
             return '__Reply to a sticker message to kang it.__'
