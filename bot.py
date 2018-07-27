@@ -753,3 +753,100 @@ Please read the rules __before__ chatting.
         reply_id = msg.reply_to_message.id if msg.reply_to_message else None
         self.client.delete_messages(msg.chat.id, msg.message_id, revoke=True)
         self.client.send_sticker(chat_id, self.config['stickers'][name], reply_to_message_id=reply_id)
+
+    @command.desc('Stickerify an image')
+    def cmd_sticker(self, msg: tg.Message, pack: str):
+        if not msg.reply_to_message and not msg.reply_to_message.photo and not msg.reply_to_message.document:
+            self.mresult(msg, '__Reply to a message with an image to stickerify it.__')
+            return
+        if not pack:
+            self.mresult(msg, '__Provide the name of the pack to add the sticker to.__')
+            return
+        
+        ps = pack.split()
+        emoji = ps[1] if len(ps) > 1 else '❓'
+
+        self.mresult(msg, 'Stickerifying...')
+
+        st: tg.Sticker = msg.reply_to_message.sticker
+        st_bot: str = 'Stickers'
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = self.client.download_media(msg.reply_to_message, file_name=tmpdir + '/')
+            if not path:
+                return '__Error downloading sticker image__'
+            
+            im = Image.open(path).convert('RGB')
+
+            sz = im.size
+            target = 512
+            if sz[0] > sz[1]:
+                w_ratio = target / float(sz[0])
+                h_size = int(float(sz[1]) * float(w_ratio))
+                im = im.resize((target, h_size), Image.LANCZOS)
+            else:
+                h_ratio = target / float(sz[1])
+                w_size = int(float(sz[0]) * float(h_ratio))
+                im = im.resize((w_size, target), Image.LANCZOS)
+
+            im.save(path + '.png', 'png')
+            
+            self.client.send_message(st_bot, '/addsticker')
+            time.sleep(0.100)
+            self.client.send_message(st_bot, ps[0])
+            time.sleep(0.100)
+            self.client.send_document(st_bot, path + '.png')
+            time.sleep(0.100)
+            
+            self.client.send_message(st_bot, emoji)
+            time.sleep(0.220)
+
+            self.client.send_message(st_bot, '/done')
+            self.mresult(msg, 'Stickered, it\'ll be available in an hour.')
+
+            im.save(path + '.webp', 'webp')
+            self.client.send_sticker(msg.chat.id, path + '.webp')
+
+    @command.desc('Stickerify an image and save it (don\'t add to pack)')
+    def cmd_qstick(self, msg: tg.Message, name: str):
+        if not msg.reply_to_message and not msg.reply_to_message.photo and not msg.reply_to_message.document:
+            self.mresult(msg, '__Reply to a message with an image to stickerify it.__')
+            return
+        if not name:
+            return '__Provide a name to save the sticker as.__'
+        if name in self.config['stickers']:
+            return '__There\'s already a sticker with that name.__'
+
+        path = self.client.download_media(msg.reply_to_message, file_name=f'stickers/{name}01.webp')
+        if not path:
+            return '__Error downloading sticker__'
+
+        self.mresult(msg, 'Stickerifying...')
+
+        st: tg.Sticker = msg.reply_to_message.sticker
+        st_bot: str = 'Stickers'
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = self.client.download_media(msg.reply_to_message, file_name=tmpdir + '/')
+            if not path:
+                return '__Error downloading sticker image__'
+            
+            im = Image.open(path).convert('RGB')
+
+            sz = im.size
+            target = 512
+            if sz[0] > sz[1]:
+                w_ratio = target / float(sz[0])
+                h_size = int(float(sz[1]) * float(w_ratio))
+                im = im.resize((target, h_size), Image.LANCZOS)
+            else:
+                h_ratio = target / float(sz[1])
+                w_size = int(float(sz[0]) * float(h_ratio))
+                im = im.resize((w_size, target), Image.LANCZOS)
+
+            im.save(f'stickers/{name}01.webp', 'webp')
+
+            self.config['stickers'][name] = f'stickers/{name}01.webp'
+            self.save_config()
+
+            return f'Sticker saved to disk as `{name}`.'
