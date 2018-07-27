@@ -6,7 +6,7 @@ A selfbot for Telegram written in Python using Pyrogram.
 This was chosen because it makes development much easier, due to f-strings and typing.
 
 # Installation
-Simply run `pip3 install -u requirements.txt`. This installs all the dependencies.
+Simply run `pip3 install -r requirements.txt`. This installs all the dependencies.
 
 # Usage
 Copy config.toml.sample to config.toml and edit it to your liking.
