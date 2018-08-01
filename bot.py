@@ -37,7 +37,11 @@ class Bot():
         for sym in dir(self):
             if sym.startswith('cmd_'):
                 cmd_name: str = sym[4:]
-                self.commands[cmd_name]: command.Func = getattr(self, sym)
+                cmd: CommandFunc = getattr(self, sym)
+                self.commands[cmd_name]: command.Func = cmd
+                
+                for alias in getattr(cmd, 'aliases', []):
+                    self.commands[alias]: command.Func = cmd
 
         # Initialize config
         if 'snippets' not in self.config:
@@ -252,6 +256,7 @@ class Bot():
         return chr(int(codepoint, 16))
 
     @command.desc('Save a snippet (fetch: `/snippet/`)')
+    @command.alias('sn', 'sp')
     def cmd_snip(self, msg: tg.Message, *args: List[str]) -> str:
         if not args:
             return '__Specify a name for the snippet, then reply to a message or provide text.__'
@@ -281,6 +286,7 @@ class Bot():
         return f'Snippet saved as `{name}`.'
 
     @command.desc('Show all snippets')
+    @command.alias('sl', 'snl', 'spl')
     def cmd_sniplist(self, msg: tg.Message) -> str:
         if not self.config['snippets']:
             return '__No snippets saved.__'
@@ -293,6 +299,7 @@ class Bot():
         return out
     
     @command.desc('Delete a snippet')
+    @command.alias('ds', 'sd', 'snd', 'spd', 'rms', 'srm', 'rs', 'sr')
     def cmd_snipdel(self, msg: tg.Message, name: str) -> str:
         if not name: return '__Provide the name of a snippet to delete.__'
         
@@ -302,6 +309,7 @@ class Bot():
         return f'Snippet `{name}` deleted.'
 
     @command.desc('Evaluate code')
+    @command.alias('ev', 'c')
     def cmd_eval(self, msg: tg.Message, raw_args: str) -> str:
         before = util.time_us()
         result = eval(raw_args)
@@ -333,6 +341,7 @@ Time: {el_str}'''
         return 'Evaulated.'
 
     @command.desc('Paste message text to Hastebin')
+    @command.alias('hs')
     def cmd_haste(self, msg: tg.Message, text: str) -> str:
         orig: tg.Message = msg.reply_to_message
         if orig is None:
@@ -562,6 +571,7 @@ Please read the rules __before__ chatting.
         return f'Finished in `{(after - before) / 1000.0}` seconds.'
 
     @command.desc('Add an item to the todo list')
+    @command.alias('t', 'td')
     def cmd_todo(self, msg: tg.Message, args: str) -> str:
         if not args: return '__Provide an item to add to the todo list.__'
         if args.startswith('list ') or args == "list": return self.cmd_todolist(msg, args[5:])
@@ -580,6 +590,7 @@ Please read the rules __before__ chatting.
         return f'Added item `{item}` as entry {idx}.'
 
     @command.desc('Show the todo list')
+    @command.alias('tl')
     def cmd_todolist(self, msg: tg.Message, l_name: str) -> str:
         if not l_name:
             l_name = 'main'
@@ -596,6 +607,7 @@ Please read the rules __before__ chatting.
         return out
     
     @command.desc('Delete an item from the todo list')
+    @command.alias('tdd', 'tld', 'tr', 'trm', 'dt', 'done')
     def cmd_tododel(self, msg: tg.Message, idx_str: str) -> str:
         if not idx_str: return '__Provide the entry number or entry text to delete.__'
         list = self.config['todo']['main']
@@ -622,6 +634,7 @@ Please read the rules __before__ chatting.
         return f'Item `{item}`, #{idx + 1} deleted.'
 
     @command.desc('Dump all the data of a message')
+    @command.alias('md')
     def cmd_mdump(self, msg: tg.Message) -> str:
         if not msg.reply_to_message:
             return '__Reply to a message to get its data.__'
