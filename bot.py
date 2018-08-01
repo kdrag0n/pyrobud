@@ -863,3 +863,9 @@ Please read the rules __before__ chatting.
             self.save_config()
 
             return f'Sticker saved to disk as `{name}`.'
+
+    @command.desc('Save the config')
+    @command.alias('sc')
+    def cmd_save_config(self, msg: tg.Message) -> str:
+        self.save_config()
+        return 'Config saved to disk.'
