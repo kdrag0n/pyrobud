@@ -483,14 +483,19 @@ Time: {el_str}'''
 
         cfg_err: str = '''**Invalid TOML config.** The following options are supported:
 
-```rules = ["No spam", "English only"]
-extra_rules = ["Respect others"]
+```# Default rules
+rules = ["No spam", "English only", "Respect others", "No NSFW"]
+extra_rules = ["No extreme off-topic"]
 
+# Add ":same" at the end of links to put buttons on the same line
 [buttons]
 "XDA Thread" = "https://forum.xda-developers.com/"
 GitHub = "https://github.com/"```
 
 {}'''
+
+        if plain_params.startswith('?') or plain_params.startswith('help'):
+            return cfg_err.format('')
 
         extra_btn: str = ''
         rules: List[str] = [
@@ -516,11 +521,7 @@ GitHub = "https://github.com/"```
             
             if 'buttons' in cfg:
                 for name, dest in cfg['buttons'].items():
-                    if '://' in dest:
-                        p_dest = urlparse(dest)
-                        ex_btn_map[name] = f'{p_dest.netloc}{p_dest.path}'
-                    else:
-                        ex_btn_map[name] = dest
+                    ex_btn_map[name] = dest
 
         rule_str = f'    \u2022 {rules[0]}'
         for rule in rules[1:]:
@@ -542,10 +543,10 @@ GitHub = "https://github.com/"```
             'goodbye off',
             'disable afk',
             'warnlimit 3',
-            'strongwarn off'
-            f'''setwelcome **Welcome**, {first}!
-Please read the rules __before__ chatting.
-[Rules](buttonurl://t.me/KarafuruBot?start={msg.chat.id}{extra_btn}''',
+            'strongwarn off',
+            f'''setwelcome **Welcome**, {"first"}!
+Please read the rules before chatting.
+[Rules](buttonurl://https://t.me/KarafuruBot?start={msg.chat.id}){extra_btn}''',
             'cleanwelcome on',
             f'setrules \u200b{rule_str}',
             'setflood 16',
@@ -557,7 +558,8 @@ Please read the rules __before__ chatting.
         for cmd in commands:
             csplit = cmd.split(' ')
             _cmd = '/' + csplit[0] + '@KarafuruBot ' + ' '.join(csplit[1:])
-            self.client.send_message(msg.chat.id, _cmd, parse_mode='MARKDOWN')
+            #self.client.send_message(msg.chat.id, _cmd, parse_mode='MARKDOWN')
+            print(_cmd)
             time.sleep(0.180) # ratelimit
         
         # Clean up the mess
