@@ -558,8 +558,7 @@ Please read the rules before chatting.
         for cmd in commands:
             csplit = cmd.split(' ')
             _cmd = '/' + csplit[0] + '@KarafuruBot ' + ' '.join(csplit[1:])
-            #self.client.send_message(msg.chat.id, _cmd, parse_mode='MARKDOWN')
-            print(_cmd)
+            self.client.send_message(msg.chat.id, _cmd, parse_mode='MARKDOWN')
             time.sleep(0.180) # ratelimit
         
         # Clean up the mess
