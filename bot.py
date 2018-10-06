@@ -870,3 +870,20 @@ Please read the rules before chatting.
     def cmd_save_config(self, msg: tg.Message) -> str:
         self.save_config()
         return 'Config saved to disk.'
+
+    @command.desc('Mass forward one message.')
+    @command.alias('massfwd', 'fwd')
+    def cmd_forward(self, msg: tg.Message, _count: str) -> str:
+        if not _count:
+            return '__Provide the amount of times to forward the message.__'
+        if not msg.reply_to_message:
+            return '__Reply to the message to forward.__'
+        
+        try:
+            count = int(_count)
+        except ValueError:
+            return '__Specify a valid number of times to forward the message.__'
+        
+        for i in range(0, count):
+            self.client.forward_messages(msg.chat.id, msg.chat.id, msg.reply_to_message.message_id)
+            time.sleep(0.1)
