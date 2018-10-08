@@ -261,7 +261,7 @@ class Bot():
         if not args:
             return '__Specify a name for the snippet, then reply to a message or provide text.__'
 
-        if msg.reply_to_message:
+        if msg.dreply_to_message:
             content = msg.reply_to_message.text.markdown
             if not content:
                 if len(args) > 1:
@@ -764,7 +764,7 @@ Please read the rules before chatting.
             return
         
         chat_id: int = msg.chat.id
-        reply_id = msg.reply_to_message.id if msg.reply_to_message else None
+        reply_id = msg.reply_to_message.message_id if msg.reply_to_message else None
         self.client.delete_messages(msg.chat.id, msg.message_id, revoke=True)
         self.client.send_sticker(chat_id, self.config['stickers'][name], reply_to_message_id=reply_id)
 
