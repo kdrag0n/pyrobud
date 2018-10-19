@@ -261,7 +261,7 @@ class Bot():
         if not args:
             return '__Specify a name for the snippet, then reply to a message or provide text.__'
 
-        if msg.dreply_to_message:
+        if msg.reply_to_message:
             content = msg.reply_to_message.text.markdown
             if not content:
                 if len(args) > 1:
