@@ -228,7 +228,7 @@ class Bot():
     @command.desc(r'(╯°□°）╯︵ ┻━┻')
     def cmd_tableflip(self, msg: tg.Message, raw_args: str) -> str:
         if len(msg.text.markdown) > 0:
-            return msg.tex.markdownt[len(self.prefix) + 6:] + r' (╯°□°）╯︵ ┻━┻'
+            return msg.text.markdown[len(self.prefix) + 6:] + r' (╯°□°）╯︵ ┻━┻'
         else:
             return r'(╯°□°）╯︵ ┻━┻'
 
