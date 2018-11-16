@@ -477,13 +477,17 @@ Time: {el_str}'''
         if not text: return '__Provide text to send.__'
         return text
 
-    @command.desc('Set up @KarafuruBot')
-    def cmd_ksetup(self, msg: tg.Message, plain_params: str) -> str:
+    @command.desc('Set up Marie-based bots (@KarafuruBot, @MissRose_bot, etc)')
+    def cmd_bsetup(self, msg: tg.Message, plain_params: str) -> str:
         if not msg.chat: return '__This can only be used in groups.__'
 
         cfg_err: str = '''**Invalid TOML config.** The following options are supported:
 
-```# Default rules
+```
+# Bot to setup
+bot = "MissRose_bot"
+
+# Default rules
 rules = ["No spam", "English only", "Respect others", "No NSFW"]
 extra_rules = ["No extreme off-topic"]
 
@@ -505,6 +509,7 @@ GitHub = "https://github.com/"```
             'No NSFW',
             'No extreme off-topic'
         ]
+        target: str = 'MissRose_bot'
 
         ex_btn_map: Dict[str, str] = {}
 
@@ -513,6 +518,9 @@ GitHub = "https://github.com/"```
                 cfg = toml.loads(plain_params)
             except Exception as e:
                 return cfg_err.format(str(e))
+
+            if 'target' in cfg:
+                target = cfg['target']
 
             if 'rules' in cfg:
                 rules = cfg['rules']
@@ -533,9 +541,9 @@ GitHub = "https://github.com/"```
         before = util.time_ms()
 
         try:
-            self.client.promote_chat_member(msg.chat.id, 'KarafuruBot', can_change_info=False)
+            self.client.promote_chat_member(msg.chat.id, target, can_change_info=False)
         except Exception:
-            self.mresult(msg, '**WARNING**: Unable to promote @KarafuruBot')
+            self.mresult(msg, f'**WARNING**: Unable to promote @{target}')
 
         first = 'first'
         commands: List[str] = [
@@ -546,7 +554,7 @@ GitHub = "https://github.com/"```
             'strongwarn off',
             f'''setwelcome **Welcome**, {"first"}!
 Please read the rules before chatting.
-[Rules](buttonurl://https://t.me/KarafuruBot?start={msg.chat.id}){extra_btn}''',
+[Rules](buttonurl://https://t.me/{target}?start={msg.chat.id}){extra_btn}''',
             'cleanwelcome on',
             f'setrules \u200b{rule_str}',
             'setflood 16',
@@ -557,15 +565,15 @@ Please read the rules before chatting.
 
         for cmd in commands:
             csplit = cmd.split(' ')
-            _cmd = '/' + csplit[0] + '@KarafuruBot ' + ' '.join(csplit[1:])
+            _cmd = '/' + csplit[0] + f'@{target} ' + ' '.join(csplit[1:])
             self.client.send_message(msg.chat.id, _cmd, parse_mode='MARKDOWN')
             time.sleep(0.180) # ratelimit
         
         # Clean up the mess
         if msg.reply_to_message:
-            msg.reply_to_message.reply('/purge@KarafuruBot')
+            msg.reply_to_message.reply(f'/purge@{target}')
         else:
-            msg.reply('/purge@KarafuruBot')
+            msg.replyf(f'/purge@{target}')
 
         after = util.time_ms()
 
