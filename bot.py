@@ -477,7 +477,7 @@ Time: {el_str}'''
         if not text: return '__Provide text to send.__'
         return text
 
-    @command.desc('Set up Marie-based bots (@KarafuruBot, @MissRose_bot, etc)')
+    @command.desc('Set up Marie-based bots (@MissRose_bot, etc)')
     def cmd_bsetup(self, msg: tg.Message, plain_params: str) -> str:
         if not msg.chat: return '__This can only be used in groups.__'
 
@@ -485,7 +485,7 @@ Time: {el_str}'''
 
 ```
 # Bot to setup
-bot = "MissRose_bot"
+target = "MissRose_bot"
 
 # Default rules
 rules = ["No spam", "English only", "Respect others", "No NSFW"]
@@ -545,16 +545,14 @@ GitHub = "https://github.com/"```
         except Exception:
             self.mresult(msg, f'**WARNING**: Unable to promote @{target}')
 
-        first = 'first'
+        first = '{first}'
         commands: List[str] = [
             'welcome on',
             'goodbye off',
-            'disable afk',
             'warnlimit 3',
             'strongwarn off',
-            f'''setwelcome **Welcome**, {"first"}!
-Please read the rules before chatting.
-[Rules](buttonurl://https://t.me/{target}?start={msg.chat.id}){extra_btn}''',
+            f'''setwelcome *Welcome*, {first}!
+Please read the rules before chatting. {rules}''',
             'cleanwelcome on',
             f'setrules \u200b{rule_str}',
             'setflood 16',
@@ -566,14 +564,14 @@ Please read the rules before chatting.
         for cmd in commands:
             csplit = cmd.split(' ')
             _cmd = '/' + csplit[0] + f'@{target} ' + ' '.join(csplit[1:])
-            self.client.send_message(msg.chat.id, _cmd, parse_mode='MARKDOWN')
+            self.client.send_message(msg.chat.id, _cmd, parse_mode='HTML')
             time.sleep(0.180) # ratelimit
         
         # Clean up the mess
         if msg.reply_to_message:
             msg.reply_to_message.reply(f'/purge@{target}')
         else:
-            msg.replyf(f'/purge@{target}')
+            msg.reply(f'/purge@{target}')
 
         after = util.time_ms()
 
