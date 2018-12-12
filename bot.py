@@ -558,7 +558,8 @@ Please read the rules before chatting. {rules}''',
             'setflood 16',
             'gbanstat on',
             'gmutestat on',
-            'reports on'
+            'reports on',
+            'cleanservice on'
         ]
 
         for cmd in commands:
