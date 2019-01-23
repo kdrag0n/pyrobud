@@ -119,7 +119,7 @@ class Bot():
         if self.user.phone_number in new:
             new = new.replace(self.user.phone_number, '[REDACTED]')
 
-        self.client.edit_message_text(msg.chat.id, msg.message_id, new, parse_mode='MARKDOWN')
+        self.client.edit_message_text(msg.chat.id, msg.message_id, new, parse_mode='MARKDOWN', disable_web_page_preview=True)
 
     def on_message(self, cl: tg.Client, msg: tg.Message) -> None:
         if msg.from_user and msg.from_user.id == self.uid:
