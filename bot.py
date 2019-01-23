@@ -546,13 +546,14 @@ GitHub = "https://github.com/"```
             self.mresult(msg, f'**WARNING**: Unable to promote @{target}')
 
         first = '{first}'
+        srules = '{rules}'
         commands: List[str] = [
             'welcome on',
             'goodbye off',
             'warnlimit 3',
             'strongwarn off',
             f'''setwelcome *Welcome*, {first}!
-Please read the rules before chatting. {rules}''',
+Please read the rules before chatting. {srules}''',
             'cleanwelcome on',
             f'setrules \u200b{rule_str}',
             'setflood 16',
