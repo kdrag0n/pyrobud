@@ -553,7 +553,7 @@ GitHub = "https://github.com/"```
             'warnlimit 3',
             'strongwarn off',
             f'''setwelcome *Welcome*, {first}!
-Please read the rules before chatting. {srules}''',
+Please read the rules before chatting. {srules}{extra_btn}''',
             'cleanwelcome on',
             f'setrules \u200b{rule_str}',
             'setflood 16',
