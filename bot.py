@@ -799,7 +799,7 @@ Please read the rules before chatting. {srules}{extra_btn}''',
             self.mresult(msg, '__That sticker doesn\'t exist.__')
             return
         
-        if not self.config['stickers'][name].startswith('/'):
+        if not self.config['stickers'][name].endswith('.webp'):
             self.mresult(msg, '__That sticker can not be sent as a photo.__')
             return
 
