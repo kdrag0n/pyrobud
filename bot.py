@@ -19,6 +19,7 @@ import time
 import sys
 import yaml
 import json
+import os.path
 
 Config = NewType('Config', Dict[str, Dict[str, Union[int, str]]])
 CommandMap = NewType('CommandMap', Dict[str, command.Func])
@@ -775,6 +776,30 @@ Please read the rules before chatting. {srules}{extra_btn}''',
         reply_id = msg.reply_to_message.message_id if msg.reply_to_message else None
         self.client.delete_messages(msg.chat.id, msg.message_id, revoke=True)
         self.client.send_sticker(chat_id, self.config['stickers'][name], reply_to_message_id=reply_id)
+
+    @command.desc('Get a sticker by name and send it as a photo')
+    def cmd_sp(self, msg: tg.Message, name: str):
+        if not name:
+            self.mresult(msg, '__Provide the name of a sticker.__')
+            return
+        if name not in self.config['stickers']:
+            self.mresult(msg, '__That sticker doesn\'t exist.__')
+            return
+        
+        if not self.config['stickers'][name].startswith('/'):
+            self.mresult(msg, '__That sticker can not be sent as a photo.__')
+            return
+
+        chat_id: int = msg.chat.id
+        reply_id = msg.reply_to_message.message_id if msg.reply_to_message else None
+        self.client.delete_messages(msg.chat.id, msg.message_id, revoke=True)
+
+        path = self.config['stickers'][name]
+        if not os.path.isfile(path + '.png'):
+            im = Image.open(path).convert('RGB')
+            im.save(path + '.png', 'png')
+
+        self.client.send_photo(chat_id, path + '.png', reply_to_message_id=reply_id)
 
     @command.desc('Stickerify an image')
     def cmd_sticker(self, msg: tg.Message, pack: str):
