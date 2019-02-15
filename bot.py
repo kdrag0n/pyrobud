@@ -752,6 +752,19 @@ Please read the rules before chatting. {srules}{extra_btn}''',
 
         return out
     
+    @command.desc('List locally saved stickers')
+    def cmd_stickersp(self, msg: tg.Message) -> str:
+        if not self.config['stickers']:
+            return '__No stickers saved.__'
+
+        out = 'Stickers saved:'
+
+        for item in self.config['stickers']:
+            if self.config['stickers'][item].endswith('.webp'):
+                out += f'\n    \u2022 **{item}**'
+
+        return out
+
     @command.desc('Delete a saved sticker')
     def cmd_sdel(self, msg: tg.Message, name: str) -> str:
         if not name: return '__Provide the name of a sticker to delete.__'
