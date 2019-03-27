@@ -41,7 +41,7 @@ class Bot():
                 cmd_name: str = sym[4:]
                 cmd: CommandFunc = getattr(self, sym)
                 self.commands[cmd_name]: command.Func = cmd
-                
+
                 for alias in getattr(cmd, 'aliases', []):
                     self.commands[alias]: command.Func = cmd
 
@@ -67,7 +67,7 @@ class Bot():
             self.config['stickers']: Dict[str, str] = {}
 
         self.last_saved_cfg: str = toml.dumps(self.config)
-    
+
     def save_config(self, cfg: str = '') -> None:
         tmp_path: str = ''
 
@@ -85,7 +85,7 @@ class Bot():
         except Exception as e:
             os.remove(tmp_path)
             raise e
-    
+
     def writer(self) -> None:
         while True:
             time.sleep(60)
@@ -134,11 +134,11 @@ class Bot():
                     if m.group(1) in self.config['snippets']:
                         self.config['stats']['replaced'] += 1
                         return self.config['snippets'][m.group(1)]
-                    
+
                     return m.group(0)
 
                 txt = re.sub(r'/([^ ]+?)/', snip_repl, orig_txt)
-                
+
                 if txt != orig_txt:
                     self.mresult(msg, txt)
 
@@ -191,7 +191,7 @@ class Bot():
             return ' '.join(args)
         else:
             return '__No arguments supplied__'
-    
+
     @command.desc('Pong')
     def cmd_ping(self, msg: tg.Message) -> str:
         # Telegram's timestamps are only accurate to the second... so we have to do it manually
@@ -200,7 +200,7 @@ class Bot():
         after = util.time_ms()
 
         return 'Request response time: %.2f ms' % (after - before)
-    
+
     @command.desc('Time setting 1 + 1 into a variable because why not')
     def cmd_time11(self, msg: tg.Message) -> str:
         before = util.time_us()
@@ -247,11 +247,11 @@ class Bot():
             return msg.text.markdown[len(self.prefix) + 6:] + r' ( ͡° ͜ʖ ͡°)'
         else:
             return r'( ͡° ͜ʖ ͡°)'
-    
+
     @command.desc('z e r o')
     def cmd_zwsp(self, msg: tg.Message) -> str:
         return '>\u200b'
-    
+
     @command.desc('Unicode character from hex codepoint')
     def cmd_uni(self, msg: tg.Message, codepoint: str) -> str:
         if not str: return '__Hex codepoint required.__'
@@ -275,11 +275,11 @@ class Bot():
                 content = ' '.join(args[1:])
             else:
                 return '__Reply to a message with text or provide text after snippet name.__'
-        
+
         name = args[0]
         if name in self.config['snippets']:
             return f'__Snippet \'{name}\' already exists!__'
-        
+
         self.config['snippets'][name] = content.strip()
 
         # Actually save it to disk
@@ -299,12 +299,12 @@ class Bot():
             out += f'\n    \u2022 **{name}**'
 
         return out
-    
+
     @command.desc('Delete a snippet')
     @command.alias('ds', 'sd', 'snd', 'spd', 'rms', 'srm', 'rs', 'sr')
     def cmd_snipdel(self, msg: tg.Message, name: str) -> str:
         if not name: return '__Provide the name of a snippet to delete.__'
-        
+
         del self.config['snippets'][name]
         self.save_config()
 
@@ -332,7 +332,7 @@ Time: {el_str}'''
     def cmd_src(self, msg: tg.Message, cmd_name: str) -> str:
         if cmd_name is None or len(cmd_name) < 1:
             return '__Command name required to get source code.__'
-        
+
         src = inspect.getsource(self.commands[cmd_name])
         filtered_src = re.sub(r'^    ', '', src, flags=re.MULTILINE)
         return f'```{filtered_src}```\u200b'
@@ -370,7 +370,7 @@ Time: {el_str}'''
 
         resp: Dict[str, Union[bool, str]] = requests.post('https://hastebin.com/documents', data=txt).json()
         return f'https://hastebin.com/{resp["key"]}'
-    
+
     @command.desc('Paste message text to Dogbin')
     def cmd_dog(self, msg: tg.Message, text: str) -> str:
         orig: tg.Message = msg.reply_to_message
@@ -403,7 +403,7 @@ Time: {el_str}'''
     def cmd_fileio(self, msg: tg.Message, expires: str) -> str:
         if msg.reply_to_message is None:
             return '__Reply to a message with the file to upload.__'
-        
+
         if expires == 'help':
             return '__Expiry format: 1y/12m/52w/365d__'
         elif expires:
@@ -433,12 +433,12 @@ Time: {el_str}'''
                 return '__Error uploading file__'
 
             return resp['link']
-    
+
     @command.desc('Upload replied-to file to transfer.sh')
     def cmd_transfer(self, msg: tg.Message) -> str:
         if msg.reply_to_message is None:
             return '__Reply to a message with the file to upload.__'
-        
+
         def prog_func(cl: tg.Client, current: int, total: int):
             self.mresult(msg, f'Downloading...\nProgress: `{float(current) / 1000.0}/{float(total) / 1000.0}` KB')
 
@@ -473,7 +473,7 @@ Time: {el_str}'''
     def cmd_gtx(self, msg: tg.Message) -> str:
         if not msg.reply_to_message: return '__Reply to a message to get the text of.__'
         return f'```{msg.reply_to_message.text}```'
-    
+
     @command.desc('Send text (debug)')
     def cmd_echo(self, msg: tg.Message, text: str) -> str:
         if not text: return '__Provide text to send.__'
@@ -528,7 +528,7 @@ GitHub = "https://github.com/"```
                 rules = cfg['rules']
             if 'extra_rules' in cfg:
                 rules.extend(cfg['extra_rules'])
-            
+
             if 'buttons' in cfg:
                 for name, dest in cfg['buttons'].items():
                     ex_btn_map[name] = dest
@@ -536,7 +536,7 @@ GitHub = "https://github.com/"```
         rule_str = f'    \u2022 {rules[0]}'
         for rule in rules[1:]:
             rule_str += f'\n    \u2022 {rule}'
-        
+
         for name, dest in ex_btn_map.items():
             extra_btn += f'\n[{name}](buttonurl://{dest})'
 
@@ -570,7 +570,7 @@ Please read the rules before chatting. {srules}{extra_btn}''',
             _cmd = '/' + csplit[0] + f'@{target} ' + ' '.join(csplit[1:])
             self.client.send_message(msg.chat.id, _cmd, parse_mode='HTML')
             time.sleep(0.180) # ratelimit
-        
+
         # Clean up the mess
         if msg.reply_to_message:
             msg.reply_to_message.reply(f'/purge@{target}')
@@ -616,7 +616,7 @@ Please read the rules before chatting. {srules}{extra_btn}''',
             out += f'\n    {idx + 1}. {item}'
 
         return out
-    
+
     @command.desc('Delete an item from the todo list')
     @command.alias('tdd', 'tld', 'tr', 'trm', 'dt', 'done')
     def cmd_tododel(self, msg: tg.Message, idx_str: str) -> str:
@@ -636,9 +636,9 @@ Please read the rules before chatting. {srules}{extra_btn}''',
             return f'__Entry number out of range, there are {l} entries.__'
 
         idx -= 1
-        
+
         item = list[idx]
-        
+
         del list[idx]
         self.save_config()
 
@@ -678,7 +678,7 @@ Please read the rules before chatting. {srules}{extra_btn}''',
         if pack_name:
             self.config['user']['sticker_pack'] = pack_name
             self.save_config()
-        
+
         self.mresult(msg, 'Kanging...')
 
         st: tg.Sticker = msg.reply_to_message.sticker
@@ -688,17 +688,17 @@ Please read the rules before chatting. {srules}{extra_btn}''',
             path = self.client.download_media(msg.reply_to_message, file_name=tmpdir + '/')
             if not path:
                 return '__Error downloading sticker__'
-            
+
             im = Image.open(path).convert('RGB')
             im.save(path + '.png', 'png')
-            
+
             self.client.send_message(st_bot, '/addsticker')
             time.sleep(0.100)
             self.client.send_message(st_bot, self.config['user']['sticker_pack'])
             time.sleep(0.100)
             self.client.send_document(st_bot, path + '.png')
             time.sleep(0.100)
-            
+
             if st.emoji:
                 self.client.send_message(st_bot, st.emoji)
             else:
@@ -716,7 +716,7 @@ Please read the rules before chatting. {srules}{extra_btn}''',
             return '__Provide a name to save the sticker as.__'
         if name in self.config['stickers']:
             return '__There\'s already a sticker with that name.__'
-        
+
         self.config['stickers'][name] = msg.reply_to_message.sticker.file_id
         self.save_config()
 
@@ -734,12 +734,12 @@ Please read the rules before chatting. {srules}{extra_btn}''',
         path = self.client.download_media(msg.reply_to_message, file_name=f'stickers/{name}01.webp')
         if not path:
             return '__Error downloading sticker__'
-        
+
         self.config['stickers'][name] = path
         self.save_config()
 
         return f'Sticker saved to disk as `{name}`.'
-    
+
     @command.desc('List saved stickers')
     def cmd_stickers(self, msg: tg.Message) -> str:
         if not self.config['stickers']:
@@ -752,7 +752,7 @@ Please read the rules before chatting. {srules}{extra_btn}''',
             out += f'\n    \u2022 **{item}** ({s_type})'
 
         return out
-    
+
     @command.desc('List locally saved stickers')
     def cmd_stickersp(self, msg: tg.Message) -> str:
         if not self.config['stickers']:
@@ -776,7 +776,7 @@ Please read the rules before chatting. {srules}{extra_btn}''',
         self.save_config()
 
         return f'{s_type.title()} sticker `{name}` deleted.'
-    
+
     @command.desc('Get a sticker by name')
     def cmd_s(self, msg: tg.Message, name: str):
         if not name:
@@ -785,7 +785,7 @@ Please read the rules before chatting. {srules}{extra_btn}''',
         if name not in self.config['stickers']:
             self.mresult(msg, '__That sticker doesn\'t exist.__')
             return
-        
+
         chat_id: int = msg.chat.id
         reply_id = msg.reply_to_message.message_id if msg.reply_to_message else None
         self.mresult(msg, 'Uploading sticker...')
@@ -800,7 +800,7 @@ Please read the rules before chatting. {srules}{extra_btn}''',
         if name not in self.config['stickers']:
             self.mresult(msg, '__That sticker doesn\'t exist.__')
             return
-        
+
         if not self.config['stickers'][name].endswith('.webp'):
             self.mresult(msg, '__That sticker can not be sent as a photo.__')
             return
@@ -825,7 +825,7 @@ Please read the rules before chatting. {srules}{extra_btn}''',
         if not pack:
             self.mresult(msg, '__Provide the name of the pack to add the sticker to.__')
             return
-        
+
         ps = pack.split()
         emoji = ps[1] if len(ps) > 1 else '❓'
 
@@ -838,7 +838,7 @@ Please read the rules before chatting. {srules}{extra_btn}''',
             path = self.client.download_media(msg.reply_to_message, file_name=tmpdir + '/')
             if not path:
                 return '__Error downloading sticker image__'
-            
+
             im = Image.open(path).convert('RGB')
 
             sz = im.size
@@ -853,14 +853,14 @@ Please read the rules before chatting. {srules}{extra_btn}''',
                 im = im.resize((w_size, target), Image.LANCZOS)
 
             im.save(path + '.png', 'png')
-            
+
             self.client.send_message(st_bot, '/addsticker')
             time.sleep(0.100)
             self.client.send_message(st_bot, ps[0])
             time.sleep(0.100)
             self.client.send_document(st_bot, path + '.png')
             time.sleep(0.100)
-            
+
             self.client.send_message(st_bot, emoji)
             time.sleep(0.220)
 
@@ -893,7 +893,7 @@ Please read the rules before chatting. {srules}{extra_btn}''',
             path = self.client.download_media(msg.reply_to_message, file_name=tmpdir + '/')
             if not path:
                 return '__Error downloading sticker image__'
-            
+
             im = Image.open(path).convert('RGB')
 
             sz = im.size
@@ -958,12 +958,12 @@ Please read the rules before chatting. {srules}{extra_btn}''',
             return '__Provide the amount of times to forward the message.__'
         if not msg.reply_to_message:
             return '__Reply to the message to forward.__'
-        
+
         try:
             count = int(_count)
         except ValueError:
             return '__Specify a valid number of times to forward the message.__'
-        
+
         for i in range(0, count):
             self.client.forward_messages(msg.chat.id, msg.chat.id, msg.reply_to_message.message_id)
             time.sleep(0.1)
