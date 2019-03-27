@@ -788,8 +788,9 @@ Please read the rules before chatting. {srules}{extra_btn}''',
         
         chat_id: int = msg.chat.id
         reply_id = msg.reply_to_message.message_id if msg.reply_to_message else None
-        self.client.delete_messages(msg.chat.id, msg.message_id, revoke=True)
+        self.mresult(msg, 'Uploading sticker...')
         self.client.send_sticker(chat_id, self.config['stickers'][name], reply_to_message_id=reply_id)
+        self.client.delete_messages(msg.chat.id, msg.message_id, revoke=True)
 
     @command.desc('Get a sticker by name and send it as a photo')
     def cmd_sp(self, msg: tg.Message, name: str):
@@ -806,14 +807,15 @@ Please read the rules before chatting. {srules}{extra_btn}''',
 
         chat_id: int = msg.chat.id
         reply_id = msg.reply_to_message.message_id if msg.reply_to_message else None
-        self.client.delete_messages(msg.chat.id, msg.message_id, revoke=True)
 
         path = self.config['stickers'][name]
         if not os.path.isfile(path + '.png'):
             im = Image.open(path).convert('RGB')
             im.save(path + '.png', 'png')
 
+        self.mresult(msg, 'Uploading sticker...')
         self.client.send_photo(chat_id, path + '.png', reply_to_message_id=reply_id)
+        self.client.delete_messages(msg.chat.id, msg.message_id, revoke=True)
 
     @command.desc('Stickerify an image')
     def cmd_sticker(self, msg: tg.Message, pack: str):
@@ -939,6 +941,7 @@ Please read the rules before chatting. {srules}{extra_btn}''',
 
             chat_id: int = msg.chat.id
             reply_id = msg.reply_to_message.message_id if msg.reply_to_message else None
+            self.mresult(msg, 'Uploading glitched image...')
             self.client.send_photo(chat_id, path + '_glitch.png', reply_to_message_id=reply_id)
             self.client.delete_messages(msg.chat.id, msg.message_id, revoke=True)
 
