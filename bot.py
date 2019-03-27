@@ -20,6 +20,7 @@ import sys
 import yaml
 import json
 import os.path
+import subprocess
 
 Config = NewType('Config', Dict[str, Dict[str, Union[int, str]]])
 CommandMap = NewType('CommandMap', Dict[str, command.Func])
@@ -910,6 +911,36 @@ Please read the rules before chatting. {srules}{extra_btn}''',
             self.save_config()
 
             return f'Sticker saved to disk as `{name}`.'
+
+    @command.desc('Glitch an image')
+    def cmd_glitch(self, msg: tg.Message, boffset_str: str):
+        if not msg.reply_to_message and not msg.reply_to_message.photo and not msg.reply_to_message.document:
+            self.mresult(msg, '__Reply to a message with an image to glitch it.__')
+            return
+
+        boffset = 8
+        if boffset_str:
+            try:
+                boffset = int(boffset_str)
+            except ValueError:
+                return '__Invalid distorted block offset strength.__'
+
+        self.mresult(msg, 'Glitching...')
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            path = self.client.download_media(msg.reply_to_message, file_name=tmpdir + '/')
+            if not path:
+                return '__Error downloading sticker image__'
+
+            im = Image.open(path).convert('RGB')
+            im.save(path + '.png', 'png')
+
+            subprocess.run(['/usr/bin/corrupter', '-boffset', str(boffset), path + '.png', path + '_glitch.png'])
+
+            chat_id: int = msg.chat.id
+            reply_id = msg.reply_to_message.message_id if msg.reply_to_message else None
+            self.client.send_photo(chat_id, path + '_glitch.png', reply_to_message_id=reply_id)
+            self.client.delete_messages(msg.chat.id, msg.message_id, revoke=True)
 
     @command.desc('Save the config')
     @command.alias('sc')
