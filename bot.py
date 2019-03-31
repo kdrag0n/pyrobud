@@ -937,7 +937,7 @@ Please read the rules before chatting. {srules}{extra_btn}''',
             im = Image.open(path).convert('RGB')
             im.save(path + '.png', 'png')
 
-            subprocess.run(['/usr/bin/corrupter', '-boffset', str(boffset), path + '.png', path + '_glitch.png'])
+            subprocess.run(['corrupter', '-boffset', str(boffset), path + '.png', path + '_glitch.png'])
 
             chat_id: int = msg.chat.id
             reply_id = msg.reply_to_message.message_id if msg.reply_to_message else None
