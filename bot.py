@@ -693,17 +693,17 @@ Please read the rules before chatting. {srules}{extra_btn}''',
             im.save(path + '.png', 'png')
 
             self.client.send_message(st_bot, '/addsticker')
-            time.sleep(0.100)
+            time.sleep(0.15)
             self.client.send_message(st_bot, self.config['user']['sticker_pack'])
-            time.sleep(0.100)
+            time.sleep(0.15)
             self.client.send_document(st_bot, path + '.png')
-            time.sleep(0.100)
+            time.sleep(0.25)
 
             if st.emoji:
                 self.client.send_message(st_bot, st.emoji)
             else:
                 self.client.send_message(st_bot, '❓')
-            time.sleep(0.100)
+            time.sleep(0.25)
 
             self.client.send_message(st_bot, '/done')
             return 'Kanged.'
@@ -855,14 +855,14 @@ Please read the rules before chatting. {srules}{extra_btn}''',
             im.save(path + '.png', 'png')
 
             self.client.send_message(st_bot, '/addsticker')
-            time.sleep(0.100)
+            time.sleep(0.15)
             self.client.send_message(st_bot, ps[0])
-            time.sleep(0.100)
+            time.sleep(0.15)
             self.client.send_document(st_bot, path + '.png')
-            time.sleep(0.100)
+            time.sleep(0.15)
 
             self.client.send_message(st_bot, emoji)
-            time.sleep(0.220)
+            time.sleep(0.25)
 
             self.client.send_message(st_bot, '/done')
             self.mresult(msg, 'Stickered, it\'ll be available in an hour.')
@@ -966,4 +966,4 @@ Please read the rules before chatting. {srules}{extra_btn}''',
 
         for i in range(0, count):
             self.client.forward_messages(msg.chat.id, msg.chat.id, msg.reply_to_message.message_id)
-            time.sleep(0.1)
+            time.sleep(0.15)
