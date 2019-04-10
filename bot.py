@@ -703,7 +703,7 @@ Please read the rules before chatting. {srules}{extra_btn}''',
                 self.client.send_message(st_bot, st.emoji)
             else:
                 self.client.send_message(st_bot, '❓')
-            time.sleep(0.25)
+            time.sleep(0.6)
 
             self.client.send_message(st_bot, '/done')
             return 'Kanged.'
@@ -862,7 +862,7 @@ Please read the rules before chatting. {srules}{extra_btn}''',
             time.sleep(0.15)
 
             self.client.send_message(st_bot, emoji)
-            time.sleep(0.25)
+            time.sleep(0.6)
 
             self.client.send_message(st_bot, '/done')
             self.mresult(msg, 'Stickered, it\'ll be available in an hour.')
