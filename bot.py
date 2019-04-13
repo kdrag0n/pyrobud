@@ -252,7 +252,7 @@ class Bot():
         else:
             return r'( ͡° ͜ʖ ͡°)'
 
-    @command.desc('z e r o')
+    @command.desc('Get a zero-width space')
     def cmd_zwsp(self, msg: tg.Message) -> str:
         return '>\u200b'
 
