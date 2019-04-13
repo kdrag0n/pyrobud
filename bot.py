@@ -183,21 +183,7 @@ class Bot():
 
         self.config['stats']['processed'] += 1
 
-    # Commands, the lazy way
-
-    @command.desc('Test this stoof (raw args too)')
-    def cmd_test(self, msg: tg.Message, raw_args: str) -> str:
-        if len(raw_args) > 0:
-            return raw_args
-        else:
-            return 'It works!'
-
-    @command.desc('Test arguments (echo)')
-    def cmd_argtest(self, msg: tg.Message, *args) -> str:
-        if len(args) > 0:
-            return ' '.join(args)
-        else:
-            return '__No arguments supplied__'
+    # Commands
 
     @command.desc('Pong')
     def cmd_ping(self, msg: tg.Message) -> str:
