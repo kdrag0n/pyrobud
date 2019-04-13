@@ -194,14 +194,17 @@ class Bot():
 
         return 'Request response time: %.2f ms' % (after - before)
 
-    @command.desc('Time setting 1 + 1 into a variable because why not')
+    @command.desc('Time `1 + 1`')
     def cmd_time11(self, msg: tg.Message) -> str:
+        reps = 1000000
+
         before = util.time_us()
-        self.var = 1 + 1
+        for i in range(reps):
+            v = 1 + 1
         after = util.time_us()
 
-        el_us = after - before
-        return '`var = 1 + 1`: %.3f ms / %.2f μs / %.0f ns' % (el_us / 1000.0, el_us, el_us * 1000.0)
+        el_us = (after - before) / reps
+        return '`1 + 1`: %.0f ns' % (el_us * 1000)
 
     @command.desc('List the commands')
     def cmd_help(self, msg: tg.Message) -> str:
