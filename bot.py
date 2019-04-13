@@ -30,6 +30,7 @@ class Bot():
         self.commands: CommandMap = {}
 
     def setup(self, instance_name: str, config: Config) -> None:
+        tg.session.Session.notice_displayed = True
         self.client: tg.Client = tg.Client(instance_name, api_id=config['telegram']['api_id'], api_hash=config['telegram']['api_hash'])
 
         self.prefix: str = config['bot']['prefix']
@@ -114,6 +115,8 @@ class Bot():
         self.writer_thread: threading.Thread = threading.Thread(target=self.writer)
         self.writer_thread.daemon = True
         self.writer_thread.start()
+
+        print('Bot is ready')
 
     def mresult(self, msg: tg.Message, new: str) -> None:
         t = self.config['telegram']
