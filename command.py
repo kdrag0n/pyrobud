@@ -25,3 +25,10 @@ def alias(*aliases: Tuple[str]) -> CommandDecorator:
         return func
 
     return alias_decorator
+
+class Info():
+    def __init__(self, name: str, func: Func) -> None:
+        self.name: str = name
+        self.desc: str = getattr(func, 'description', None)
+        self.aliases: List[str] = getattr(func, 'aliases', [])
+        self.func: Func = func

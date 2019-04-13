@@ -39,11 +39,17 @@ class Bot():
         for sym in dir(self):
             if sym.startswith('cmd_'):
                 cmd_name: str = sym[4:]
-                cmd: CommandFunc = getattr(self, sym)
-                self.commands[cmd_name]: command.Func = cmd
+                cmd_func: command.Func = getattr(self, sym)
+                cmd_info: command.Info = command.Info(cmd_name, cmd_func)
 
-                for alias in getattr(cmd, 'aliases', []):
-                    self.commands[alias]: command.Func = cmd
+                if cmd_name in self.commands:
+                    orig: command.Info = self.commands[cmd_name]
+                    print(f"WARNING: overwriting command '{orig.name}' ({orig.desc}) with '{cmd_name}' ({cmd_info.desc})")
+
+                self.commands[cmd_name]: command.Info = cmd_info
+
+                for alias in getattr(cmd_func, 'aliases', []):
+                    self.commands[alias]: command.Info = cmd_info
 
         # Initialize config
         if 'snippets' not in self.config:
@@ -149,7 +155,8 @@ class Bot():
             self.config['stats']['received'] += 1
 
     def on_command(self, cl: tg.Client, msg: tg.Message) -> None:
-        cmd_func: command.Func = self.commands[msg.command[0]]
+        cmd_info: command.Info = self.commands[msg.command[0]]
+        cmd_func: command.Func = cmd_info.func
         cmd_spec: inspect.FullArgSpec = inspect.getfullargspec(cmd_func)
         cmd_args: List[str] = cmd_spec.args
 
@@ -194,7 +201,7 @@ class Bot():
 
     @command.desc('Pong')
     def cmd_ping(self, msg: tg.Message) -> str:
-        # Telegram's timestamps are only accurate to the second... so we have to do it manually
+        # Telegram's timestamps are only accurate to the second, so we have to do it manually
         before = util.time_ms()
         self.mresult(msg, 'Calculating response time...')
         after = util.time_ms()
@@ -215,8 +222,16 @@ class Bot():
         out = 'Command list:'
 
         for name, cmd in self.commands.items():
-            desc = getattr(cmd, 'description', '__No description provided.__')
-            out += f'\n    \u2022 **{name}**: {desc}'
+            # Don't count aliases as separate commands
+            if name != cmd.name :
+                continue
+
+            desc = cmd.desc if cmd.desc else '__No description provided__'
+            aliases = ''
+            if cmd.aliases:
+                aliases = f' (aliases: {", ".join(cmd.aliases)})'
+
+            out += f'\n    \u2022 **{cmd.name}**: {desc}{aliases}'
 
         return out
 
