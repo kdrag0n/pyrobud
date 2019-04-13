@@ -339,7 +339,7 @@ Time: {el_str}'''
         if cmd_name is None or len(cmd_name) < 1:
             return '__Command name required to get source code.__'
 
-        src = inspect.getsource(self.commands[cmd_name])
+        src = inspect.getsource(self.commands[cmd_name].func)
         filtered_src = re.sub(r'^    ', '', src, flags=re.MULTILINE)
         return f'```{filtered_src}```\u200b'
 
