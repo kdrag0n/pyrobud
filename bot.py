@@ -678,6 +678,8 @@ Please read the rules before chatting. {srules}{extra_btn}''',
         if pack_name:
             self.config['user']['sticker_pack'] = pack_name
             self.save_config()
+        else:
+            pack_name = self.config['user']['sticker_pack']
 
         self.mresult(msg, 'Kanging...')
 
@@ -694,7 +696,7 @@ Please read the rules before chatting. {srules}{extra_btn}''',
 
             self.client.send_message(st_bot, '/addsticker')
             time.sleep(0.15)
-            self.client.send_message(st_bot, self.config['user']['sticker_pack'])
+            self.client.send_message(st_bot, pack_name)
             time.sleep(0.15)
             self.client.send_document(st_bot, path + '.png')
             time.sleep(0.25)
@@ -706,7 +708,7 @@ Please read the rules before chatting. {srules}{extra_btn}''',
             time.sleep(0.6)
 
             self.client.send_message(st_bot, '/done')
-            return 'Kanged.'
+            return f"[Kanged](https://t.me/addstickers/{pack_name})."
 
     @command.desc('Save a sticker with a name as reference')
     def cmd_save(self, msg: tg.Message, name: str) -> str:
@@ -817,10 +819,10 @@ Please read the rules before chatting. {srules}{extra_btn}''',
         self.client.send_photo(chat_id, path + '.png', reply_to_message_id=reply_id)
         self.client.delete_messages(msg.chat.id, msg.message_id, revoke=True)
 
-    @command.desc('Stickerify an image')
+    @command.desc('Sticker an image')
     def cmd_sticker(self, msg: tg.Message, pack: str):
         if not msg.reply_to_message and not msg.reply_to_message.photo and not msg.reply_to_message.document:
-            self.mresult(msg, '__Reply to a message with an image to stickerify it.__')
+            self.mresult(msg, '__Reply to a message with an image to sticker it.__')
             return
         if not pack:
             self.mresult(msg, '__Provide the name of the pack to add the sticker to.__')
@@ -829,7 +831,7 @@ Please read the rules before chatting. {srules}{extra_btn}''',
         ps = pack.split()
         emoji = ps[1] if len(ps) > 1 else '❓'
 
-        self.mresult(msg, 'Stickerifying...')
+        self.mresult(msg, 'Stickering...')
 
         st: tg.Sticker = msg.reply_to_message.sticker
         st_bot: str = 'Stickers'
@@ -837,7 +839,7 @@ Please read the rules before chatting. {srules}{extra_btn}''',
         with tempfile.TemporaryDirectory() as tmpdir:
             path = self.client.download_media(msg.reply_to_message, file_name=tmpdir + '/')
             if not path:
-                return '__Error downloading sticker image__'
+                return '__Error downloading image__'
 
             im = Image.open(path).convert('RGB')
 
@@ -865,26 +867,22 @@ Please read the rules before chatting. {srules}{extra_btn}''',
             time.sleep(0.6)
 
             self.client.send_message(st_bot, '/done')
-            self.mresult(msg, 'Stickered, it\'ll be available in an hour.')
+            self.mresult(msg, f'[Stickered]({ps[0]}).')
 
             im.save(path + '.webp', 'webp')
             self.client.send_sticker(msg.chat.id, path + '.webp')
 
-    @command.desc('Stickerify an image and save it (don\'t add to pack)')
+    @command.desc('Sticker an image and save it to disk')
     def cmd_qstick(self, msg: tg.Message, name: str):
         if not msg.reply_to_message and not msg.reply_to_message.photo and not msg.reply_to_message.document:
-            self.mresult(msg, '__Reply to a message with an image to stickerify it.__')
+            self.mresult(msg, '__Reply to a message with an image to sticker it.__')
             return
         if not name:
             return '__Provide a name to save the sticker as.__'
         if name in self.config['stickers']:
             return '__There\'s already a sticker with that name.__'
 
-        path = self.client.download_media(msg.reply_to_message, file_name=f'stickers/{name}01.webp')
-        if not path:
-            return '__Error downloading sticker__'
-
-        self.mresult(msg, 'Stickerifying...')
+        self.mresult(msg, 'Stickering...')
 
         st: tg.Sticker = msg.reply_to_message.sticker
         st_bot: str = 'Stickers'
@@ -892,7 +890,7 @@ Please read the rules before chatting. {srules}{extra_btn}''',
         with tempfile.TemporaryDirectory() as tmpdir:
             path = self.client.download_media(msg.reply_to_message, file_name=tmpdir + '/')
             if not path:
-                return '__Error downloading sticker image__'
+                return '__Error downloading image__'
 
             im = Image.open(path).convert('RGB')
 
