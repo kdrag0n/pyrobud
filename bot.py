@@ -86,6 +86,8 @@ class Bot():
                 tmp_path = f.name
 
                 f.write(cfg.encode('utf-8'))
+                f.flush()
+                os.fsync(f.fileno())
                 self.last_saved_cfg = cfg
 
             shutil.move(tmp_path, 'config.toml')
