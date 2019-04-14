@@ -9,7 +9,7 @@ class UnicodeModule(module.Module):
         return '>\u200b'
 
     @command.desc('Unicode character from hex codepoint')
-    @command.alias('cp')
+    @command.alias('cp', 'chr')
     def cmd_uni(self, msg, codepoint):
         if not codepoint:
             return '__Hex codepoint required.__'
