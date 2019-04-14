@@ -219,7 +219,7 @@ class StickerModule(module.Module):
             time.sleep(0.6)
 
             self.bot.client.send_message(st_bot, '/done')
-            self.bot.mresult(msg, f'[Stickered]({ps[0]}).')
+            self.bot.mresult(msg, f'[Stickered](https://t.me/addstickers/{ps[0]}).')
 
             im.save(path + '.webp', 'webp')
             self.bot.client.send_sticker(msg.chat.id, path + '.webp')
