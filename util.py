@@ -3,10 +3,8 @@
 from datetime import datetime
 import time
 
-def time_ms() -> float:
-    now = datetime.now()
-    return time.mktime(now.timetuple()) + now.microsecond / 1000.0
-
 def time_us() -> float:
-    now = datetime.now()
-    return time.mktime(now.timetuple()) + now.microsecond
+    return time.time() * 1000000
+
+def time_ms() -> float:
+    return time_us() / 1000.0
