@@ -5,9 +5,9 @@ import toml
 
 def main():
     print('Loading config...')
-    config: bot.Config = toml.load('config.toml')
+    config = toml.load('config.toml')
 
-    inst: bot.Bot = bot.Bot()
+    inst = bot.Bot()
     inst.setup('main', config)
     print('Starting bot...')
     inst.start()
