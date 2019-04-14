@@ -173,7 +173,7 @@ class StickerModule(module.Module):
 
     @command.desc('Sticker an image')
     def cmd_sticker(self, msg, pack):
-        if not msg.reply_to_message and not msg.reply_to_message.photo and not msg.reply_to_message.document:
+        if not msg.reply_to_message or (not msg.reply_to_message.photo and not msg.reply_to_message.document):
             self.bot.mresult(msg, '__Reply to a message with an image to sticker it.__')
             return
         if not pack:
@@ -226,7 +226,7 @@ class StickerModule(module.Module):
 
     @command.desc('Sticker an image and save it to disk')
     def cmd_qstick(self, msg, name):
-        if not msg.reply_to_message and not msg.reply_to_message.photo and not msg.reply_to_message.document:
+        if not msg.reply_to_message or (not msg.reply_to_message.photo and not msg.reply_to_message.document):
             self.bot.mresult(msg, '__Reply to a message with an image to sticker it.__')
             return
         if not name:
@@ -266,7 +266,7 @@ class StickerModule(module.Module):
 
     @command.desc('Glitch an image')
     def cmd_glitch(self, msg, boffset_str):
-        if not msg.reply_to_message and not msg.reply_to_message.photo and not msg.reply_to_message.document:
+        if not msg.reply_to_message or (not msg.reply_to_message.photo and not msg.reply_to_message.document):
             self.bot.mresult(msg, '__Reply to a message with an image to glitch it.__')
             return
 
