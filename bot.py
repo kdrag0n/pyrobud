@@ -227,34 +227,6 @@ class Bot():
 
         return out
 
-    @command.desc(r'¯\_(ツ)_/¯')
-    def cmd_shrug(self, msg: tg.Message, raw_args: str) -> str:
-        if len(msg.text.markdown) > 0:
-            return msg.text.markdown[len(self.prefix) + 6:] + r' ¯\_(ツ)_/¯'
-        else:
-            return r'¯\_(ツ)_/¯'
-
-    @command.desc(r'(╯°□°）╯︵ ┻━┻')
-    def cmd_tableflip(self, msg: tg.Message, raw_args: str) -> str:
-        if len(msg.text.markdown) > 0:
-            return msg.text.markdown[len(self.prefix) + 6:] + r' (╯°□°）╯︵ ┻━┻'
-        else:
-            return r'(╯°□°）╯︵ ┻━┻'
-
-    @command.desc(r'┬─┬ ノ( ゜-゜ノ)')
-    def cmd_unflip(self, msg: tg.Message, raw_args: str) -> str:
-        if len(msg.text.markdown) > 0:
-            return msg.text.markdown[len(self.prefix) + 6:] + r' ┬─┬ ノ( ゜-゜ノ)'
-        else:
-            return r'┬─┬ ノ( ゜-゜ノ)'
-
-    @command.desc(r'( ͡° ͜ʖ ͡°)')
-    def cmd_lenny(self, msg: tg.Message, raw_args: str) -> str:
-        if len(msg.text.markdown) > 0:
-            return msg.text.markdown[len(self.prefix) + 6:] + r' ( ͡° ͜ʖ ͡°)'
-        else:
-            return r'( ͡° ͜ʖ ͡°)'
-
     @command.desc('Get a zero-width space')
     def cmd_zwsp(self, msg: tg.Message) -> str:
         return '>\u200b'
