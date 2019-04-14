@@ -536,11 +536,14 @@ GitHub = "https://github.com/"```
 Please read the rules before chatting. {srules}{extra_btn}''',
             'cleanwelcome on',
             f'setrules \u200b{rule_str}',
-            'setflood 16',
+            'setflood 20',
+            'setfloodmode tmute 3h',
             'gbanstat on',
             'gmutestat on',
             'reports on',
-            'cleanservice on'
+            'cleanservice on',
+            'welcomemute on',
+            'welcomemutetime 3h'
         ]
 
         for cmd in commands:
@@ -557,7 +560,7 @@ Please read the rules before chatting. {srules}{extra_btn}''',
 
         after = util.time_ms()
 
-        return f'Finished in `{(after - before) / 1000.0}` seconds.'
+        return f'Finished in `{int((after - before) / 1000)}` seconds.'
 
     @command.desc('Add an item to the todo list')
     @command.alias('t', 'td')
