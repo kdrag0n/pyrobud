@@ -33,6 +33,7 @@ class UploadModule(module.Module):
                 else:
                     return '__Reply to a message with text or a text file, or provide text in command.__'
 
+        self.bot.mresult(msg, 'Uploading text to [Hastebin](https://hastebin.com/)...')
         resp = requests.post('https://hastebin.com/documents', data=txt).json()
         return f'https://hastebin.com/{resp["key"]}'
 
@@ -61,6 +62,7 @@ class UploadModule(module.Module):
                 else:
                     return '__Reply to a message with text or a text file, or provide text in command.__'
 
+        self.bot.mresult(msg, 'Uploading text to [Dogbin](https://del.dog/)...')
         resp = requests.post('https://del.dog/documents', data=txt).json()
         return f'https://del.dog/{resp["key"]}'
 
@@ -90,7 +92,7 @@ class UploadModule(module.Module):
             if not path:
                 return '__Error downloading file__'
 
-            self.bot.mresult(msg, 'Uploading...')
+            self.bot.mresult(msg, 'Uploading file to [file.io](https://file.io/)...')
             with open(path, 'rb') as f:
                 resp = requests.post(f'https://file.io/?expires={expires}', files={'file': f}).json()
 
@@ -112,7 +114,7 @@ class UploadModule(module.Module):
             if not path:
                 return '__Error downloading file__'
 
-            self.bot.mresult(msg, 'Uploading...')
+            self.bot.mresult(msg, 'Uploading file to [transfer.sh](https://transfer.sh/)...')
             with open(path, 'rb') as f:
                 resp = requests.put(f'https://transfer.sh/{os.path.basename(path)}', data=f)
 
