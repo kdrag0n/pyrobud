@@ -324,7 +324,7 @@ class Bot():
         after = util.time_us()
 
         el_us = after - before
-        el_str = '%.3f ms, %.2f μs' % (el_us / 1000.0, el_us)
+        el_str = '%.2f μs' % el_us
 
         return f'''In:
 ```{raw_args}```
@@ -344,8 +344,8 @@ Time: {el_str}'''
         return f'```{filtered_src}```\u200b'
 
     @command.desc('Evalulate code (statement)')
-    def cmd_exec(self, msg: tg.Message) -> str:
-        exec(msg)
+    def cmd_exec(self, msg: tg.Message, raw_args: str) -> str:
+        exec(raw_args)
         return 'Evaulated.'
 
     @command.desc('Paste message text to Hastebin')
