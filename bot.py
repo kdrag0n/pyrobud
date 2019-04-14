@@ -97,7 +97,7 @@ class Bot():
 
     def writer(self) -> None:
         while True:
-            time.sleep(60)
+            time.sleep(15)
             cfg: str = toml.dumps(self.config)
             if cfg != self.last_saved_cfg:
                 self.save_config(cfg)
