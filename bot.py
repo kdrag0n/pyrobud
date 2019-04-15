@@ -112,6 +112,9 @@ class Bot():
             if cfg != self.last_saved_cfg:
                 self.save_config(cfg)
 
+    def register_command_handler(self):
+        self.cmd_handler = self.client.add_handler(tg.MessageHandler(self.on_command, tg.Filters.user(self.uid) & tg.Filters.command(list(self.commands.keys()), prefix=self.prefix)), group=0)
+
     def start(self):
         self.client.start()
 
@@ -120,8 +123,8 @@ class Bot():
         self.uid = self.user.id
 
         # Register handlers with new info
-        self.client.add_handler(tg.MessageHandler(self.on_command, tg.Filters.user(self.uid) & tg.Filters.command(list(self.commands.keys()), prefix=self.prefix)))
-        self.client.add_handler(tg.MessageHandler(self.on_message))
+        self.client.add_handler(tg.MessageHandler(self.on_message), group=1)
+        self.register_command_handler()
 
         # Save config in the background
         self.writer_thread = threading.Thread(target=self.writer)
