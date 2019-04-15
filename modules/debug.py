@@ -65,7 +65,7 @@ Time: {el_str}'''
         return text
 
     @command.desc('Dump all the data of a message')
-    @command.alias('md')
+    @command.alias('md', 'msginfo', 'minfo')
     def cmd_mdump(self, msg):
         if not msg.reply_to_message:
             return '__Reply to a message to get its data.__'
