@@ -141,12 +141,12 @@ class Bot():
 
         self.client.edit_message_text(msg.chat.id, msg.message_id, new, parse_mode='MARKDOWN', disable_web_page_preview=True)
 
-    def call_listeners(self, event, *args):
+    def dispatch_event(self, event, *args):
         for l in self.listeners[event]:
             l.func(*args)
 
     def on_message(self, cl, msg):
-        self.call_listeners('message', msg)
+        self.dispatch_event('message', msg)
 
     def on_command(self, cl, msg):
         cmd_info = self.commands[msg.command[0]]
@@ -175,4 +175,4 @@ class Bot():
         if ret is not None:
             self.mresult(msg, ret)
 
-        self.call_listeners('command', msg, cmd_info, args)
+        self.dispatch_event('command', msg, cmd_info, args)
