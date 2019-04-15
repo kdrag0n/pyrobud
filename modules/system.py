@@ -44,10 +44,16 @@ class SystemModule(module.Module):
     def cmd_speedtest(self, msg):
         self.bot.mresult(msg, 'Testing Internet speed...')
 
+        before = util.time_us()
         try:
             proc = subprocess.run(['speedtest'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=120, text=True)
         except subprocess.TimeoutExpired:
             return '🕑 `speedtest` took longer than 2 minutes to run.'
+        after = util.time_us()
+
+        el_us = after - before
+        el_str = f'\nTime: {util.format_duration_us(el_us)}'
+
         err = f'⚠️ Return code: {proc.returncode}' if proc.returncode != 0 else ''
 
-        return f'```{proc.stdout.strip()}```{err}'
+        return f'```{proc.stdout.strip()}```{err}{el_str}'
