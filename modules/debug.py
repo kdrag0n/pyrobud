@@ -29,7 +29,7 @@ class DebugModule(module.Module):
         after = util.time_us()
 
         el_us = after - before
-        el_str = '%.2f μs' % el_us
+        el_str = util.format_duration_us(el_us)
 
         return f'''```{str(result)}```
 
