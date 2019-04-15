@@ -45,8 +45,12 @@ class Bot():
             self.register_command(mod, name, func)
 
     def register_listener(self, mod, event, func):
-        listener = Listener(func, mod)
-        self.listeners[event].append(listener)
+        if event in self.listeners:
+            listener = Listener(func, mod)
+            self.listeners[event].append(listener)
+        else:
+            cls = mod.__class__
+            print(f"WARNING: module '{cls.name}' ({cls.__name__}) attempted to register listener for unknown event '{event}'")
 
     def register_listeners(self, mod):
         for event, func in util.find_prefixed_funcs(mod, 'on_'):
