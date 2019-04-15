@@ -24,42 +24,51 @@ class Bot():
         self.modules = []
         self.listeners = {
             'message': [],
-            'command': []
+            'command': [],
+            'load': []
         }
 
-    def load_commands(self, mod):
-        for sym in dir(mod):
-            if sym.startswith('cmd_'):
-                cmd_name = sym[4:]
-                cmd_func = getattr(mod, sym)
-                if not callable(cmd_func):
-                    continue
-                cmd_info = command.Info(cmd_name, mod, cmd_func)
+    def register_command(self, mod, name, func):
+        info = command.Info(name, mod, func)
 
-                if cmd_name in self.commands:
-                    orig = self.commands[cmd_name]
-                    print(f"WARNING: overwriting command '{orig.name}' ({orig.desc}) with '{cmd_name}' ({cmd_info.desc})")
+        if name in self.commands:
+            orig = self.commands[name]
+            print(f"WARNING: overwriting command '{orig.name}' ({orig.desc}) with '{name}' ({info.desc})")
 
-                self.commands[cmd_name] = cmd_info
+        self.commands[name] = info
 
-                for alias in getattr(cmd_func, 'aliases', []):
-                    self.commands[alias] = cmd_info
+        for alias in getattr(func, 'aliases', []):
+            self.commands[alias] = info
+
+    def register_commands(self, mod):
+        for name, func in util.find_prefixed_funcs(mod, 'cmd_'):
+            self.register_command(mod, name, func)
+
+    def register_listener(self, mod, event, func):
+        listener = Listener(func, mod)
+        self.listeners[event].append(listener)
+
+    def register_listeners(self, mod):
+        for event, func in util.find_prefixed_funcs(mod, 'on_'):
+            self.register_listener(mod, event, func)
 
     def load_module(self, cls):
         print(f"Loading module '{cls.name}' ({cls.__name__}) from '{inspect.getfile(cls)}'...")
 
         mod = cls(self)
-        if hasattr(mod, 'on_load'):
-            mod.on_load()
-        if hasattr(mod, 'on_message'):
-            listener = Listener(mod.on_message, mod)
-            self.listeners['message'].append(listener)
-        if hasattr(mod, 'on_command'):
-            listener = Listener(mod.on_command, mod)
-            self.listeners['command'].append(listener)
-
-        self.load_commands(mod)
+        self.register_listeners(mod)
+        self.register_commands(mod)
         self.modules.append(mod)
+
+    def load_all_modules(self):
+        for _sym in dir(modules):
+            module_mod = getattr(modules, _sym)
+
+            if inspect.ismodule(module_mod):
+                for sym in dir(module_mod):
+                    cls = getattr(module_mod, sym)
+                    if inspect.isclass(cls) and issubclass(cls, module.Module):
+                        self.load_module(cls)
 
     def setup(self, instance_name, config):
         tg.session.Session.notice_displayed = True
@@ -70,14 +79,8 @@ class Bot():
 
         # Load modules
         print('Loading modules...')
-        for _sym in dir(modules):
-            module_mod = getattr(modules, _sym)
-
-            if inspect.ismodule(module_mod):
-                for sym in dir(module_mod):
-                    cls = getattr(module_mod, sym)
-                    if inspect.isclass(cls) and issubclass(cls, module.Module):
-                        self.load_module(cls)
+        self.load_all_modules()
+        self.dispatch_event('load')
 
         self.last_saved_cfg = toml.dumps(self.config)
 

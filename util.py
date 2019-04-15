@@ -34,3 +34,17 @@ def format_duration_us(t_us):
         return '%d ms' % t_ms
     else:
         return '%d μs' % t_us
+
+def find_prefixed_funcs(obj, prefix):
+    results = []
+
+    for sym in dir(obj):
+        if sym.startswith(prefix):
+            name = sym[len(prefix):]
+            func = getattr(obj, sym)
+            if not callable(func):
+                continue
+
+            results.append((name, func))
+
+    return results
