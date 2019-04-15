@@ -48,3 +48,11 @@ def find_prefixed_funcs(obj, prefix):
             results.append((name, func))
 
     return results
+
+def filter_input_block(inp):
+    if inp.startswith('```') and inp.endswith('```'):
+        inp = inp[3:][:-3]
+    elif inp.startswith('`') and inp.endswith('`'):
+        inp = inp[1:][:-1]
+
+    return inp
