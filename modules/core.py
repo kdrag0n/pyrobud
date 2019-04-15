@@ -5,15 +5,6 @@ import util
 class CoreModule(module.Module):
     name = 'Core'
 
-    @command.desc('Pong')
-    def cmd_ping(self, msg):
-        # Telegram's timestamps are only accurate to the second, so we have to do it manually
-        before = util.time_ms()
-        self.bot.mresult(msg, 'Calculating response time...')
-        after = util.time_ms()
-
-        return 'Request response time: %.2f ms' % (after - before)
-
     @command.desc('List the commands')
     def cmd_help(self, msg):
         out = 'Command list:'

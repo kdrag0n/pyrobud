@@ -2,10 +2,19 @@ import requests
 import tempfile
 import command
 import module
+import util
 import os
 
 class NetworkModule(module.Module):
     name = 'Network'
+
+    @command.desc('Pong')
+    def cmd_ping(self, msg):
+        before = util.time_ms()
+        self.bot.mresult(msg, 'Calculating response time...')
+        after = util.time_ms()
+
+        return 'Request response time: %.2f ms' % (after - before)
 
     @command.desc('Paste message text to Hastebin')
     @command.alias('hs')
