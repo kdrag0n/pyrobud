@@ -8,9 +8,10 @@ class MiscModule(module.Module):
     name = 'Miscellaneous'
 
     @command.desc('Set up Marie-based bots (@MissRose_bot, etc)')
-    def cmd_bsetup(self, msg, plain_params):
+    def cmd_bsetup(self, msg, params):
         if not msg.chat:
             return '__This can only be used in groups.__'
+        plain_params = util.filter_input_block(params)
 
         cfg_err = '''**Invalid TOML config.** The following options are supported:
 

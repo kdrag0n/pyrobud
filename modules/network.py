@@ -22,7 +22,7 @@ class NetworkModule(module.Module):
         orig = msg.reply_to_message
         if orig is None:
             if text:
-                txt = text
+                txt = util.filter_input_block(text)
             else:
                 return '__Reply to a message or provide text in command.__'
         else:
@@ -51,7 +51,7 @@ class NetworkModule(module.Module):
         orig = msg.reply_to_message
         if orig is None:
             if text:
-                txt = text
+                txt = util.filter_input_block(text)
             else:
                 return '__Reply to a message or provide text in command.__'
         else:

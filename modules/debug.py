@@ -25,7 +25,7 @@ class DebugModule(module.Module):
     @command.alias('ev', 'c')
     def cmd_eval(self, msg, raw_args):
         before = util.time_us()
-        result = eval(raw_args)
+        result = eval(util.filter_input_block(raw_args))
         after = util.time_us()
 
         el_us = after - before
@@ -46,7 +46,7 @@ Time: {el_str}'''
 
     @command.desc('Evalulate code (statement)')
     def cmd_exec(self, msg, raw_args):
-        exec(raw_args)
+        exec(util.filter_input_block(raw_args))
         return 'Evaulated.'
 
     @command.desc('Get plain text of a message')
