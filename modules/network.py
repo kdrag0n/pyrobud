@@ -43,7 +43,7 @@ class NetworkModule(module.Module):
                     return '__Reply to a message with text or a text file, or provide text in command.__'
 
         self.bot.mresult(msg, 'Uploading text to [Hastebin](https://hastebin.com/)...')
-        resp = requests.post('https://hastebin.com/documents', data=txt).json()
+        resp = requests.post('https://hastebin.com/documents', data=txt.encode()).json()
         return f'https://hastebin.com/{resp["key"]}'
 
     @command.desc('Paste message text to Dogbin')
@@ -72,7 +72,7 @@ class NetworkModule(module.Module):
                     return '__Reply to a message with text or a text file, or provide text in command.__'
 
         self.bot.mresult(msg, 'Uploading text to [Dogbin](https://del.dog/)...')
-        resp = requests.post('https://del.dog/documents', data=txt).json()
+        resp = requests.post('https://del.dog/documents', data=txt.encode()).json()
         return f'https://del.dog/{resp["key"]}'
 
     @command.desc('Upload replied-to file to file.io')
