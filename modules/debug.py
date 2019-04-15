@@ -31,11 +31,7 @@ class DebugModule(module.Module):
         el_us = after - before
         el_str = '%.2f μs' % el_us
 
-        return f'''In:
-```{raw_args}```
-
-Out:
-```{str(result)}```
+        return f'''```{str(result)}```
 
 Time: {el_str}'''
 
