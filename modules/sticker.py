@@ -185,7 +185,6 @@ class StickerModule(module.Module):
 
         self.bot.mresult(msg, 'Stickering...')
 
-        st = msg.reply_to_message.sticker
         st_bot = 'Stickers'
 
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -235,9 +234,6 @@ class StickerModule(module.Module):
             return '__There\'s already a sticker with that name.__'
 
         self.bot.mresult(msg, 'Stickering...')
-
-        st = msg.reply_to_message.sticker
-        st_bot = 'Stickers'
 
         with tempfile.TemporaryDirectory() as tmpdir:
             path = self.bot.client.download_media(msg.reply_to_message, file_name=tmpdir + '/')
