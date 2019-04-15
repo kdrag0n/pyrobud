@@ -44,7 +44,7 @@ class SystemModule(module.Module):
     @command.desc('Test Internet speed')
     @command.alias('stest')
     def cmd_speedtest(self, msg):
-        self.bot.mresult(msg, 'Testing Internet speed...')
+        self.bot.mresult(msg, 'Testing Internet speed, this may take a while...')
 
         before = util.time_us()
         try:
@@ -58,4 +58,9 @@ class SystemModule(module.Module):
 
         err = f'⚠️ Return code: {proc.returncode}' if proc.returncode != 0 else ''
 
-        return f'```{proc.stdout.strip()}```{err}{el_str}'
+        out = proc.stdout.strip()
+        if proc.returncode == 0:
+            lines = out.split('\n')
+            out = '\n'.join((lines[4], lines[6], lines[8])) # Server, down, up
+
+        return f'```{out}```{err}{el_str}'
