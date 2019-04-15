@@ -4,8 +4,8 @@ import command
 import module
 import os
 
-class UploadModule(module.Module):
-    name = 'Upload'
+class NetworkModule(module.Module):
+    name = 'Network'
 
     @command.desc('Paste message text to Hastebin')
     @command.alias('hs')
