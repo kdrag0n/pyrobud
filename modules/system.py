@@ -35,9 +35,11 @@ class SystemModule(module.Module):
             proc = subprocess.run(['neofetch', '--stdout'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=10, text=True)
         except subprocess.TimeoutExpired:
             return '🕑 `neofetch` took longer than 10 seconds to run.'
-        err = f'⚠️ Return code: {proc.returncode}' if proc.returncode != 0 else ''
 
-        return f'```{proc.stdout.strip()}```{err}'
+        err = f'⚠️ Return code: {proc.returncode}' if proc.returncode != 0 else ''
+        sysinfo = '\n'.join(proc.stdout.strip().split('\n')[2:]) if proc.returncode == 0 else proc.stdout.strip()
+
+        return f'```{sysinfo}```{err}'
 
     @command.desc('Test Internet speed')
     @command.alias('stest')
