@@ -14,8 +14,8 @@ class DebugModule(module.Module):
         reps = 1000000
 
         before = util.time_us()
-        for i in range(reps):
-            v = 1 + 1
+        for _ in range(reps):
+            _ = 1 + 1
         after = util.time_us()
 
         el_us = (after - before) / reps

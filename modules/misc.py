@@ -127,6 +127,6 @@ Please read the rules before chatting. {srules}{extra_btn}''',
         except ValueError:
             return '__Specify a valid number of times to forward the message.__'
 
-        for i in range(count):
+        for _ in range(count):
             self.bot.client.forward_messages(msg.chat.id, msg.chat.id, msg.reply_to_message.message_id)
             time.sleep(0.15)
