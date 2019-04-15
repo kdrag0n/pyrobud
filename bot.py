@@ -91,18 +91,19 @@ class Bot():
             cfg = toml.dumps(self.config)
 
         try:
-            with tempfile.NamedTemporaryFile('wb', delete=False) as f:
+            with tempfile.NamedTemporaryFile(delete=False) as f:
                 tmp_path = f.name
 
                 f.write(cfg.encode('utf-8'))
                 f.flush()
                 os.fsync(f.fileno())
-                self.last_saved_cfg = cfg
 
             shutil.move(tmp_path, 'config.toml')
         except Exception as e:
             os.remove(tmp_path)
             raise e
+
+        self.last_saved_cfg = cfg
 
     def writer(self):
         while True:
