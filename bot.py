@@ -9,6 +9,7 @@ import module
 import shutil
 import time
 import toml
+import util
 import sys
 import os
 
@@ -123,6 +124,7 @@ class Bot():
         self.writer_thread.daemon = True
         self.writer_thread.start()
 
+        self.start_time_us = util.time_us()
         print('Bot is ready')
 
     def mresult(self, msg, new):
