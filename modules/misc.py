@@ -69,7 +69,7 @@ GitHub = "https://github.com/"```
         for name, dest in ex_btn_map.items():
             extra_btn += f'\n[{name}](buttonurl://{dest})'
 
-        before = util.time_ms()
+        before = util.time_us()
 
         try:
             self.bot.client.promote_chat_member(msg.chat.id, target, can_change_info=False)
@@ -109,9 +109,9 @@ Please read the rules before chatting. {srules}{extra_btn}''',
         else:
             msg.reply(f'/purge@{target}')
 
-        after = util.time_ms()
+        after = util.time_us()
 
-        return f'Finished in `{int((after - before) / 1000)}` seconds.'
+        return f'Setup completed in {util.format_duration_us(after - before)}.'
 
     @command.desc('Mass forward one message.')
     @command.alias('massfwd', 'fwd')
