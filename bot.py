@@ -24,7 +24,8 @@ class Bot():
         self.listeners = {
             'message': [],
             'command': [],
-            'load': []
+            'load': [],
+            'start': []
         }
 
     def register_command(self, mod, name, func):
@@ -133,6 +134,10 @@ class Bot():
         self.user = self.client.get_me()
         self.uid = self.user.id
 
+        # Record start time and dispatch start event
+        self.start_time_us = util.time_us()
+        self.dispatch_event('start', self.start_time_us)
+
         # Register handlers with new info
         self.client.add_handler(tg.MessageHandler(self.on_message), group=1)
         self.register_command_handler()
@@ -142,7 +147,6 @@ class Bot():
         self.writer_thread.daemon = True
         self.writer_thread.start()
 
-        self.start_time_us = util.time_us()
         print('Bot is ready')
 
     def mresult(self, msg, new):
