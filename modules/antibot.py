@@ -32,11 +32,11 @@ class AntibotModule(module.Module):
             member = self.bot.client.get_chat_member(msg.chat.id, msg.from_user.id)
             if not member.date:
                 return
-            
+
             delta = msg.date - member.date
             if delta <= self.bot.config['antibot']['threshold_time']:
                 # This is probably a spambot, ban the user
-                self.bot.client.send_message(msg.chat.id, f'/ban Auto-detected spambot - user ID: `{msg.from_user.id}``', reply_to_message_id=msg.message_id)
+                self.bot.client.send_message(msg.chat.id, f'/ban Auto-detected spambot - user ID: `{msg.from_user.id}`', reply_to_message_id=msg.message_id)
                 time.sleep(1)
                 self.bot.client.delete_messages(msg.chat.id, msg.message_id, revoke=True)
 
