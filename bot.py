@@ -20,7 +20,7 @@ class Listener():
 class Bot():
     def __init__(self):
         self.commands = {}
-        self.modules = []
+        self.modules = {}
         self.listeners = {
             'message': [],
             'command': [],
@@ -32,11 +32,15 @@ class Bot():
 
         if name in self.commands:
             orig = self.commands[name]
-            print(f"WARNING: overwriting command '{orig.name}' ({orig.desc}) with '{name}' ({info.desc})")
+            raise module.ExistingCommandError(orig, info)
 
         self.commands[name] = info
 
         for alias in getattr(func, 'aliases', []):
+            if alias in self.commands:
+                orig = self.commands[alias]
+                raise module.ExistingCommandError(orig, info, alias=True)
+
             self.commands[alias] = info
 
     def register_commands(self, mod):
@@ -44,12 +48,12 @@ class Bot():
             self.register_command(mod, name, func)
 
     def register_listener(self, mod, event, func):
+        listener = Listener(func, mod)
+
         if event in self.listeners:
-            listener = Listener(func, mod)
             self.listeners[event].append(listener)
         else:
-            cls = mod.__class__
-            print(f"WARNING: module '{cls.name}' ({cls.__name__}) attempted to register listener for unknown event '{event}'")
+            raise module.UnknownEventError(event, listener)
 
     def register_listeners(self, mod):
         for event, func in util.find_prefixed_funcs(mod, 'on_'):
@@ -58,10 +62,14 @@ class Bot():
     def load_module(self, cls):
         print(f"Loading module '{cls.name}' ({cls.__name__}) from '{inspect.getfile(cls)}'...")
 
+        if cls.name in self.modules:
+            old = self.modules[cls.name].__class__
+            raise module.ExistingModuleError(old, cls)
+
         mod = cls(self)
         self.register_listeners(mod)
         self.register_commands(mod)
-        self.modules.append(mod)
+        self.modules[cls.name] = mod
 
     def load_all_modules(self):
         for _sym in dir(modules):
