@@ -27,6 +27,11 @@ class AntibotModule(module.Module):
     def is_suspicious(self, msg):
         return msg.forward_from or msg.forward_from_name or msg.forward_from_chat or msg.forward_from_message_id or self.contains_link(msg.text)
 
+    def take_action(self, msg):
+        self.bot.client.send_message(msg.chat.id, f'/ban Spambot detected (ID: `{msg.from_user.id}`)', reply_to_message_id=msg.message_id)
+        time.sleep(1)
+        self.bot.client.delete_messages(msg.chat.id, msg.message_id, revoke=True)
+
     def on_message(self, msg):
         if msg.chat and msg.chat.type == "supergroup" and msg.chat.id in self.bot.config['antibot']['group_ids'] and msg.from_user and msg.from_user.id != self.bot.uid and msg.date and self.is_suspicious(msg):
             member = self.bot.client.get_chat_member(msg.chat.id, msg.from_user.id)
@@ -35,10 +40,8 @@ class AntibotModule(module.Module):
 
             delta = msg.date - member.date
             if delta <= self.bot.config['antibot']['threshold_time']:
-                # This is probably a spambot, ban the user
-                self.bot.client.send_message(msg.chat.id, f'/ban Auto-detected spambot - user ID: `{msg.from_user.id}`', reply_to_message_id=msg.message_id)
-                time.sleep(1)
-                self.bot.client.delete_messages(msg.chat.id, msg.message_id, revoke=True)
+                # This is probably a spambot, take action against the user
+                self.take_action(msg)
 
     @command.desc('Toggle the antibot auto-moderation feature in this group')
     def cmd_antibot(self, msg):
