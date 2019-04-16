@@ -7,7 +7,7 @@ class CoreModule(module.Module):
 
     @command.desc('List the commands')
     def cmd_help(self, msg):
-        out = 'Command list:'
+        lines = {}
 
         for name, cmd in self.bot.commands.items():
             # Don't count aliases as separate commands
@@ -19,9 +19,17 @@ class CoreModule(module.Module):
             if cmd.aliases:
                 aliases = f' (aliases: {", ".join(cmd.aliases)})'
 
-            out += f'\n    \u2022 **{cmd.name}**: {desc}{aliases}'
+            mod_name = cmd.module.__class__.name
+            if mod_name not in lines:
+                lines[mod_name] = []
 
-        return out
+            lines[mod_name].append(f'**{cmd.name}**: {desc}{aliases}')
+
+        sections = []
+        for mod, ln in lines.items():
+            sections.append(f'**{mod}**:\n    \u2022 ' + '\n    \u2022 '.join(ln) + '\n')
+
+        return '\n'.join(sections)
 
     @command.desc('Get how long the bot has been up for')
     def cmd_uptime(self, msg):
