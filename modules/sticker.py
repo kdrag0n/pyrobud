@@ -18,9 +18,6 @@ class StickerModule(module.Module):
             self.bot.config['user'] = {}
             print('Initialized user data table in config')
 
-    def on_command(self, msg, cmd_info, args):
-        self.bot.config['stats']['processed'] += 1
-
     @command.desc('Kang a sticker into configured/provided pack')
     def cmd_kang(self, msg, pack_name):
         if not msg.reply_to_message or not msg.reply_to_message.sticker:

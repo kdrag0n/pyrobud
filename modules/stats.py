@@ -1,40 +1,96 @@
 import command
 import module
+import util
+
+USEC_PER_HOUR = 60 * 60 * 1000000
 
 class StatsModule(module.Module):
-    name = 'Statistics'
+    name = 'Stats'
 
     def on_load(self):
         if 'stats' not in self.bot.config:
-            self.bot.config['stats'] = {
-                'sent': 0,
-                'received': 0,
-                'processed': 0,
-                'replaced': 0
-            }
-        else:
-            for k in ['sent', 'received', 'processed', 'replaced']:
-                if k not in self.bot.config['stats']:
-                    self.bot.config['stats'][k] = 0
+            self.bot.config['stats'] = {}
+
+        keys = [
+            'sent',
+            'received',
+            'processed',
+            'replaced',
+            'sent_edits',
+            'received_edits',
+            'sent_stickers',
+            'received_stickers',
+            'uptime'
+        ]
+
+        for k in keys:
+            if k not in self.bot.config['stats']:
+                self.bot.config['stats'][k] = 0
+
+    def on_start(self, time_us):
+        self.last_time = time_us
 
     def on_message(self, msg):
-        if not msg.edit_date:
-            if msg.from_user and msg.from_user.id == self.bot.uid:
-                # Stats
-                self.bot.config['stats']['sent'] += 1
-            else:
-                # Stats
-                self.bot.config['stats']['received'] += 1
+        if msg.from_user and msg.from_user.id == self.bot.uid:
+            base_stat = 'sent'
+        else:
+            base_stat = 'received'
 
-    @command.desc('Show message stats')
-    def cmd_stats(self, msg):
+        stat = base_stat
+        if msg.edit_date:
+            stat += '_edits'
+
+        self.bot.config['stats'][stat] += 1
+
+        if msg.sticker:
+            stat = base_stat + '_stickers'
+            self.bot.config['stats'][stat] += 1
+
+        self.update_uptime()
+
+    def on_command(self, msg, cmd_info, args):
+        self.bot.config['stats']['processed'] += 1
+
+    def update_uptime(self):
+        now = util.time_us()
+        delta_us = now - self.last_time
+        self.bot.config['stats']['uptime'] += delta_us
+        self.last_time = now
+
+    def calc_pct(self, num1, num2):
+        if not num2:
+            return '0'
+
+        return '{:.1f}'.format((num1 / num2) * 100).rstrip('0').rstrip('.')
+
+    def calc_ph(self, stat, uptime):
+        up_hr = max(1, uptime) / USEC_PER_HOUR
+        return '{:.1f}'.format(stat / up_hr).rstrip('0').rstrip('.')
+
+    @command.desc('Show chat stats (pass `reset` to reset stats)')
+    def cmd_stats(self, msg, args):
+        if args == "reset":
+            self.bot.config['stats'] = {}
+            self.on_load()
+            self.on_start(util.time_us())
+            return '__All stats have been reset.__'
+
+        self.update_uptime()
+        self.bot.save_config()
+
         st = self.bot.config['stats']
+        uptime = st['uptime']
+        sent = st['sent']
+        sent_stickers = st['sent_stickers']
+        recv = st['received']
+        recv_stickers = st['received_stickers']
+        processed = st['processed']
+        replaced = st['replaced']
 
-        return f'''Stats:
-    \u2022 Messages received: {st['received']}
-    \u2022 Messages sent: {st['sent']}
-    \u2022 Percent of total messages sent: {'%.2f' % ((float(st['sent']) / float(st['received'])) * 100)}%
-    \u2022 Commands processed: {st['processed']}
-    \u2022 Snippets replaced: {st['replaced']}
-    \u2022 Percent of sent messages processed as commands: {'%.2f' % ((float(st['processed']) / float(st['sent'])) * 100)}%
-    \u2022 Percent of sent messages with snippets: {'%.2f' % ((float(st['replaced']) / float(st['sent'])) * 100)}%'''
+        return f'''**Stats since last reset**:
+    • **Total time elapsed**: {util.format_duration_us(uptime)}
+    • **Messages received**: {recv} ({self.calc_ph(recv, uptime)}/h) • {self.calc_pct(recv_stickers, recv)}% are stickers
+    • **Messages sent**: {sent} ({self.calc_ph(sent, uptime)}/h) • {self.calc_pct(sent_stickers, sent)}% are stickers
+    • **Percent of total messages sent**: {self.calc_pct(sent, sent + recv)}%
+    • **Commands processed**: {processed} ({self.calc_ph(processed, uptime)}/h) • {self.calc_pct(processed, sent)}% of sent messages
+    • **Snippets replaced**: {replaced} ({self.calc_ph(replaced, uptime)}/h) • {self.calc_pct(replaced, sent)}% of sent messages'''
