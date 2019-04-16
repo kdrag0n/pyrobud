@@ -181,7 +181,7 @@ class Bot():
             stack = ''.join(traceback.format_tb(e.__traceback__))
             ret = f'{stack}{type(e).__name__}: {e}'
             print(ret, file=sys.stderr)
-            ret = f'```{ret}```'
+            ret = f'⚠️ Error:\n```{ret}```'
 
         if ret is not None:
             self.mresult(msg, ret)
