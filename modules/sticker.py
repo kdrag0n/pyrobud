@@ -43,7 +43,7 @@ class StickerModule(module.Module):
             if not path:
                 return '__Error downloading sticker__'
 
-            im = Image.open(path).convert('RGB')
+            im = Image.open(path).convert('RGBA')
             im.save(path + '.png', 'png')
 
             self.bot.client.send_message(st_bot, '/addsticker')
@@ -164,7 +164,7 @@ class StickerModule(module.Module):
 
         path = self.bot.config['stickers'][name]
         if not os.path.isfile(path + '.png'):
-            im = Image.open(path).convert('RGB')
+            im = Image.open(path).convert('RGBA')
             im.save(path + '.png', 'png')
 
         self.bot.mresult(msg, 'Uploading sticker...')
@@ -192,7 +192,7 @@ class StickerModule(module.Module):
             if not path:
                 return '__Error downloading image__'
 
-            im = Image.open(path).convert('RGB')
+            im = Image.open(path).convert('RGBA')
 
             sz = im.size
             target = 512
@@ -240,7 +240,7 @@ class StickerModule(module.Module):
             if not path:
                 return '__Error downloading image__'
 
-            im = Image.open(path).convert('RGB')
+            im = Image.open(path).convert('RGBA')
 
             sz = im.size
             target = 512
@@ -280,7 +280,7 @@ class StickerModule(module.Module):
             if not path:
                 return '__Error downloading sticker image__'
 
-            im = Image.open(path).convert('RGB')
+            im = Image.open(path).convert('RGBA')
             im.save(path + '.png', 'png')
 
             subprocess.run(['corrupter', '-boffset', str(boffset), path + '.png', path + '_glitch.png'])
