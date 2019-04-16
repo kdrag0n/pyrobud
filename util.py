@@ -3,10 +3,10 @@ import traceback
 import time
 
 def time_us():
-    return time.time() * 1000000
+    return int(time.time() * 1000000)
 
 def time_ms():
-    return time_us() / 1000.0
+    return int(time_us() / 1000)
 
 def format_duration_us(t_us):
     t_us = int(t_us)
