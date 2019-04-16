@@ -30,7 +30,7 @@ class AntibotModule(module.Module):
     def take_action(self, msg):
         self.bot.client.send_message(msg.chat.id, f'/ban Spambot detected (ID: `{msg.from_user.id}`)', reply_to_message_id=msg.message_id)
         time.sleep(1)
-        self.bot.client.delete_messages(msg.chat.id, msg.message_id, revoke=True)
+        self.bot.client.delete_messages(msg.chat.id, msg.message_id)
 
     def on_message(self, msg):
         if msg.chat and msg.chat.type == "supergroup" and msg.chat.id in self.bot.config['antibot']['group_ids'] and msg.from_user and msg.from_user.id != self.bot.uid and msg.date and self.is_suspicious(msg):
