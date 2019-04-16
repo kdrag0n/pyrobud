@@ -1,5 +1,7 @@
 import pyrogram as tg
 import threading
+import traceback
+import importlib
 import tempfile
 import modules
 import command
@@ -13,7 +15,8 @@ import sys
 import os
 
 class Listener():
-    def __init__(self, func, module):
+    def __init__(self, event, func, module):
+        self.event = event
         self.func = func
         self.module = module
 
@@ -44,21 +47,67 @@ class Bot():
 
             self.commands[alias] = info
 
+    def unregister_command(self, cmd):
+        del self.commands[cmd.name]
+
+        for alias in cmd.aliases:
+            del self.commands[alias]
+
     def register_commands(self, mod):
         for name, func in util.find_prefixed_funcs(mod, 'cmd_'):
-            self.register_command(mod, name, func)
+            try:
+                self.register_command(mod, name, func)
+            except:
+                self.unregister_commands(mod)
+                raise
+
+    def unregister_commands(self, mod):
+        # Can't unregister while iterating, so collect commands to unregister afterwards
+        to_unreg = []
+
+        for name, cmd in self.commands.items():
+            # Let unregister_command deal with aliases
+            if name != cmd.name:
+                continue
+
+            if cmd.module == mod:
+                to_unreg.append(cmd)
+
+        # Actually unregister the commands
+        for cmd in to_unreg:
+            self.unregister_command(cmd)
 
     def register_listener(self, mod, event, func):
-        listener = Listener(func, mod)
+        listener = Listener(event, func, mod)
 
         if event in self.listeners:
             self.listeners[event].append(listener)
         else:
             raise module.UnknownEventError(event, listener)
 
+    def unregister_listener(self, listener):
+        self.listeners[listener.event].remove(listener)
+
     def register_listeners(self, mod):
         for event, func in util.find_prefixed_funcs(mod, 'on_'):
-            self.register_listener(mod, event, func)
+            try:
+                self.register_listener(mod, event, func)
+            except:
+                self.unregister_listeners(mod)
+                raise
+
+    def unregister_listeners(self, mod):
+        # Can't unregister while iterating, so collect listeners to unregister afterwards
+        to_unreg = []
+
+        for lst in self.listeners.values():
+            for listener in lst:
+                if listener.module == mod:
+                    to_unreg.append(listener)
+
+        # Actually unregister the listeners
+        for listener in to_unreg:
+            self.unregister_listener(listener)
 
     def load_module(self, cls):
         print(f"Loading module '{cls.name}' ({cls.__name__}) from '{os.path.relpath(inspect.getfile(cls))}'...")
@@ -72,7 +121,17 @@ class Bot():
         self.register_commands(mod)
         self.modules[cls.name] = mod
 
+    def unload_module(self, mod):
+        cls = mod.__class__
+        print(f"Unloading module '{cls.name}' ({cls.__name__}) from '{os.path.relpath(inspect.getfile(cls))}'...")
+
+        self.unregister_listeners(mod)
+        self.unregister_commands(mod)
+        del self.modules[cls.name]
+
     def load_all_modules(self):
+        print('Loading modules...')
+
         for _sym in dir(modules):
             module_mod = getattr(modules, _sym)
 
@@ -82,6 +141,17 @@ class Bot():
                     if inspect.isclass(cls) and issubclass(cls, module.Module):
                         self.load_module(cls)
 
+    def unload_all_modules(self):
+        print('Unloading modules...')
+
+        # Can't unload while iterating, so collect a list
+        for mod in list(self.modules.values()):
+            self.unload_module(mod)
+
+    def reload_module_pkg(self):
+        print('Reloading master module...')
+        importlib.reload(modules)
+
     def setup(self, instance_name, config):
         tg.session.Session.notice_displayed = True
         self.client = tg.Client(instance_name, api_id=config['telegram']['api_id'], api_hash=config['telegram']['api_hash'])
@@ -90,7 +160,6 @@ class Bot():
         self.config = config
 
         # Load modules
-        print('Loading modules...')
         self.load_all_modules()
         self.dispatch_event('load')
 
@@ -111,9 +180,9 @@ class Bot():
                 os.fsync(f.fileno())
 
             shutil.move(tmp_path, 'config.toml')
-        except Exception as e:
+        except:
             os.remove(tmp_path)
-            raise e
+            raise
 
         self.last_saved_cfg = cfg
 
@@ -189,17 +258,15 @@ class Bot():
         try:
             ret = cmd_func(msg, *args)
         except Exception as e:
-            ret = util.format_exception(e)
-            print(ret, file=sys.stderr)
-            ret = f'⚠️ Error executing command:\n```{ret}```'
+            traceback.print_exc(file=sys.stderr)
+            ret = f'⚠️ Error executing command:\n```{util.format_exception(e)}```'
 
         if ret is not None:
             try:
                 self.mresult(msg, ret)
             except Exception as e:
-                ret = util.format_exception(e)
-                print(ret, file=sys.stderr)
-                ret = f'⚠️ Error updating message:\n```{ret}```'
+                traceback.print_exc(file=sys.stderr)
+                ret = f'⚠️ Error updating message:\n```{util.format_exception(e)}```'
 
                 self.mresult(msg, ret)
 

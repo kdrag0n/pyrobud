@@ -49,3 +49,7 @@ class CoreModule(module.Module):
 
         self.bot.save_config()
         return f'Prefix set to `{self.bot.prefix}`.'
+
+    @command.desc('Test')
+    def cmd_test(self, msg):
+        return 'Test 1'
