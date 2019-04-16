@@ -1,5 +1,6 @@
-import time
 from datetime import datetime
+import traceback
+import time
 
 def time_us():
     return time.time() * 1000000
@@ -56,3 +57,11 @@ def filter_input_block(inp):
         inp = inp[1:][:-1]
 
     return inp
+
+def format_exception(exp):
+    stack = ''.join(traceback.format_tb(exp.__traceback__))
+    msg = str(exp)
+    if msg:
+        msg = ': ' + msg
+
+    return f'Traceback (most recent call last):\n{stack}{type(exp).__name__}{msg}'

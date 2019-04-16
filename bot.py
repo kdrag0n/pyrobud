@@ -1,5 +1,4 @@
 import pyrogram as tg
-import traceback
 import threading
 import tempfile
 import modules
@@ -178,12 +177,18 @@ class Bot():
         try:
             ret = cmd_func(msg, *args)
         except Exception as e:
-            stack = ''.join(traceback.format_tb(e.__traceback__))
-            ret = f'{stack}{type(e).__name__}: {e}'
+            ret = util.format_exception(e)
             print(ret, file=sys.stderr)
-            ret = f'⚠️ Error:\n```{ret}```'
+            ret = f'⚠️ Error executing command:\n```{ret}```'
 
         if ret is not None:
-            self.mresult(msg, ret)
+            try:
+                self.mresult(msg, ret)
+            except Exception as e:
+                ret = util.format_exception(e)
+                print(ret, file=sys.stderr)
+                ret = f'⚠️ Error updating message:\n```{ret}```'
+
+                self.mresult(msg, ret)
 
         self.dispatch_event('command', msg, cmd_info, args)
