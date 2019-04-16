@@ -3,8 +3,8 @@ import module
 import util
 import time
 
-class ModerationModule(module.Module):
-    name = 'Moderation'
+class AntibotModule(module.Module):
+    name = 'Antibot'
 
     def on_load(self):
         if 'antibot' not in self.bot.config:
