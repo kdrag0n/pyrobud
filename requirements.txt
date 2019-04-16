@@ -3,3 +3,4 @@ pyrogram
 tgcrypto
 requests
 pyyaml
+pillow
