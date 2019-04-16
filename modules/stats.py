@@ -18,12 +18,13 @@ class StatsModule(module.Module):
                     self.bot.config['stats'][k] = 0
 
     def on_message(self, msg):
-        if msg.from_user and msg.from_user.id == self.bot.uid:
-            # Stats
-            self.bot.config['stats']['sent'] += 1
-        else:
-            # Stats
-            self.bot.config['stats']['received'] += 1
+        if not msg.edit_date:
+            if msg.from_user and msg.from_user.id == self.bot.uid:
+                # Stats
+                self.bot.config['stats']['sent'] += 1
+            else:
+                # Stats
+                self.bot.config['stats']['received'] += 1
 
     @command.desc('Show message stats')
     def cmd_stats(self, msg):
