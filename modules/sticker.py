@@ -44,13 +44,13 @@ class StickerModule(module.Module):
                 return '__Error downloading sticker__'
 
             im = Image.open(path).convert('RGBA')
-            im.save(path + '.png', 'png')
+            im.save(f'{tmpdir}/sticker.png', 'png')
 
             self.bot.client.send_message(st_bot, '/addsticker')
             time.sleep(0.15)
             self.bot.client.send_message(st_bot, pack_name)
             time.sleep(0.15)
-            self.bot.client.send_document(st_bot, path + '.png')
+            self.bot.client.send_document(st_bot, f'{tmpdir}/sticker.png')
             time.sleep(0.25)
 
             if st.emoji:
@@ -205,23 +205,23 @@ class StickerModule(module.Module):
                 w_size = int(float(sz[0]) * float(h_ratio))
                 im = im.resize((w_size, target), Image.LANCZOS)
 
-            im.save(path + '.png', 'png')
+            im.save(f'{tmpdir}/sticker.png', 'png')
 
             self.bot.client.send_message(st_bot, '/addsticker')
             time.sleep(0.15)
             self.bot.client.send_message(st_bot, ps[0])
             time.sleep(0.15)
-            self.bot.client.send_document(st_bot, path + '.png')
+            self.bot.client.send_document(st_bot, f'{tmpdir}/sticker.png')
             time.sleep(0.15)
 
             self.bot.client.send_message(st_bot, emoji)
             time.sleep(0.6)
 
             self.bot.client.send_message(st_bot, '/done')
-            self.bot.mresult(msg, f'[Stickered](https://t.me/addstickers/{ps[0]}).')
+            self.bot.mresult(msg, f'[Stickered](https://t.me/addstickers/{ps[0]}). Preview:')
 
-            im.save(path + '.webp', 'webp')
-            self.bot.client.send_sticker(msg.chat.id, path + '.webp')
+            im.save(f'{tmpdir}/sticker.webp', 'webp')
+            self.bot.client.send_sticker(msg.chat.id, f'{tmpdir}/sticker.webp')
 
     @command.desc('Sticker an image and save it to disk')
     def cmd_qstick(self, msg, name):
