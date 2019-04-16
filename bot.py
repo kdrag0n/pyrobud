@@ -60,7 +60,7 @@ class Bot():
             self.register_listener(mod, event, func)
 
     def load_module(self, cls):
-        print(f"Loading module '{cls.name}' ({cls.__name__}) from '{inspect.getfile(cls)}'...")
+        print(f"Loading module '{cls.name}' ({cls.__name__}) from '{os.path.relpath(inspect.getfile(cls))}'...")
 
         if cls.name in self.modules:
             old = self.modules[cls.name].__class__
