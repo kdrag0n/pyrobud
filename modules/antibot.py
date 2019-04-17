@@ -59,7 +59,8 @@ class AntibotModule(module.Module):
         return self.msg_is_forwarded(msg) or self.msg_has_suspicious_entity(msg) or self.msg_has_suspicious_keyword(msg)
 
     def msg_data_is_suspicious(self, msg):
-        enabled_in_group = msg.chat and msg.chat.type == "supergroup" and msg.chat.id in self.bot.config['antibot']['group_ids']
+        is_supergroup = msg.chat and msg.chat.type == "supergroup"
+        enabled_in_group = is_supergroup and msg.chat.id in self.bot.config['antibot']['group_ids']
         user_is_not_us = msg.from_user and msg.from_user.id != self.bot.uid
         has_date = msg.date
 
