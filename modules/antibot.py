@@ -32,9 +32,7 @@ class AntibotModule(module.Module):
         time.sleep(1)
         self.bot.client.delete_messages(msg.chat.id, msg.message_id)
 
-        stat_key = 'spambots_banned'
-        if 'Stats' in self.bot.modules and 'stats' in self.bot.config and stat_key in self.bot.config['stats']:
-            self.bot.config['stats'][stat_key] += 1
+        self.log_stat('spambots_banned')
 
     def on_message(self, msg):
         if msg.chat and msg.chat.type == "supergroup" and msg.chat.id in self.bot.config['antibot']['group_ids'] and msg.from_user and msg.from_user.id != self.bot.uid and msg.date and self.is_suspicious(msg):

@@ -12,8 +12,7 @@ class SnippetModule(module.Module):
 
     def snip_repl(self, m):
         if m.group(1) in self.bot.config['snippets']:
-            if 'Stats' in self.bot.modules and 'stats' in self.bot.config and 'replaced' in self.bot.config['stats']:
-                self.bot.config['stats']['replaced'] += 1
+            self.log_stat('replaced')
             return self.bot.config['snippets'][m.group(1)]
 
         return m.group(0)
