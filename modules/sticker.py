@@ -6,6 +6,9 @@ import time
 import os
 from PIL import Image
 
+class LengthMismatchError(Exception):
+    pass
+
 class StickerModule(module.Module):
     name = 'Sticker'
 
@@ -17,6 +20,50 @@ class StickerModule(module.Module):
         if 'user' not in self.bot.config:
             self.bot.config['user'] = {}
             print('Initialized user data table in config')
+
+    def add_sticker(self, png_path, pack_name, emoji, jpg_path=None):
+        if not emoji:
+            emoji = '❓'
+
+        st_bot = 'Stickers'
+
+        self.bot.client.send_message(st_bot, '/addsticker')
+        time.sleep(0.15)
+        self.bot.client.send_message(st_bot, pack_name)
+        time.sleep(0.15)
+        self.bot.client.send_document(st_bot, png_path)
+        time.sleep(0.25)
+        self.bot.client.send_message(st_bot, emoji)
+        time.sleep(0.6)
+
+        self.bot.client.send_message(st_bot, '/done')
+        return f'https://t.me/addstickers/{pack_name}'
+
+    def img_to_png(self, src, dest):
+        im = Image.open(src).convert('RGBA')
+        im.save(dest, 'png')
+
+    def img_to_sticker(self, src, dests, formats):
+        if not dests or not formats:
+            return
+        if len(dests) != len(formats):
+            raise LengthMismatchError(f'Length mismatch: {len(dests)} destination paths and {len(formats)} formats given')
+
+        im = Image.open(src).convert('RGBA')
+
+        sz = im.size
+        target = 512
+        if sz[0] > sz[1]:
+            w_ratio = target / float(sz[0])
+            h_size = int(float(sz[1]) * float(w_ratio))
+            im = im.resize((target, h_size), Image.LANCZOS)
+        else:
+            h_ratio = target / float(sz[1])
+            w_size = int(float(sz[0]) * float(h_ratio))
+            im = im.resize((w_size, target), Image.LANCZOS)
+
+        for i, dest in enumerate(dests):
+            im.save(dest, formats[i])
 
     @command.desc('Kang a sticker into configured/provided pack')
     def cmd_kang(self, msg, pack_name):
@@ -33,31 +80,18 @@ class StickerModule(module.Module):
         self.bot.mresult(msg, 'Kanging...')
 
         st = msg.reply_to_message.sticker
-        st_bot = 'Stickers'
 
         with tempfile.TemporaryDirectory() as tmpdir:
             path = self.bot.client.download_media(msg.reply_to_message, file_name=tmpdir + '/')
             if not path:
                 return '__Error downloading sticker__'
 
-            im = Image.open(path).convert('RGBA')
-            im.save(f'{tmpdir}/sticker.png', 'png')
+            new_path = f'{tmpdir}/sticker.png'
+            self.img_to_png(path, new_path)
 
-            self.bot.client.send_message(st_bot, '/addsticker')
-            time.sleep(0.15)
-            self.bot.client.send_message(st_bot, pack_name)
-            time.sleep(0.15)
-            self.bot.client.send_document(st_bot, f'{tmpdir}/sticker.png')
-            time.sleep(0.25)
+            link = self.add_sticker(new_path, pack_name, st.emoji)
 
-            if st.emoji:
-                self.bot.client.send_message(st_bot, st.emoji)
-            else:
-                self.bot.client.send_message(st_bot, '❓')
-            time.sleep(0.6)
-
-            self.bot.client.send_message(st_bot, '/done')
-            return f"[Kanged](https://t.me/addstickers/{pack_name})."
+            return f"[Kanged]({link})."
 
     @command.desc('Save a sticker with a name as reference')
     def cmd_save(self, msg, name):
@@ -160,12 +194,12 @@ class StickerModule(module.Module):
         reply_id = msg.reply_to_message.message_id if msg.reply_to_message else None
 
         path = self.bot.config['stickers'][name]
-        if not os.path.isfile(path + '.png'):
-            im = Image.open(path).convert('RGBA')
-            im.save(path + '.png', 'png')
+        png_path = path + '.png'
+        if not os.path.isfile(png_path):
+            self.img_to_png(path, png_path)
 
         self.bot.mresult(msg, 'Uploading sticker...')
-        self.bot.client.send_photo(chat_id, path + '.png', reply_to_message_id=reply_id)
+        self.bot.client.send_photo(chat_id, png_path, reply_to_message_id=reply_id)
         self.bot.client.delete_messages(msg.chat.id, msg.message_id, revoke=True)
 
     @command.desc('Sticker an image')
@@ -189,36 +223,15 @@ class StickerModule(module.Module):
             if not path:
                 return '__Error downloading image__'
 
-            im = Image.open(path).convert('RGBA')
+            new_path = f'{tmpdir}/sticker.png'
+            webp_path = f'{tmpdir}/sticker.webp'
+            self.img_to_sticker(path, [new_path, webp_path], ['png', 'webp'])
 
-            sz = im.size
-            target = 512
-            if sz[0] > sz[1]:
-                w_ratio = target / float(sz[0])
-                h_size = int(float(sz[1]) * float(w_ratio))
-                im = im.resize((target, h_size), Image.LANCZOS)
-            else:
-                h_ratio = target / float(sz[1])
-                w_size = int(float(sz[0]) * float(h_ratio))
-                im = im.resize((w_size, target), Image.LANCZOS)
+            link = self.add_sticker(new_path, ps[0], emoji)
+            self.bot.mresult(msg, f'[Stickered]({link}). Preview:')
 
-            im.save(f'{tmpdir}/sticker.png', 'png')
-
-            self.bot.client.send_message(st_bot, '/addsticker')
-            time.sleep(0.15)
-            self.bot.client.send_message(st_bot, ps[0])
-            time.sleep(0.15)
-            self.bot.client.send_document(st_bot, f'{tmpdir}/sticker.png')
-            time.sleep(0.15)
-
-            self.bot.client.send_message(st_bot, emoji)
-            time.sleep(0.6)
-
-            self.bot.client.send_message(st_bot, '/done')
-            self.bot.mresult(msg, f'[Stickered](https://t.me/addstickers/{ps[0]}). Preview:')
-
-            im.save(f'{tmpdir}/sticker.webp', 'webp')
-            self.bot.client.send_sticker(msg.chat.id, f'{tmpdir}/sticker.webp')
+            # Send a preview
+            self.bot.client.send_sticker(msg.chat.id, webp_path)
 
     @command.desc('Sticker an image and save it to disk')
     def cmd_qstick(self, msg, name):
@@ -237,22 +250,10 @@ class StickerModule(module.Module):
             if not path:
                 return '__Error downloading image__'
 
-            im = Image.open(path).convert('RGBA')
+            new_path = f'stickers/{name}01.webp'
+            self.img_to_sticker(path, [new_path], ['webp'])
 
-            sz = im.size
-            target = 512
-            if sz[0] > sz[1]:
-                w_ratio = target / float(sz[0])
-                h_size = int(float(sz[1]) * float(w_ratio))
-                im = im.resize((target, h_size), Image.LANCZOS)
-            else:
-                h_ratio = target / float(sz[1])
-                w_size = int(float(sz[0]) * float(h_ratio))
-                im = im.resize((w_size, target), Image.LANCZOS)
-
-            im.save(f'stickers/{name}01.webp', 'webp')
-
-            self.bot.config['stickers'][name] = f'stickers/{name}01.webp'
+            self.bot.config['stickers'][name] = new_path
             self.bot.save_config()
 
             return f'Sticker saved to disk as `{name}`.'
@@ -277,10 +278,10 @@ class StickerModule(module.Module):
             if not path:
                 return '__Error downloading sticker image__'
 
-            im = Image.open(path).convert('RGBA')
-            im.save(path + '.png', 'png')
+            png_path = path + '.png'
+            self.img_to_png(path, png_path)
 
-            subprocess.run(['corrupter', '-boffset', str(boffset), path + '.png', path + '_glitch.png'])
+            subprocess.run(['corrupter', '-boffset', str(boffset), png_path, path + '_glitch.png'])
 
             chat_id = msg.chat.id
             reply_id = msg.reply_to_message.message_id if msg.reply_to_message else None
