@@ -149,6 +149,9 @@ class Bot():
             self.unload_module(mod)
 
     def reload_module_pkg(self):
+        print('Reloading base module class...')
+        importlib.reload(module)
+
         print('Reloading master module...')
         importlib.reload(modules)
 
