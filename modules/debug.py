@@ -106,3 +106,38 @@ Time: {el_str}'''
         self.bot.mresult(msg, 'Sending media...')
         self.bot.client.send_cached_media(msg.chat.id, file_id, reply_to_message_id=reply_id)
         self.bot.client.delete_messages(msg.chat.id, msg.message_id, revoke=True)
+
+    @command.desc('Get all contextually relevant IDs')
+    def cmd_id(self, msg):
+        lines = []
+
+        reply = msg.reply_to_message
+        if reply:
+            lines.append(f"Message ID: `{reply.message_id}`")
+
+            if reply.from_user:
+                lines.append(f"Message author ID: `{reply.from_user.id}`")
+
+            if reply.forward_from:
+                lines.append(f"Forwarded message author ID: `{reply.forward_from.id}`")
+
+            if reply.forward_from_chat:
+                lines.append(f"Forwarded message chat ID: `{reply.forward_from_chat.id}`")
+
+            if reply.forward_from_message_id:
+                lines.append(f"Forwarded message's original ID: `{reply.forward_from_message_id}`")
+
+        if msg.chat:
+            typ = 'Unknown chat'
+            if msg.chat.type == 'private':
+                typ = 'Private chat'
+            elif msg.chat.type == 'group' or msg.chat.type == 'supergroup':
+                typ = 'Group'
+            elif msg.chat.type == 'channel':
+                typ = 'Channel'
+
+            lines.append(f'{typ} ID: `{msg.chat.id}`')
+
+        lines.append(f"My user ID: `{self.bot.uid}`")
+
+        return '\n'.join(lines)
