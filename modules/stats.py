@@ -22,7 +22,8 @@ class StatsModule(module.Module):
             'sent_stickers',
             'received_stickers',
             'uptime',
-            'spambots_banned'
+            'spambots_banned',
+            'stickers_created'
         ]
 
         for k in keys:
@@ -94,6 +95,7 @@ class StatsModule(module.Module):
         processed = st['processed']
         replaced = st['replaced']
         banned = st['spambots_banned']
+        stickers = st['stickers_created']
 
         return f'''**Stats since last reset**:
     • **Total time elapsed**: {util.format_duration_us(uptime)}
@@ -102,4 +104,5 @@ class StatsModule(module.Module):
     • **Percent of total messages sent**: {self.calc_pct(sent, sent + recv)}%
     • **Commands processed**: {processed} ({self.calc_ph(processed, uptime)}/h) • {self.calc_pct(processed, sent)}% of sent messages
     • **Snippets replaced**: {replaced} ({self.calc_ph(replaced, uptime)}/h) • {self.calc_pct(replaced, sent)}% of sent messages
-    • **Spambots banned**: {banned} ({self.calc_pd(banned, uptime)}/day)'''
+    • **Spambots banned**: {banned} ({self.calc_pd(banned, uptime)}/day)
+    • **Stickers created**: {stickers} ({self.calc_pd(stickers, uptime)}/day)'''

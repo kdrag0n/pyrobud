@@ -90,6 +90,7 @@ class StickerModule(module.Module):
             self.img_to_png(path, new_path)
 
             link = self.add_sticker(new_path, pack_name, st.emoji)
+            self.log_stat('stickers_created')
 
             return f"[Kanged]({link})."
 
@@ -228,6 +229,7 @@ class StickerModule(module.Module):
             self.img_to_sticker(path, [new_path, webp_path], ['png', 'webp'])
 
             link = self.add_sticker(new_path, ps[0], emoji)
+            self.log_stat('stickers_created')
             self.bot.mresult(msg, f'[Stickered]({link}). Preview:')
 
             # Send a preview
@@ -256,6 +258,7 @@ class StickerModule(module.Module):
             self.bot.config['stickers'][name] = new_path
             self.bot.save_config()
 
+            self.log_stat('stickers_created')
             return f'Sticker saved to disk as `{name}`.'
 
     @command.desc('Glitch an image')
