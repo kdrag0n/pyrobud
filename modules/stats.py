@@ -3,6 +3,7 @@ import module
 import util
 
 USEC_PER_HOUR = 60 * 60 * 1000000
+USEC_PER_DAY = USEC_PER_HOUR * 24
 
 class StatsModule(module.Module):
     name = 'Stats'
@@ -20,7 +21,8 @@ class StatsModule(module.Module):
             'received_edits',
             'sent_stickers',
             'received_stickers',
-            'uptime'
+            'uptime',
+            'spambots_banned'
         ]
 
         for k in keys:
@@ -67,6 +69,10 @@ class StatsModule(module.Module):
         up_hr = max(1, uptime) / USEC_PER_HOUR
         return '{:.1f}'.format(stat / up_hr).rstrip('0').rstrip('.')
 
+    def calc_pd(self, stat, uptime):
+        up_day = max(1, uptime) / USEC_PER_DAY
+        return '{:.1f}'.format(stat / up_day).rstrip('0').rstrip('.')
+
     @command.desc('Show chat stats (pass `reset` to reset stats)')
     def cmd_stats(self, msg, args):
         if args == "reset":
@@ -86,6 +92,7 @@ class StatsModule(module.Module):
         recv_stickers = st['received_stickers']
         processed = st['processed']
         replaced = st['replaced']
+        banned = st['spambots_banned']
 
         return f'''**Stats since last reset**:
     • **Total time elapsed**: {util.format_duration_us(uptime)}
@@ -93,4 +100,5 @@ class StatsModule(module.Module):
     • **Messages sent**: {sent} ({self.calc_ph(sent, uptime)}/h) • {self.calc_pct(sent_stickers, sent)}% are stickers
     • **Percent of total messages sent**: {self.calc_pct(sent, sent + recv)}%
     • **Commands processed**: {processed} ({self.calc_ph(processed, uptime)}/h) • {self.calc_pct(processed, sent)}% of sent messages
-    • **Snippets replaced**: {replaced} ({self.calc_ph(replaced, uptime)}/h) • {self.calc_pct(replaced, sent)}% of sent messages'''
+    • **Snippets replaced**: {replaced} ({self.calc_ph(replaced, uptime)}/h) • {self.calc_pct(replaced, sent)}% of sent messages
+    • **Spambots banned**: {banned} ({self.calc_pd(banned, uptime)}/day)'''
