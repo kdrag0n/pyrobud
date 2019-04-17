@@ -74,6 +74,7 @@ class StatsModule(module.Module):
         return '{:.1f}'.format(stat / up_day).rstrip('0').rstrip('.')
 
     @command.desc('Show chat stats (pass `reset` to reset stats)')
+    @command.alias('stat')
     def cmd_stats(self, msg, args):
         if args == "reset":
             self.bot.config['stats'] = {}
