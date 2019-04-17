@@ -94,3 +94,13 @@ Time: {el_str}'''
     def cmd_save_config(self, msg):
         self.bot.save_config()
         return 'Config saved to disk.'
+
+    @command.desc('Send media by file ID')
+    @command.alias('file')
+    def cmd_fileid(self, msg, file_id):
+        if not file_id:
+            return '__Provide a file ID to send.__'
+
+        self.bot.mresult(msg, 'Sending media...')
+        self.bot.client.send_cached_media(msg.chat.id, file_id)
+        self.bot.client.delete_messages(msg.chat.id, msg.message_id, revoke=True)
