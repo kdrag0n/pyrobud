@@ -101,6 +101,8 @@ Time: {el_str}'''
         if not file_id:
             return '__Provide a file ID to send.__'
 
+        reply_id = msg.reply_to_message.message_id if msg.reply_to_message else None
+
         self.bot.mresult(msg, 'Sending media...')
-        self.bot.client.send_cached_media(msg.chat.id, file_id)
+        self.bot.client.send_cached_media(msg.chat.id, file_id, reply_to_message_id=reply_id)
         self.bot.client.delete_messages(msg.chat.id, msg.message_id, revoke=True)
