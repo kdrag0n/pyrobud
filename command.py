@@ -1,5 +1,4 @@
 import pyrogram as tg
-import module
 
 def desc(_desc):
     def desc_decorator(func):
