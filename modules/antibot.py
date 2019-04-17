@@ -58,7 +58,7 @@ class AntibotModule(module.Module):
     def msg_content_suspicious(self, msg):
         return self.msg_is_forwarded(msg) or self.msg_has_suspicious_entity(msg) or self.msg_has_suspicious_keyword(msg)
 
-    def msg_is_suspicious(self, msg):
+    def msg_data_is_suspicious(self, msg):
         enabled_in_group = msg.chat and msg.chat.type == "supergroup" and msg.chat.id in self.bot.config['antibot']['group_ids']
         user_is_not_us = msg.from_user and msg.from_user.id != self.bot.uid
         has_date = msg.date
@@ -67,6 +67,24 @@ class AntibotModule(module.Module):
         if enabled_in_group and user_is_not_us and has_date:
             return self.msg_content_suspicious(msg)
 
+        return False
+
+    def msg_is_suspicious(self, msg):
+        # Check if the data in the message is suspicious
+        if not self.msg_data_is_suspicious(msg):
+            return False
+
+        member = self.bot.client.get_chat_member(msg.chat.id, msg.from_user.id)
+        if not member.date:
+            # Only the group creator lacks a join date
+            return False
+
+        delta = msg.date - member.date
+        if delta <= self.bot.config['antibot']['threshold_time']:
+            # Suspicious message was sent quickly after joining
+            return True
+
+        # Let this message slip
         return False
 
     def take_action(self, msg):
@@ -78,14 +96,8 @@ class AntibotModule(module.Module):
 
     def on_message(self, msg):
         if self.msg_is_suspicious(msg):
-            member = self.bot.client.get_chat_member(msg.chat.id, msg.from_user.id)
-            if not member.date:
-                return
-
-            delta = msg.date - member.date
-            if delta <= self.bot.config['antibot']['threshold_time']:
-                # This is probably a spambot, take action against the user
-                self.take_action(msg)
+            # This is most likely a spambot, take action against the user
+            self.take_action(msg)
 
     @command.desc('Toggle the antibot auto-moderation feature in this group')
     def cmd_antibot(self, msg):
