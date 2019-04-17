@@ -31,6 +31,7 @@ class AntibotModule(module.Module):
         if not msg.entities:
             return False
 
+        # Messages with links, e-mail addresses, or phone numbers are more likely to be spam
         for entity in msg.entities:
             if entity.type == 'url' or entity.type == 'text_link':
                 return True
@@ -42,12 +43,14 @@ class AntibotModule(module.Module):
         return False
 
     def msg_is_forwarded(self, msg):
+        # Many spam announcements are forwarded from a central channel
         return msg.forward_from or msg.forward_from_name or msg.forward_from_chat or msg.forward_from_message_id
 
     def msg_has_suspicious_keyword(self, msg):
         if not msg.text:
             return False
 
+        # Many spam messages mention certain keywords, such as cryptocurrency exchanges
         l_text = msg.text.lower()
         for kw in self.__class__.suspicious_keywords:
             if kw in l_text:
@@ -56,6 +59,7 @@ class AntibotModule(module.Module):
         return False
 
     def msg_content_suspicious(self, msg):
+        # Consolidate message content checks
         return self.msg_is_forwarded(msg) or self.msg_has_suspicious_entity(msg) or self.msg_has_suspicious_keyword(msg)
 
     def msg_data_is_suspicious(self, msg):
