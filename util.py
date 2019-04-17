@@ -1,6 +1,7 @@
 from datetime import datetime
 import traceback
 import time
+import os
 
 def time_us():
     return int(time.time() * 1000000)
@@ -59,7 +60,15 @@ def filter_input_block(inp):
     return inp
 
 def format_exception(exp):
-    stack = ''.join(traceback.format_tb(exp.__traceback__))
+    tb = traceback.extract_tb(exp.__traceback__)
+
+    # Replace absolute paths with relative paths
+    cwd = os.getcwd()
+    for frame in tb:
+        if cwd in frame.filename:
+            frame.filename = os.path.relpath(frame.filename)
+
+    stack = ''.join(traceback.format_list(tb))
     msg = str(exp)
     if msg:
         msg = ': ' + msg
