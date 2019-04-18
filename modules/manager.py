@@ -10,7 +10,6 @@ class ManagerModule(module.Module):
     def cmd_reloadall(self, msg):
         before = util.time_us()
 
-        self.bot.mresult(msg, 'Saving config...')
         self.bot.save_config()
 
         self.bot.mresult(msg, 'Unloading all modules...')
@@ -28,6 +27,8 @@ class ManagerModule(module.Module):
         self.bot.mresult(msg, 'Dispatching load and start events...')
         self.bot.dispatch_event('load')
         self.bot.dispatch_event('start', util.time_us())
+
+        self.bot.save_config()
 
         after = util.time_us()
         delta = after - before
