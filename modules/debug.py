@@ -98,14 +98,31 @@ Time: {el_str}'''
     @command.desc('Send media by file ID')
     @command.alias('file')
     def cmd_fileid(self, msg, file_id):
-        if not file_id:
-            return '__Provide a file ID to send.__'
+        if not file_id and not msg.reply_to_message:
+            return '__Provide a file ID to send or reply to a message with media to get its ID.__'
 
-        reply_id = msg.reply_to_message.message_id if msg.reply_to_message else None
+        if file_id:
+            reply_id = msg.reply_to_message.message_id if msg.reply_to_message else None
 
-        self.bot.mresult(msg, 'Sending media...')
-        self.bot.client.send_cached_media(msg.chat.id, file_id, reply_to_message_id=reply_id)
-        self.bot.client.delete_messages(msg.chat.id, msg.message_id, revoke=True)
+            self.bot.mresult(msg, 'Sending media...')
+            self.bot.client.send_cached_media(msg.chat.id, file_id, reply_to_message_id=reply_id)
+            self.bot.client.delete_messages(msg.chat.id, msg.message_id, revoke=True)
+        else:
+            rep = msg.reply_to_message
+            if not rep.media:
+                return '__Provide a file ID to send or reply to a message with media to get its ID.__'
+
+            for typ in util.media_types:
+                obj = getattr(rep, typ)
+                if obj:
+                    if typ == 'photo':
+                        fid = obj.sizes[-1].file_id
+                    else:
+                        fid = obj.file_id
+
+                    return f'File ID: `{fid}`'
+
+            return '__No compatible media found.__'
 
     @command.desc('Get all contextually relevant IDs')
     def cmd_id(self, msg):
