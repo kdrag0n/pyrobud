@@ -3,6 +3,17 @@ import traceback
 import time
 import os
 
+media_types =  [
+    'audio',
+    'document',
+    'photo',
+    'sticker',
+    'animation',
+    'video',
+    'voice',
+    'video_note'
+]
+
 def time_us():
     return int(time.time() * 1000000)
 
