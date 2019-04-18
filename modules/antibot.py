@@ -93,11 +93,17 @@ class AntibotModule(module.Module):
         return False
 
     def take_action(self, msg):
-        self.bot.client.send_message(msg.chat.id, f'/ban Spambot detected (ID: `{msg.from_user.id}`)', reply_to_message_id=msg.message_id)
-        time.sleep(1)
-        self.bot.client.delete_messages(msg.chat.id, msg.message_id)
+        # Kick = ban in Telegram terms
+        self.bot.client.kick_chat_member(msg.chat.id, msg.from_user.id)
+
+        # Log the event
+        print(f'NOTICE: banned spambot with ID {msg.from_user.id} in group "{msg.chat.title}"')
+        self.bot.client.send_message('me', f'❯❯ **Banned spambot** with ID `{msg.from_user.id}` in group `{msg.chat.title}`')
 
         self.log_stat('spambots_banned')
+
+        # Delete the spam message
+        self.bot.client.delete_messages(msg.chat.id, msg.message_id)
 
     def on_message(self, msg):
         if self.msg_is_suspicious(msg):
