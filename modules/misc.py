@@ -83,19 +83,17 @@ GitHub = "https://github.com/"```
             'welcome on',
             'goodbye off',
             'warnlimit 3',
-            'strongwarn off',
+            'strongwarn on',
             f'''setwelcome *Welcome*, {first}!
 Please read the rules before chatting. {srules}{extra_btn}''',
             'cleanwelcome on',
             f'setrules \u200b{rule_str}',
             'setflood 20',
             'setfloodmode tmute 3h',
-            'gbanstat on',
-            'gmutestat on',
             'reports on',
             'cleanservice on',
             'welcomemute on',
-            'welcomemutetime 3h'
+            'welcomemutetime 2h'
         ]
 
         for cmd in commands:
