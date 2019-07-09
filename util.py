@@ -1,18 +1,8 @@
 from datetime import datetime
 import traceback
+import asyncio
 import time
 import os
-
-media_types =  [
-    'audio',
-    'document',
-    'photo',
-    'sticker',
-    'animation',
-    'video',
-    'voice',
-    'video_note'
-]
 
 def time_us():
     return int(time.time() * 1000000)
@@ -62,7 +52,7 @@ def find_prefixed_funcs(obj, prefix):
 
     return results
 
-def filter_input_block(inp):
+def filter_code_block(inp):
     if inp.startswith('```') and inp.endswith('```'):
         inp = inp[3:][:-3]
     elif inp.startswith('`') and inp.endswith('`'):
@@ -85,3 +75,28 @@ def format_exception(exp):
         msg = ': ' + msg
 
     return f'Traceback (most recent call last):\n{stack}{type(exp).__name__}{msg}'
+
+async def run_sync(func):
+    loop = asyncio.get_running_loop()
+    future = loop.run_in_executor(None, func)
+    await future
+    return future.result()
+
+async def msg_download_file(download_msg, status_msg, destination=bytes, file_type='file'):
+    last_percent = -5
+
+    def prog_func(current_bytes, total_bytes):
+        nonlocal last_percent
+
+        if not status_msg:
+            return
+
+        # Only edit message if progress >= 5%
+        # This reduces Telegram rate-limit exhaustion
+        percent = int((current_bytes / total_bytes) * 100)
+        if abs(percent - last_percent) >= 5:
+            asyncio.create_task(status_msg.result(f'Downloading {file_type}... {percent}% complete'))
+
+        last_percent = percent
+
+    return await download_msg.download_media(file=destination, progress_callback=prog_func)

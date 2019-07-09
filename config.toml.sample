@@ -4,13 +4,3 @@ api_hash = "0123456789abcdef0123456789abcdef"
 
 [bot]
 prefix = "."
-
-[snippets]
-shrug = "¯\\_(ツ)_/¯"
-tableflip = "(╯°□°）╯︵ ┻━┻"
-unflip = "┬─┬ ノ( ゜-゜ノ)"
-
-[stats]
-sent = 0
-received = 0
-processed = 0

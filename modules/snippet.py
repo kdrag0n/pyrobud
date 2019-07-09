@@ -5,36 +5,38 @@ import re
 class SnippetModule(module.Module):
     name = 'Snippet'
 
-    def on_load(self):
+    async def on_load(self):
+        # Populate config if necessary
         if 'snippets' not in self.bot.config:
             self.bot.config['snippets'] = {}
-            print('Initialized snippet table in config')
 
     def snip_repl(self, m):
         if m.group(1) in self.bot.config['snippets']:
-            self.log_stat('replaced')
+            self.bot.log_stat('replaced')
             return self.bot.config['snippets'][m.group(1)]
 
         return m.group(0)
 
-    def on_message(self, msg):
-        if msg.from_user and msg.from_user.id == self.bot.uid:
-            if msg.text:
-                orig_txt = msg.text.markdown
-                txt = msg.text.markdown
+    async def on_message(self, msg):
+        if msg.out and msg.text:
+            orig_txt = msg.text
+            txt = msg.text
 
-                txt = re.sub(r'/([^ ]+?)/', self.snip_repl, orig_txt)
+            txt = re.sub(r'/([^ ]+?)/', self.snip_repl, orig_txt)
 
-                if txt != orig_txt:
-                    self.bot.mresult(msg, txt)
+            if txt != orig_txt:
+                await msg.result(txt)
 
     @command.desc('Save a snippet (fetch: `/snippet/`)')
-    def cmd_snip(self, msg, *args):
+    @command.alias('snippet', 'snp')
+    async def cmd_snip(self, msg, *args):
         if not args:
             return '__Specify a name for the snippet, then reply to a message or provide text.__'
 
-        if msg.reply_to_message:
-            content = msg.reply_to_message.text.markdown
+        if msg.is_reply:
+            reply_msg = await msg.get_reply_message()
+
+            content = reply_msg.text
             if not content:
                 if len(args) > 1:
                     content = ' '.join(args[1:])
@@ -48,18 +50,18 @@ class SnippetModule(module.Module):
 
         name = args[0]
         if name in self.bot.config['snippets']:
-            return f'__Snippet \'{name}\' already exists!__'
+            return f"__Snippet '{name}' already exists!__"
 
         self.bot.config['snippets'][name] = content.strip()
 
-        # Actually save it to disk
-        self.bot.save_config()
+        # Commit it to disk
+        await self.bot.save_config()
 
         return f'Snippet saved as `{name}`.'
 
     @command.desc('Show all snippets')
-    @command.alias('sl', 'snl', 'spl')
-    def cmd_sniplist(self, msg):
+    @command.alias('sl', 'snl', 'spl', 'snips', 'snippets')
+    async def cmd_sniplist(self, msg):
         if not self.bot.config['snippets']:
             return '__No snippets saved.__'
 
@@ -71,11 +73,11 @@ class SnippetModule(module.Module):
         return out
 
     @command.desc('Delete a snippet')
-    @command.alias('ds', 'sd', 'snd', 'spd', 'rms', 'srm', 'rs', 'sr')
-    def cmd_snipdel(self, msg, name):
+    @command.alias('ds', 'sd', 'snd', 'spd', 'rms', 'srm', 'rs', 'sr', 'rmsnip', 'delsnip')
+    async def cmd_snipdel(self, msg, name):
         if not name: return '__Provide the name of a snippet to delete.__'
 
         del self.bot.config['snippets'][name]
-        self.bot.save_config()
+        await self.bot.save_config()
 
         return f'Snippet `{name}` deleted.'

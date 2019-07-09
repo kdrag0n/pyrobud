@@ -1,10 +1,15 @@
 import subprocess
-import tempfile
+import asyncio
 import command
 import module
 import time
+import util
+import io
 import os
 from PIL import Image
+from datetime import datetime
+
+PNG_MAGIC = b'\x89\x50\x4e\x47\x0d\x0a\x1a\x0a'
 
 class LengthMismatchError(Exception):
     pass
@@ -12,260 +17,389 @@ class LengthMismatchError(Exception):
 class StickerModule(module.Module):
     name = 'Sticker'
 
-    def on_load(self):
+    async def on_load(self):
+        # Populate config if necessary
         if 'stickers' not in self.bot.config:
             self.bot.config['stickers'] = {}
-            print('Initialized saved sticker table in config')
 
         if 'user' not in self.bot.config:
             self.bot.config['user'] = {}
-            print('Initialized user data table in config')
 
-    def add_sticker(self, png_path, pack_name, emoji, jpg_path=None):
-        if not emoji:
-            emoji = '❓'
+        # Create local sticker directory if necessary
+        if not os.path.exists('stickers'):
+            await util.run_sync(lambda: os.mkdir('stickers'))
+        elif not os.path.isdir('stickers'):
+            await util.run_sync(lambda: os.remove('stickers'))
+            await util.run_sync(lambda: os.mkdir('stickers'))
 
-        st_bot = 'Stickers'
+        # Migrate old config data
+        if 'sticker_pack' in self.bot.config['user']:
+            user = self.bot.config['user']
+            kang_pack = user['sticker_pack']
+            del user['sticker_pack']
+            user['kang_pack'] = kang_pack
 
-        self.bot.client.send_message(st_bot, '/addsticker')
-        time.sleep(0.15)
-        self.bot.client.send_message(st_bot, pack_name)
-        time.sleep(0.15)
-        self.bot.client.send_document(st_bot, png_path)
-        time.sleep(0.25)
-        self.bot.client.send_message(st_bot, emoji)
-        time.sleep(0.6)
+            print('Migrated saved stickers to new config format')
 
-        self.bot.client.send_message(st_bot, '/done')
-        return f'https://t.me/addstickers/{pack_name}'
+        # Migrate old sticker data
+        migrated_files = False
+        files = await util.run_sync(lambda: os.listdir('stickers'))
+        for fn in files:
+            # .webp.png -> .png
+            if fn.endswith('.webp.png'):
+                new_fn = fn[:-len('.webp.png')] + '.png'
+                await util.run_sync(lambda: os.rename(f'stickers/{fn}', f'stickers/{new_fn}'))
+                migrated_files = True
+                fn = new_fn
 
-    def img_to_png(self, src, dest):
-        im = Image.open(src).convert('RGBA')
-        im.save(dest, 'png')
+            # [...]01.webp -> [...].webp
+            if fn.endswith('01.webp'):
+                new_fn = fn[:-len('01.webp')] + '.webp'
+                await util.run_sync(lambda: os.rename(f'stickers/{fn}', f'stickers/{new_fn}'))
+                migrated_files = True
 
-    def img_to_sticker(self, src, dests, formats):
-        if not dests or not formats:
+            # [...]01.png -> [...].png
+            if fn.endswith('01.png'):
+                new_fn = fn[:-len('01.png')] + '.png'
+                await util.run_sync(lambda: os.rename(f'stickers/{fn}', f'stickers/{new_fn}'))
+                migrated_files = True
+
+        if migrated_files:
+            # Migrate paths in config
+            for name, fn in self.bot.config['stickers'].items():
+                # [...]01.webp -> [...].webp
+                if fn.endswith('01.webp'):
+                    new_fn = fn[:-len('01.webp')] + '.webp'
+                    self.bot.config['stickers'][name] = new_fn
+
+            print('Migrated local stickers to new disk format')
+
+    async def add_sticker(self, sticker_data, pack_name, emoji='❓'):
+        # User to send messages to
+        target = 'Stickers'
+
+        # The sticker bot's error strings
+        too_many_stickers_error = "A pack can't have more than 120 stickers at the moment."
+        invalid_format_error = 'Sorry, the file type is invalid.'
+
+        commands = [
+            ('text', '/cancel'),
+            ('text', '/addsticker'),
+            ('text', pack_name),
+            ('file', sticker_data),
+            ('text', emoji),
+            ('text', '/done')
+        ]
+
+        before = datetime.now()
+
+        async with self.bot.client.conversation(target) as conv:
+            async def reply_and_ack():
+                # Wait for a response
+                response = await conv.get_response()
+                # Ack the response to suppress its notiication
+                await conv.mark_read()
+
+                return response
+
+            try:
+                for (cmd_type, data) in commands:
+                    if cmd_type == 'text':
+                        await conv.send_message(data)
+                    elif cmd_type == 'file':
+                        await conv.send_file(data, force_document=True)
+                    else:
+                        raise TypeError(f"Unknown command type '{cmd_type}'")
+
+                    # Wait for both the rate-limit and the bot's response
+                    try:
+                        wait_task = asyncio.create_task(reply_and_ack())
+                        ratelimit_task = asyncio.create_task(asyncio.sleep(0.25))
+                        await asyncio.wait({wait_task, ratelimit_task})
+
+                        response = wait_task.result()
+                        if too_many_stickers_error in response.raw_text:
+                            return ('error', f"Sticker creation failed because there are too many stickers in the [{pack_name}](https://t.me/addstickers/{pack_name}) pack — Telegram's limit is 120. Delete some unwanted stickers or create a new pack.")
+                        elif invalid_format_error in response.raw_text:
+                            return ('error', f'Sticker creation failed because Telegram rejected the uploaded image file for deviating from their expected format. This is usually indicative of a MIME type issue in this bot.')
+                    except asyncio.TimeoutError:
+                        after = datetime.now()
+                        delta_seconds = int((after - before).total_seconds())
+
+                        return ('error', f'Sticker creation failed after {delta_seconds} seconds because [the bot](https://t.me/{target}) failed to respond within 1 minute of issuing the last command.')
+            finally:
+                # Cancel the operation if we return early
+                await conv.send_message('/cancel')
+
+        return ('success', f'https://t.me/addstickers/{pack_name}')
+
+    async def img_to_png(self, src, dest=None):
+        if not dest:
+            dest = src
+
+        def _img_to_png():
+            im = Image.open(src).convert('RGBA')
+            if hasattr(src, 'seek'):
+                src.seek(0)
+            im.save(dest, 'png')
+
+        await util.run_sync(lambda: _img_to_png())
+        return dest
+
+    async def img_to_sticker(self, src, formats):
+        if not formats:
             return
-        if len(dests) != len(formats):
-            raise LengthMismatchError(f'Length mismatch: {len(dests)} destination paths and {len(formats)} formats given')
 
-        im = Image.open(src).convert('RGBA')
+        def _img_to_sticker():
+            im = Image.open(src).convert('RGBA')
 
-        sz = im.size
-        target = 512
-        if sz[0] > sz[1]:
-            w_ratio = target / float(sz[0])
-            h_size = int(float(sz[1]) * float(w_ratio))
-            im = im.resize((target, h_size), Image.LANCZOS)
-        else:
-            h_ratio = target / float(sz[1])
-            w_size = int(float(sz[0]) * float(h_ratio))
-            im = im.resize((w_size, target), Image.LANCZOS)
+            sz = im.size
+            target = 512
+            if sz[0] > sz[1]:
+                w_ratio = target / float(sz[0])
+                h_size = int(float(sz[1]) * float(w_ratio))
+                im = im.resize((target, h_size), Image.LANCZOS)
+            else:
+                h_ratio = target / float(sz[1])
+                w_size = int(float(sz[0]) * float(h_ratio))
+                im = im.resize((w_size, target), Image.LANCZOS)
 
-        for i, dest in enumerate(dests):
-            im.save(dest, formats[i])
+            for fmt, dest in formats.items():
+                im.save(dest, fmt)
+
+        await util.run_sync(lambda: _img_to_sticker())
+        return formats
 
     @command.desc('Kang a sticker into configured/provided pack')
-    def cmd_kang(self, msg, pack_name):
-        if not msg.reply_to_message or not msg.reply_to_message.sticker:
-            return '__Reply to a sticker message to kang it.__'
-        if 'sticker_pack' not in self.bot.config['user'] and not pack_name:
-            return '__Specify a sticker pack name.__'
+    async def cmd_kang(self, msg, pack_name):
+        if not msg.is_reply:
+            return '__Reply to a sticker to kang it.__'
+
+        if 'kang_pack' not in self.bot.config['user'] and not pack_name:
+            return '__Specify the name of the pack to add the sticker to.__'
+
         if pack_name:
-            self.bot.config['user']['sticker_pack'] = pack_name
-            self.bot.save_config()
+            self.bot.config['user']['kang_pack'] = pack_name
+            await self.bot.save_config()
         else:
-            pack_name = self.bot.config['user']['sticker_pack']
+            pack_name = self.bot.config['user']['kang_pack']
 
-        self.bot.mresult(msg, 'Kanging...')
+        reply_msg = await msg.get_reply_message()
 
-        st = msg.reply_to_message.sticker
+        if not reply_msg.sticker:
+            return "__That message isn't a sticker.__"
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            path = self.bot.client.download_media(msg.reply_to_message, file_name=tmpdir + '/')
-            if not path:
-                return '__Error downloading sticker__'
+        await msg.result('Kanging sticker...')
 
-            new_path = f'{tmpdir}/sticker.png'
-            self.img_to_png(path, new_path)
+        sticker_bytes = await reply_msg.download_media(file=bytes)
+        sticker_buf = io.BytesIO(sticker_bytes)
+        await self.img_to_png(sticker_buf)
 
-            link = self.add_sticker(new_path, pack_name, st.emoji)
-            self.log_stat('stickers_created')
+        sticker_buf.seek(0)
+        sticker_buf.name = 'sticker.png'
+        status, result = await self.add_sticker(sticker_buf, pack_name, emoji=reply_msg.file.emoji)
+        if status == 'success':
+            self.bot.log_stat('stickers_created')
+            return f"[Sticker kanged]({result})."
+        else:
+            return result
 
-            return f"[Kanged]({link})."
+    @command.desc('Save a sticker with a name (as a reference)')
+    async def cmd_save(self, msg, name):
+        if not msg.is_reply:
+            return '__Reply to a sticker to save it.__'
 
-    @command.desc('Save a sticker with a name as reference')
-    def cmd_save(self, msg, name):
-        if not msg.reply_to_message or not msg.reply_to_message.sticker:
-            return '__Reply to a sticker message to save it.__'
         if not name:
-            return '__Provide a name to save the sticker as.__'
-        if name in self.bot.config['stickers']:
-            return '__There\'s already a sticker with that name.__'
+            return '__Provide a name for the new sticker.__'
 
-        self.bot.config['stickers'][name] = msg.reply_to_message.sticker.file_id
-        self.bot.save_config()
+        if name in self.bot.config['stickers']:
+            return "__There's already a sticker with that name.__"
+
+        reply_msg = await msg.get_reply_message()
+
+        if not reply_msg.sticker:
+            return "__That message isn't a sticker.__"
+
+        self.bot.config['stickers'][name] = reply_msg.file.id
+        await self.bot.save_config()
 
         return f'Sticker saved as `{name}`.'
 
-    @command.desc('Save a sticker with a name to disk')
-    def cmd_saved(self, msg, name):
-        if not msg.reply_to_message or not msg.reply_to_message.sticker:
-            return '__Reply to a sticker message to save it.__'
-        if not name:
-            return '__Provide a name to save the sticker as.__'
-        if name in self.bot.config['stickers']:
-            return '__There\'s already a sticker with that name.__'
+    @command.desc('Save a sticker with a name (to disk)')
+    async def cmd_saved(self, msg, name):
+        if not msg.is_reply:
+            return '__Reply to a sticker to save it.__'
 
-        path = self.bot.client.download_media(msg.reply_to_message, file_name=f'stickers/{name}01.webp')
+        if not name:
+            return '__Provide a name for the new sticker.__'
+
+        if name in self.bot.config['stickers']:
+            return "__There's already a sticker with that name.__"
+
+        reply_msg = await msg.get_reply_message()
+
+        if not reply_msg.sticker:
+            return "__That message isn't a sticker.__"
+
+        path = await util.msg_download_file(reply_msg, msg, destination=f'stickers/{name}.webp', file_type='sticker')
         if not path:
             return '__Error downloading sticker__'
 
         self.bot.config['stickers'][name] = path
-        self.bot.save_config()
+        await self.bot.save_config()
 
         return f'Sticker saved to disk as `{name}`.'
 
     @command.desc('List saved stickers')
-    def cmd_stickers(self, msg):
+    async def cmd_stickers(self, msg):
         if not self.bot.config['stickers']:
             return '__No stickers saved.__'
 
-        out = 'Stickers saved:'
+        out = ['**Stickers saved**:']
 
         for item in self.bot.config['stickers']:
             s_type = 'local' if self.bot.config['stickers'][item].endswith('.webp') else 'reference'
-            out += f'\n    \u2022 **{item}** ({s_type})'
+            out.append(f'{item} ({s_type})')
 
-        return out
+        return '\n    \u2022 '.join(out)
 
     @command.desc('List locally saved stickers')
-    def cmd_stickersp(self, msg):
+    async def cmd_stickersp(self, msg):
         if not self.bot.config['stickers']:
             return '__No stickers saved.__'
 
-        out = 'Stickers saved:'
+        out = ['**Stickers saved**:']
 
         for item in self.bot.config['stickers']:
             if self.bot.config['stickers'][item].endswith('.webp'):
-                out += f'\n    \u2022 **{item}**'
+                out.append(item)
 
-        return out
+        return '\n    \u2022 '.join(out)
 
     @command.desc('Delete a saved sticker')
-    def cmd_sdel(self, msg, name):
-        if not name: return '__Provide the name of a sticker to delete.__'
+    async def cmd_sdel(self, msg, name):
+        if not name:
+            return '__Provide the name of a sticker to delete.__'
 
-        s_type = 'local' if self.bot.config['stickers'][name].endswith('.webp') else 'reference'
+        s_type = 'Local' if self.bot.config['stickers'][name].endswith('.webp') else 'Reference'
 
         del self.bot.config['stickers'][name]
-        self.bot.save_config()
+        await self.bot.save_config()
 
-        return f'{s_type.title()} sticker `{name}` deleted.'
+        return f'{s_type} sticker `{name}` deleted.'
 
-    @command.desc('Get a sticker by name')
-    def cmd_s(self, msg, name):
+    @command.desc('Fetch a sticker by name')
+    async def cmd_s(self, msg, name):
         if not name:
-            self.bot.mresult(msg, '__Provide the name of a sticker.__')
+            await msg.result('__Provide the name of the sticker to fetch.__')
             return
+
         if name not in self.bot.config['stickers']:
-            self.bot.mresult(msg, '__That sticker doesn\'t exist.__')
+            await msg.result("__That sticker doesn't exist.__")
             return
 
-        chat_id = msg.chat.id
-        reply_id = msg.reply_to_message.message_id if msg.reply_to_message else None
-        self.bot.mresult(msg, 'Uploading sticker...')
-        self.bot.client.send_sticker(chat_id, self.bot.config['stickers'][name], reply_to_message_id=reply_id)
-        self.bot.client.delete_messages(msg.chat.id, msg.message_id, revoke=True)
+        path = self.bot.config['stickers'][name]
+        await msg.result('Uploading sticker...')
+        await msg.respond(file=path, reply_to=msg.reply_to_msg_id)
+        await msg.delete()
 
-    @command.desc('Get a sticker by name and send it as a photo')
-    def cmd_sp(self, msg, name):
+    @command.desc('Fetch a sticker by name and send it as a photo')
+    @command.alias('sphoto')
+    async def cmd_sp(self, msg, name):
         if not name:
-            self.bot.mresult(msg, '__Provide the name of a sticker.__')
+            await msg.result('__Provide the name of the sticker to fetch.__')
             return
+
         if name not in self.bot.config['stickers']:
-            self.bot.mresult(msg, '__That sticker doesn\'t exist.__')
+            await msg.result("__That sticker doesn't exist.__")
             return
 
         if not self.bot.config['stickers'][name].endswith('.webp'):
-            self.bot.mresult(msg, '__That sticker can not be sent as a photo.__')
+            await msg.result('__That sticker can not be sent as a photo.__')
             return
 
-        chat_id = msg.chat.id
-        reply_id = msg.reply_to_message.message_id if msg.reply_to_message else None
-
-        path = self.bot.config['stickers'][name]
-        png_path = path + '.png'
+        await msg.result('Uploading sticker...')
+        webp_path = self.bot.config['stickers'][name]
+        png_path = webp_path[:-len('.webp')] + '.png'
         if not os.path.isfile(png_path):
-            self.img_to_png(path, png_path)
+            await self.img_to_png(webp_path, dest=png_path)
 
-        self.bot.mresult(msg, 'Uploading sticker...')
-        self.bot.client.send_photo(chat_id, png_path, reply_to_message_id=reply_id)
-        self.bot.client.delete_messages(msg.chat.id, msg.message_id, revoke=True)
+        await msg.respond(file=png_path, reply_to=msg.reply_to_msg_id)
+        await msg.delete()
 
-    @command.desc('Sticker an image')
-    def cmd_sticker(self, msg, pack):
-        if not msg.reply_to_message or (not msg.reply_to_message.photo and not msg.reply_to_message.document):
-            self.bot.mresult(msg, '__Reply to a message with an image to sticker it.__')
+    @command.desc('Create a sticker from an image and add it to the given pack')
+    async def cmd_sticker(self, msg, args):
+        if not msg.is_reply:
+            return '__Reply to an image to sticker it.__'
+
+        if not args:
+            await msg.result('__Provide the name of the pack to add the sticker to.__')
             return
-        if not pack:
-            self.bot.mresult(msg, '__Provide the name of the pack to add the sticker to.__')
-            return
 
-        ps = pack.split()
+        reply_msg = await msg.get_reply_message()
+
+        if not reply_msg.file:
+            return "__That message doesn't contain an image.__"
+
+        ps = args.split()
+        pack_name = ps[0]
         emoji = ps[1] if len(ps) > 1 else '❓'
 
-        self.bot.mresult(msg, 'Stickering...')
+        await msg.result('Creating sticker...')
 
-        st_bot = 'Stickers'
+        sticker_bytes = await reply_msg.download_media(file=bytes)
+        sticker_buf = io.BytesIO(sticker_bytes)
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            path = self.bot.client.download_media(msg.reply_to_message, file_name=tmpdir + '/')
-            if not path:
-                return '__Error downloading image__'
+        png_buf = io.BytesIO()
+        webp_buf = io.BytesIO()
+        await self.img_to_sticker(sticker_buf, {'png': png_buf, 'webp': webp_buf})
 
-            new_path = f'{tmpdir}/sticker.png'
-            webp_path = f'{tmpdir}/sticker.webp'
-            self.img_to_sticker(path, [new_path, webp_path], ['png', 'webp'])
+        png_buf.seek(0)
+        png_buf.name = 'sticker.png'
+        status, result = await self.add_sticker(png_buf, pack_name, emoji=emoji)
+        if status == 'success':
+            self.bot.log_stat('stickers_created')
+            await msg.result(f"[Sticker created]({result}). Preview:")
 
-            link = self.add_sticker(new_path, ps[0], emoji)
-            self.log_stat('stickers_created')
-            self.bot.mresult(msg, f'[Stickered]({link}). Preview:')
+            webp_buf.seek(0)
+            await msg.respond(file=webp_buf)
+        else:
+            return result
 
-            # Send a preview
-            self.bot.client.send_sticker(msg.chat.id, webp_path)
+    @command.desc('Create a sticker from an image and save it to disk under the given name')
+    async def cmd_qstick(self, msg, name):
+        if not msg.is_reply:
+            return '__Reply to an image to sticker it.__'
 
-    @command.desc('Sticker an image and save it to disk')
-    def cmd_qstick(self, msg, name):
-        if not msg.reply_to_message or (not msg.reply_to_message.photo and not msg.reply_to_message.document):
-            self.bot.mresult(msg, '__Reply to a message with an image to sticker it.__')
-            return
         if not name:
-            return '__Provide a name to save the sticker as.__'
+            return '__Provide a name for the new sticker.__'
+
         if name in self.bot.config['stickers']:
-            return '__There\'s already a sticker with that name.__'
+            return "__There's already a sticker with that name.__"
 
-        self.bot.mresult(msg, 'Stickering...')
+        reply_msg = await msg.get_reply_message()
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            path = self.bot.client.download_media(msg.reply_to_message, file_name=tmpdir + '/')
-            if not path:
-                return '__Error downloading image__'
+        if not reply_msg.file:
+            return "__That message isn't an image.__"
 
-            new_path = f'stickers/{name}01.webp'
-            self.img_to_sticker(path, [new_path], ['webp'])
+        await msg.result('Creating sticker...')
 
-            self.bot.config['stickers'][name] = new_path
-            self.bot.save_config()
+        sticker_bytes = await reply_msg.download_media(file=bytes)
+        sticker_buf = io.BytesIO(sticker_bytes)
 
-            self.log_stat('stickers_created')
-            return f'Sticker saved to disk as `{name}`.'
+        path = f'stickers/{name}.webp'
+        await self.img_to_sticker(sticker_buf, {'webp': path})
+
+        self.bot.config['stickers'][name] = path
+        await self.bot.save_config()
+
+        self.bot.log_stat('stickers_created')
+        return f'Sticker saved to disk as `{name}`.'
 
     @command.desc('Glitch an image')
-    def cmd_glitch(self, msg, boffset_str):
-        if not msg.reply_to_message or (not msg.reply_to_message.photo and not msg.reply_to_message.document):
-            self.bot.mresult(msg, '__Reply to a message with an image to glitch it.__')
-            return
+    async def cmd_glitch(self, msg, boffset_str):
+        if not msg.is_reply:
+            return '__Reply to an image to glitch it.__'
 
         boffset = 8
         if boffset_str:
@@ -274,20 +408,33 @@ class StickerModule(module.Module):
             except ValueError:
                 return '__Invalid distorted block offset strength.__'
 
-        self.bot.mresult(msg, 'Glitching...')
+        reply_msg = await msg.get_reply_message()
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            path = self.bot.client.download_media(msg.reply_to_message, file_name=tmpdir + '/')
-            if not path:
-                return '__Error downloading sticker image__'
+        if not reply_msg.file:
+            return "__That message isn't an image.__"
 
-            png_path = path + '.png'
-            self.img_to_png(path, png_path)
+        await msg.result('Glitching image...')
 
-            subprocess.run(['corrupter', '-boffset', str(boffset), png_path, path + '_glitch.png'])
+        orig_bytes = await reply_msg.download_media(file=bytes)
 
-            chat_id = msg.chat.id
-            reply_id = msg.reply_to_message.message_id if msg.reply_to_message else None
-            self.bot.mresult(msg, 'Uploading glitched image...')
-            self.bot.client.send_photo(chat_id, path + '_glitch.png', reply_to_message_id=reply_id)
-            self.bot.client.delete_messages(msg.chat.id, msg.message_id, revoke=True)
+        # Convert to PNG if necessary
+        if orig_bytes.startswith(PNG_MAGIC):
+            png_bytes = orig_bytes
+        else:
+            png_buf = io.BytesIO(orig_bytes)
+            await self.img_to_png(png_buf)
+            png_bytes = png_buf.getvalue()
+
+        # Invoke external 'corrupter' program to glitch the image
+        # Source code: https://github.com/r00tman/corrupter
+        command = ['corrupter', '-boffset', str(boffset), '-']
+        try:
+            proc = await util.run_sync(lambda: subprocess.run(command, input=png_bytes, capture_output=True, check=True, timeout=15))
+        except subprocess.TimeoutExpired:
+            return '🕑 `corrupter` failed to finish within 15 seconds.'
+        except subprocess.CalledProcessError as err:
+            return f'⚠️ `corrupter` failed with return code {err.returncode}. Error: ```{err.stderr}```'
+
+        glitched_bytes = proc.stdout
+        await msg.respond(file=glitched_bytes, reply_to=msg.reply_to_msg_id)
+        await msg.delete()

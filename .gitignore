@@ -107,6 +107,6 @@ venv.bak/
 # Configuration files
 *.toml
 # Telegram sessions
-*.session
-/unknown_errors.txt
-/stickers
+*.session*
+stickers
+*.tmp

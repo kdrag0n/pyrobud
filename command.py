@@ -1,5 +1,3 @@
-import pyrogram as tg
-
 def desc(_desc):
     def desc_decorator(func):
         func.description = _desc

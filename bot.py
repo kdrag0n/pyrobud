@@ -1,18 +1,20 @@
-import pyrogram as tg
-import threading
+import telethon as tg
 import traceback
 import importlib
-import tempfile
+import aiofiles
+import logging
+import aiohttp
+import asyncio
 import modules
 import command
 import inspect
 import module
-import shutil
-import time
 import toml
 import util
 import sys
 import os
+
+logging.basicConfig(format='[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s', level=logging.WARNING)
 
 class Listener():
     def __init__(self, event, func, module):
@@ -21,15 +23,24 @@ class Listener():
         self.module = module
 
 class Bot():
-    def __init__(self):
+    def __init__(self, config, config_path):
         self.commands = {}
         self.modules = {}
         self.listeners = {
             'message': [],
             'command': [],
             'load': [],
-            'start': []
+            'start': [],
+            'stop': []
         }
+
+        self.client = tg.TelegramClient('anon', config['telegram']['api_id'], config['telegram']['api_hash'])
+        self.http_session = aiohttp.ClientSession()
+
+        self.config = config
+        self.config_path = config_path
+        self.prefix = config['bot']['prefix']
+        self.last_saved_cfg = toml.dumps(config)
 
     def register_command(self, mod, name, func):
         info = command.Info(name, mod, func)
@@ -144,133 +155,157 @@ class Bot():
     def unload_all_modules(self):
         print('Unloading modules...')
 
-        # Can't unload while iterating, so collect a list
+        # Can't modify while iterating, so collect a list first
         for mod in list(self.modules.values()):
             self.unload_module(mod)
 
-    def reload_module_pkg(self):
+    async def reload_module_pkg(self):
         print('Reloading base module class...')
-        importlib.reload(module)
+        await util.run_sync(lambda: importlib.reload(module))
 
         print('Reloading master module...')
-        importlib.reload(modules)
+        await util.run_sync(lambda: importlib.reload(modules))
 
-    def setup(self, instance_name, config):
-        tg.session.Session.notice_displayed = True
-        self.client = tg.Client(instance_name, api_id=config['telegram']['api_id'], api_hash=config['telegram']['api_hash'])
+    async def save_config(self, data=None):
+        tmp_path = self.config_path + '.tmp'
 
-        self.prefix = config['bot']['prefix']
-        self.config = config
-
-        # Load modules
-        self.load_all_modules()
-        self.dispatch_event('load')
-
-        self.last_saved_cfg = toml.dumps(self.config)
-
-    def save_config(self, cfg = ''):
-        tmp_path = ''
-
-        if not cfg:
-            cfg = toml.dumps(self.config)
+        if data is None:
+            data = toml.dumps(self.config)
 
         try:
-            with tempfile.NamedTemporaryFile(delete=False) as f:
-                tmp_path = f.name
+            async with aiofiles.open(tmp_path, 'wb+') as f:
+                await f.write(data.encode('utf-8'))
+                await f.flush()
+                await util.run_sync(lambda: os.fsync(f.fileno()))
 
-                f.write(cfg.encode('utf-8'))
-                f.flush()
-                os.fsync(f.fileno())
-
-            shutil.move(tmp_path, 'config.toml')
+            await util.run_sync(lambda: os.rename(tmp_path, self.config_path))
         except:
-            os.remove(tmp_path)
+            await util.run_sync(lambda: os.remove(tmp_path))
             raise
 
-        self.last_saved_cfg = cfg
+        self.last_saved_cfg = data
 
-    def writer(self):
+    async def writer(self):
         while True:
-            time.sleep(15)
+            await asyncio.sleep(15)
+
             cfg = toml.dumps(self.config)
             if cfg != self.last_saved_cfg:
-                self.save_config(cfg)
+                await self.save_config(data=cfg)
 
-    def register_command_handler(self):
-        self.cmd_handler = self.client.add_handler(tg.MessageHandler(self.on_command, tg.Filters.user(self.uid) & tg.Filters.command(list(self.commands.keys()), prefix=self.prefix)), group=0)
+    def command_predicate(self, event):
+        if event.raw_text.startswith(self.prefix):
+            parts = event.raw_text.split()
+            parts[0] = parts[0][len(self.prefix):]
 
-    def start(self):
-        self.client.start()
+            event.segments = parts
+            return True
+
+        return False
+
+    async def start(self):
+        # Load modules and save config in case any migration changes were made
+        self.load_all_modules()
+        await self.dispatch_event('load')
+        await self.save_config()
+
+        # Start Telegram client
+        await self.client.start()
 
         # Get info
-        self.user = self.client.get_me()
+        self.user = await self.client.get_me()
         self.uid = self.user.id
+
+        # Hijack Message class to provide result function
+        async def result(msg, new_text, **kwargs):
+            t = self.config['telegram']
+            api_id = str(t['api_id'])
+            api_hash = t['api_hash']
+
+            if api_id in new_text:
+                new_text = new_text.replace(api_id, '[REDACTED]')
+            if api_hash in new_text:
+                new_text = new_text.replace(api_hash, '[REDACTED]')
+            if self.user.phone in new_text:
+                new_text = new_text.replace(self.user.phone, '[REDACTED]')
+
+            await msg.edit(text=new_text, link_preview=False, **kwargs)
+
+        tg.types.Message.result = result
 
         # Record start time and dispatch start event
         self.start_time_us = util.time_us()
-        self.dispatch_event('start', self.start_time_us)
+        await self.dispatch_event('start', self.start_time_us)
 
         # Register handlers with new info
-        self.client.add_handler(tg.MessageHandler(self.on_message), group=1)
-        self.register_command_handler()
+        self.client.add_event_handler(self.on_message, tg.events.NewMessage)
+        self.client.add_event_handler(self.on_command, tg.events.NewMessage(outgoing=True, func=self.command_predicate))
 
         # Save config in the background
-        self.writer_thread = threading.Thread(target=self.writer)
-        self.writer_thread.daemon = True
-        self.writer_thread.start()
+        asyncio.create_task(self.writer())
 
         print('Bot is ready')
 
-    def mresult(self, msg, new):
-        t = self.config['telegram']
-        api_id = str(t['api_id'])
-        api_hash = t['api_hash']
+        # Catch up on missed events
+        print('Catching up on missed events...')
+        await self.client.catch_up()
+        print('Finished catching up')
 
-        if api_id in new:
-            new = new.replace(api_id, '[REDACTED]')
-        if api_hash in new:
-            new = new.replace(api_hash, '[REDACTED]')
-        if self.user.phone_number in new:
-            new = new.replace(self.user.phone_number, '[REDACTED]')
+        # Save config to sync updated stats after catching up
+        await self.save_config()
 
-        self.client.edit_message_text(msg.chat.id, msg.message_id, new, parse_mode='MARKDOWN', disable_web_page_preview=True)
+    async def stop(self):
+        await self.dispatch_event('stop')
+        await self.save_config()
+        await self.http_session.close()
 
-    def dispatch_event(self, event, *args):
+    async def dispatch_event(self, event, *args):
         for l in self.listeners[event]:
-            l.func(*args)
+            await l.func(*args)
 
-    def on_message(self, cl, msg):
-        self.dispatch_event('message', msg)
+    async def on_message(self, event):
+        await self.dispatch_event('message', event.message)
 
-    def on_command(self, cl, msg):
-        cmd_info = self.commands[msg.command[0]]
+    async def on_command(self, event):
+        try:
+            cmd_info = self.commands[event.segments[0]]
+        except KeyError:
+            return
+
         cmd_func = cmd_info.func
         cmd_spec = inspect.getfullargspec(cmd_func)
         cmd_args = cmd_spec.args
 
         args = []
         if len(cmd_args) == 3:
-            txt = msg.text.markdown
-            if cmd_args[2].startswith('plain_'):
-                txt = msg.text
+            txt = event.text
 
-            args = [txt[len(self.prefix) + len(msg.command[0]) + 1:]]
+            # Contrary to typical terms, text = raw text (i.e. with Markdown formatting)
+            # and raw_text = parsed text (i.e. plain text without formatting symbols)
+            if cmd_args[2].startswith('parsed_'):
+                txt = event.raw_text
+
+            args = [txt[len(self.prefix) + len(event.segments[0]) + 1:]]
         elif cmd_spec.varargs is not None and len(cmd_spec.varargs) > 0:
-            args = msg.command[1:]
+            args = event.segments[1:]
 
         try:
-            ret = cmd_func(msg, *args)
+            ret = await cmd_func(event, *args)
         except Exception as e:
             traceback.print_exc(file=sys.stderr)
             ret = f'⚠️ Error executing command:\n```{util.format_exception(e)}```'
 
         if ret is not None:
             try:
-                self.mresult(msg, ret)
+                await event.result(ret)
             except Exception as e:
                 traceback.print_exc(file=sys.stderr)
                 ret = f'⚠️ Error updating message:\n```{util.format_exception(e)}```'
 
-                self.mresult(msg, ret)
+                await event.result(ret)
 
-        self.dispatch_event('command', msg, cmd_info, args)
+        await self.dispatch_event('command', event, cmd_info, args)
+
+    def log_stat(self, key):
+        if 'Stats' in self.modules and 'stats' in self.config and key in self.config['stats']:
+            self.config['stats'][key] += 1

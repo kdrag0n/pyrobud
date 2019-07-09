@@ -1,5 +1,5 @@
-import requests
-import tempfile
+import aiohttp
+import asyncio
 import command
 import module
 import util
@@ -9,76 +9,60 @@ class NetworkModule(module.Module):
     name = 'Network'
 
     @command.desc('Pong')
-    def cmd_ping(self, msg):
+    async def cmd_ping(self, msg):
         before = util.time_ms()
-        self.bot.mresult(msg, 'Calculating response time...')
+        await msg.result('Calculating response time...')
         after = util.time_ms()
 
-        return 'Request response time: %.2f ms' % (after - before)
+        return 'Request response time: %d ms' % (after - before)
+
+    async def get_text_input(self, msg, input_arg):
+        if msg.is_reply:
+            reply_msg = await msg.get_reply_message()
+
+            if reply_msg.document:
+                text = await util.msg_download_file(reply_msg, msg)
+            elif reply_msg.text:
+                text = reply_msg.text
+            else:
+                return ('error', '__Reply to a message with text or a text file, or provide text in command.__')
+        else:
+            if input_arg:
+                text = util.filter_code_block(input_arg).encode()
+            else:
+                return ('error', '__Reply to a message or provide text in command.__')
+
+        return ('success', text)
 
     @command.desc('Paste message text to Hastebin')
     @command.alias('hs')
-    def cmd_haste(self, msg, text):
-        orig = msg.reply_to_message
-        if orig is None:
-            if text:
-                txt = util.filter_input_block(text)
-            else:
-                return '__Reply to a message or provide text in command.__'
-        else:
-            txt = orig.text
-            if not txt:
-                if orig.document:
-                    def prog_func(cl, current, total):
-                        self.bot.mresult(msg, f'Downloading...\nProgress: `{float(current) / 1000.0}/{float(total) / 1000.0}` KB')
+    async def cmd_haste(self, msg, input_text):
+        status, text = await self.get_text_input(msg, input_text)
+        if status == 'error':
+            return text
 
-                    with tempfile.TemporaryDirectory() as tmpdir:
-                        path = self.bot.client.download_media(msg.reply_to_message, file_name=tmpdir + '/', progress=prog_func, progress_args=())
-                        if not path:
-                            return '__Error downloading file__'
+        await msg.result('Uploading text to [Hastebin](https://hastebin.com/)...')
 
-                        with open(path, 'rb') as f:
-                            txt = f.read().decode('utf-8')
-                else:
-                    return '__Reply to a message with text or a text file, or provide text in command.__'
-
-        self.bot.mresult(msg, 'Uploading text to [Hastebin](https://hastebin.com/)...')
-        resp = requests.post('https://hastebin.com/documents', data=txt.encode()).json()
-        return f'https://hastebin.com/{resp["key"]}'
+        async with self.bot.http_session.post('https://hastebin.com/documents', data=text) as resp:
+            resp_data = await resp.json()
+            return f'https://hastebin.com/{resp_data["key"]}'
 
     @command.desc('Paste message text to Dogbin')
-    def cmd_dog(self, msg, text):
-        orig = msg.reply_to_message
-        if orig is None:
-            if text:
-                txt = util.filter_input_block(text)
-            else:
-                return '__Reply to a message or provide text in command.__'
-        else:
-            txt = orig.text
-            if not txt:
-                if orig.document:
-                    def prog_func(cl, current, total):
-                        self.bot.mresult(msg, f'Downloading...\nProgress: `{float(current) / 1000.0}/{float(total) / 1000.0}` KB')
+    async def cmd_dog(self, msg, input_text):
+        status, text = await self.get_text_input(msg, input_text)
+        if status == 'error':
+            return text
 
-                    with tempfile.TemporaryDirectory() as tmpdir:
-                        path = self.bot.client.download_media(msg.reply_to_message, file_name=tmpdir + '/', progress=prog_func, progress_args=())
-                        if not path:
-                            return '__Error downloading file__'
+        await msg.result('Uploading text to [Dogbin](https://del.dog/)...')
 
-                        with open(path, 'rb') as f:
-                            txt = f.read().decode('utf-8')
-                else:
-                    return '__Reply to a message with text or a text file, or provide text in command.__'
+        async with self.bot.http_session.post('https://del.dog/documents', data=text) as resp:
+            resp_data = await resp.json()
+            return f'https://del.dog/{resp_data["key"]}'
 
-        self.bot.mresult(msg, 'Uploading text to [Dogbin](https://del.dog/)...')
-        resp = requests.post('https://del.dog/documents', data=txt.encode()).json()
-        return f'https://del.dog/{resp["key"]}'
-
-    @command.desc('Upload replied-to file to file.io')
-    def cmd_fileio(self, msg, expires):
-        if msg.reply_to_message is None:
-            return '__Reply to a message with the file to upload.__'
+    @command.desc('Upload given file to file.io')
+    async def cmd_fileio(self, msg, expires):
+        if not msg.is_reply:
+            return '__Reply to a file to upload it.__'
 
         if expires == 'help':
             return '__Expiry format: 1y/12m/52w/365d__'
@@ -93,41 +77,38 @@ class NetworkModule(module.Module):
         else:
             expires = '2d'
 
-        def prog_func(cl, current, total):
-            self.bot.mresult(msg, f'Downloading...\nProgress: `{float(current) / 1000.0}/{float(total) / 1000.0}` KB')
+        reply_msg = await msg.get_reply_message()
+        if not reply_msg.document:
+            return "__That message doesn't contain a file.__"
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            path = self.bot.client.download_media(msg.reply_to_message, file_name=tmpdir + '/', progress=prog_func, progress_args=())
-            if not path:
-                return '__Error downloading file__'
+        data = await util.msg_download_file(reply_msg, msg)
 
-            self.bot.mresult(msg, 'Uploading file to [file.io](https://file.io/)...')
-            with open(path, 'rb') as f:
-                resp = requests.post(f'https://file.io/?expires={expires}', files={'file': f}).json()
+        await msg.result('Uploading file to [file.io](https://file.io/)...')
 
-            if not resp['success']:
-                return '__Error uploading file__'
+        async with self.bot.http_session.post(f'https://file.io/?expires={expires}', data={'file': data}) as resp:
+            resp_data = await resp.json()
 
-            return resp['link']
+            if not resp_data['success']:
+                return f'__Error uploading file — status code {resp.status}__'
 
-    @command.desc('Upload replied-to file to transfer.sh')
-    def cmd_transfer(self, msg):
-        if msg.reply_to_message is None:
-            return '__Reply to a message with the file to upload.__'
+            return resp_data['link']
 
-        def prog_func(cl, current, total):
-            self.bot.mresult(msg, f'Downloading...\nProgress: `{float(current) / 1000.0}/{float(total) / 1000.0}` KB')
+    @command.desc('Upload given file to transfer.sh')
+    async def cmd_transfer(self, msg):
+        if not msg.is_reply:
+            return '__Reply to a file to upload it.__'
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            path = self.bot.client.download_media(msg.reply_to_message, file_name=tmpdir + '/', progress=prog_func, progress_args=())
-            if not path:
-                return '__Error downloading file__'
+        reply_msg = await msg.get_reply_message()
+        if not reply_msg.document:
+            return "__That message doesn't contain a file.__"
 
-            self.bot.mresult(msg, 'Uploading file to [transfer.sh](https://transfer.sh/)...')
-            with open(path, 'rb') as f:
-                resp = requests.put(f'https://transfer.sh/{os.path.basename(path)}', data=f)
+        data = await util.msg_download_file(reply_msg, msg)
 
-            if not resp.ok:
-                return '__Error uploading file__'
+        await msg.result('Uploading file to [transfer.sh](https://transfer.sh/)...')
 
-            return resp.text
+        filename = reply_msg.file.name
+        async with self.bot.http_session.put(f'https://transfer.sh/{filename}', data=data) as resp:
+            if resp.status != 200:
+                return f'__Error uploading file — status code {resp.status}__'
+
+            return await resp.text()

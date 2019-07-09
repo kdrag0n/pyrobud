@@ -29,7 +29,3 @@ class Module():
 
     def __init__(self, bot):
         self.bot = bot
-
-    def log_stat(self, key):
-        if 'Stats' in self.bot.modules and 'stats' in self.bot.config and key in self.bot.config['stats']:
-            self.bot.config['stats'][key] += 1
