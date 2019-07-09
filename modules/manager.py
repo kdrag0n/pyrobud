@@ -10,6 +10,7 @@ class ManagerModule(module.Module):
     async def cmd_reloadall(self, msg):
         before = util.time_us()
 
+        await self.bot.dispatch_event('stop')
         await self.bot.save_config()
 
         await msg.result('Unloading all modules...')
