@@ -32,7 +32,11 @@ class StatsModule(module.Module):
                 self.bot.config['stats'][k] = 0
 
     async def on_start(self, time_us):
-        self.last_time = time_us
+        if 'stop_time_usec' in self.bot.config['stats']:
+            self.last_time = self.bot.config['stats']['stop_time_usec']
+            del self.bot.config['stats']['stop_time_usec']
+        else:
+            self.last_time = time_us
 
     async def on_message(self, msg):
         if msg.out:
@@ -60,6 +64,10 @@ class StatsModule(module.Module):
         delta_us = now - self.last_time
         self.bot.config['stats']['uptime'] += delta_us
         self.last_time = now
+
+    async def on_stop(self):
+        self.update_uptime()
+        self.bot.config['stats']['stop_time_usec'] = self.last_time
 
     def calc_pct(self, num1, num2):
         if not num2:
