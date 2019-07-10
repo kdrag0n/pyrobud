@@ -56,7 +56,10 @@ class Bot():
         del self.commands[cmd.name]
 
         for alias in cmd.aliases:
-            del self.commands[alias]
+            try:
+                del self.commands[alias]
+            except KeyError:
+                continue
 
     def register_commands(self, mod):
         for name, func in util.find_prefixed_funcs(mod, 'cmd_'):
