@@ -23,8 +23,16 @@ class DebugModule(module.Module):
     @command.desc('Evaluate code')
     @command.alias('ev', 'c')
     async def cmd_eval(self, msg, raw_args):
+        def _eval():
+            nonlocal msg, raw_args, self
+
+            def send(text):
+                return self.bot.loop.create_task(msg.respond(text))
+
+            return eval(util.filter_code_block(raw_args))
+
         before = util.time_us()
-        result = await util.run_sync(lambda: eval(util.filter_code_block(raw_args)))
+        result = await util.run_sync(_eval)
         after = util.time_us()
 
         el_us = after - before
