@@ -21,7 +21,7 @@ def main():
 
     bot.client.run_until_disconnected()
 
-    print('Stopping bot...')
+    print('\nStopping bot...')
     loop.run_until_complete(bot.stop())
 
 if __name__ == '__main__':
