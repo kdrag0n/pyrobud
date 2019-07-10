@@ -274,7 +274,7 @@ class Bot():
         return self.loop.create_task(self.dispatch_event(*args, **kwargs))
 
     async def on_message(self, event):
-        await self.dispatch_event('message', event.message)
+        await self.dispatch_event('message', event)
 
     async def on_command(self, event):
         try:
