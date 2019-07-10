@@ -39,20 +39,16 @@ class StatsModule(module.Module):
             self.last_time = time_us
 
     async def on_message(self, msg):
-        if msg.out:
-            base_stat = 'sent'
-        else:
-            base_stat = 'received'
-
-        stat = base_stat
-        if msg.edit_date:
-            stat += '_edits'
-
+        stat = 'sent' if msg.out else 'received'
         await self.bot.dispatch_event('stat_event', stat)
 
         if msg.sticker:
-            sticker_stat = base_stat + '_stickers'
+            sticker_stat = stat + '_stickers'
             await self.bot.dispatch_event('stat_event', sticker_stat)
+
+    async def on_message_edit(self, msg):
+        stat = 'sent' if msg.out else 'received'
+        await self.bot.dispatch_event('stat_event', stat + '_edits')
 
     async def on_command(self, msg, cmd_info, args):
         await self.bot.dispatch_event('stat_event', 'processed')
