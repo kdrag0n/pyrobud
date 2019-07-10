@@ -441,6 +441,8 @@ class StickerModule(module.Module):
             return '🕑 `corrupter` failed to finish within 15 seconds.'
         except subprocess.CalledProcessError as err:
             return f'⚠️ `corrupter` failed with return code {err.returncode}. Error: ```{err.stderr}```'
+        except FileNotFoundError:
+            return '❌ The `corrupter` [program](https://github.com/r00tman/corrupter) must be installed on the host system.'
 
         glitched_bytes = proc.stdout
         await msg.respond(file=glitched_bytes, reply_to=msg.reply_to_msg_id)

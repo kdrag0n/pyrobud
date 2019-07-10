@@ -22,10 +22,12 @@ class SystemModule(module.Module):
 
         await msg.result('Running snippet...')
         before = util.time_us()
+
         try:
             proc = await self.run_process(parsed_snip, shell=True, timeout=120)
         except subprocess.TimeoutExpired:
             return '🕑 Snippet failed to finish within 2 minutes.'
+
         after = util.time_us()
 
         el_us = after - before
@@ -44,6 +46,8 @@ class SystemModule(module.Module):
             proc = await self.run_process(['neofetch', '--stdout'], timeout=10)
         except subprocess.TimeoutExpired:
             return '🕑 `neofetch` failed to finish within 10 seconds.'
+        except FileNotFoundError:
+            return '❌ The `neofetch` [program](https://github.com/dylanaraps/neofetch) must be installed on the host system.'
 
         err = f'⚠️ Return code: {proc.returncode}' if proc.returncode != 0 else ''
         sysinfo = '\n'.join(proc.stdout.strip().split('\n')[2:]) if proc.returncode == 0 else proc.stdout.strip()
@@ -60,6 +64,8 @@ class SystemModule(module.Module):
             proc = await self.run_process('speedtest', timeout=120)
         except subprocess.TimeoutExpired:
             return '🕑 `speedtest` failed to finish within 2 minutes.'
+        except FileNotFoundError:
+            return '❌ The `speedtest` [program](https://github.com/sivel/speedtest-cli) (package name: `speedtest-cli`) must be installed on the host system.'
         after = util.time_us()
 
         el_us = after - before
