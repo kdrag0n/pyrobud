@@ -1,8 +1,8 @@
 import command
 import module
 
-class UnicodeModule(module.Module):
-    name = 'Unicode'
+class TextModule(module.Module):
+    name = 'Text'
 
     @command.desc('Unicode character from hex codepoint')
     @command.alias('cp', 'chr', 'uc')
