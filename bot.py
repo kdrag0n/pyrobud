@@ -237,8 +237,9 @@ class Bot():
         self.start_time_us = util.time_us()
         await self.dispatch_event('start', self.start_time_us)
 
-        # Register handlers with new info
+        # Register handlers
         self.client.add_event_handler(self.on_message, tg.events.NewMessage)
+        self.client.add_event_handler(self.on_message_edit, tg.events.MessageEdited)
         self.client.add_event_handler(self.on_command, tg.events.NewMessage(outgoing=True, func=self.command_predicate))
 
         # Save config in the background
@@ -278,6 +279,9 @@ class Bot():
 
     async def on_message(self, event):
         await self.dispatch_event('message', event)
+
+    async def on_message_edit(self, event):
+        await self.dispatch_event('message_edit', event)
 
     async def on_command(self, event):
         try:
