@@ -26,13 +26,7 @@ class Bot():
     def __init__(self, config, config_path):
         self.commands = {}
         self.modules = {}
-        self.listeners = {
-            'message': [],
-            'command': [],
-            'load': [],
-            'start': [],
-            'stop': []
-        }
+        self.listeners = {}
 
         self.client = tg.TelegramClient('anon', config['telegram']['api_id'], config['telegram']['api_hash'])
         self.http_session = aiohttp.ClientSession()
@@ -94,7 +88,7 @@ class Bot():
         if event in self.listeners:
             self.listeners[event].append(listener)
         else:
-            raise module.UnknownEventError(event, listener)
+            self.listeners[event] = [listener]
 
     def unregister_listener(self, listener):
         self.listeners[listener.event].remove(listener)

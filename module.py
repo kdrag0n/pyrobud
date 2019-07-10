@@ -10,7 +10,7 @@ class ExistingModuleError(ModuleLoadError):
 
 class UnknownEventError(ModuleLoadError):
     def __init__(self, event_name, listener):
-        super().__init__(f"Registering listener for unknown event '{event_name}'")
+        super().__init__(f"Unknown event '{event_name}'")
 
         self.event_name = event_name
         self.listener = listener
