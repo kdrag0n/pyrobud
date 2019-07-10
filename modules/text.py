@@ -13,6 +13,11 @@ class TextModule(module.Module):
 
         return chr(int(codepoint, 16))
 
+    @command.desc('Get a character equivalent to a zero-width space that works on Telegram')
+    @command.alias('empty')
+    async def cmd_zwsp(self, msg):
+        return '\U000e0020'
+
     @command.desc('Apply a sarcasm/mocking filter to the given text')
     @command.alias('sar', 'sarc', 'scm', 'mock')
     async def cmd_sarcasm(self, msg, text):
