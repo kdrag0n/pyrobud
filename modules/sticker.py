@@ -362,6 +362,7 @@ class StickerModule(module.Module):
             await msg.result(f"[Sticker created]({result}). Preview:")
 
             webp_buf.seek(0)
+            webp_buf.name = 'sticker.webp'
             await msg.respond(file=webp_buf)
         else:
             return result
