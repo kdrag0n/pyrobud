@@ -257,8 +257,16 @@ class Bot():
         await self.http_session.close()
 
     async def dispatch_event(self, event, *args):
+        tasks = set()
+
         for l in self.listeners[event]:
-            await l.func(*args)
+            task = self.loop.create_task(l.func(*args))
+            tasks.add(task)
+
+        return await asyncio.wait(tasks)
+
+    def dispatch_event_nowait(self, *args, **kwargs):
+        return self.loop.create_task(self.dispatch_event(*args, **kwargs))
 
     async def on_message(self, event):
         await self.dispatch_event('message', event.message)
