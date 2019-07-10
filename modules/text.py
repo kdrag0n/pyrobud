@@ -40,3 +40,23 @@ class TextModule(module.Module):
             return '__Text required.__'
 
         return '\u0336'.join(text) + '\u0336'
+
+    @command.desc('Mention everyone in this group (**DO NOT ABUSE**)')
+    @command.alias('evo', '@everyone')
+    async def cmd_everyone(self, msg, comment):
+        if not msg.is_group:
+            return '__This command can only be used in groups.__'
+
+        mention_text = '@\U000e0020everyone'
+        if comment:
+            mention_text += ' ' + comment
+
+        mention_slots = 4096 - len(mention_text)
+
+        chat = await msg.get_chat()
+        async for user in self.bot.client.iter_participants(chat):
+            mention_text += f'[\u200b](tg://user?id={user.id})'
+            mention_slots -= 1
+
+        await msg.respond(mention_text, reply_to=msg.reply_to_msg_id)
+        await msg.delete()
