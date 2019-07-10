@@ -3,7 +3,6 @@ aiohttp
 cryptg
 hachoir
 pillow
-pyyaml
 telethon
 toml
 uvloop

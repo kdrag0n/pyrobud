@@ -3,7 +3,6 @@ import inspect
 import module
 import json
 import util
-import yaml
 import re
 
 class DebugModule(module.Module):
