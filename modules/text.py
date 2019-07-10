@@ -60,7 +60,10 @@ class TextModule(module.Module):
         chat = await msg.get_chat()
         async for user in self.bot.client.iter_participants(chat, filter=filter):
             mention_text += f'[\u200b](tg://user?id={user.id})'
+
             mention_slots -= 1
+            if mention_slots == 0:
+                break
 
         await msg.respond(mention_text, reply_to=msg.reply_to_msg_id)
         await msg.delete()
