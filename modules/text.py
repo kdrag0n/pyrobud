@@ -47,11 +47,11 @@ class TextModule(module.Module):
 
     @command.desc('Mention everyone in this group (**DO NOT ABUSE**)')
     @command.alias('evo', '@everyone')
-    async def cmd_everyone(self, msg, comment, *, tag='everyone', filter=None):
+    async def cmd_everyone(self, msg, comment, *, tag='\U000e0020everyone', filter=None):
         if not msg.is_group:
             return '__This command can only be used in groups.__'
 
-        mention_text = f'@\U000e0020{tag}'
+        mention_text = f'@{tag}'
         if comment:
             mention_text += ' ' + comment
 
