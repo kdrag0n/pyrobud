@@ -229,7 +229,10 @@ class Bot():
             if self.user.phone in new_text:
                 new_text = new_text.replace(self.user.phone, '[REDACTED]')
 
-            await msg.edit(text=new_text, link_preview=False, **kwargs)
+            if 'link_preview' not in kwargs:
+                kwargs['link_preview'] = False
+
+            await msg.edit(text=new_text, **kwargs)
 
         tg.types.Message.result = result
 
