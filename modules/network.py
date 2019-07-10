@@ -1,3 +1,4 @@
+import telethon as tg
 import aiohttp
 import asyncio
 import command
@@ -112,3 +113,40 @@ class NetworkModule(module.Module):
                 return f'__Error uploading file — status code {resp.status}__'
 
             return await resp.text()
+
+    @command.desc('Update the embed for a link')
+    @command.alias('upd', 'upde', 'updl', 'updatelink', 'ul', 'ulink')
+    async def cmd_update_link(self, msg, link):
+        if not link and not msg.is_reply:
+            return '__Provide or reply to a link to update it.__'
+
+        if not link:
+            reply_msg = await msg.get_reply_message()
+
+            for entity, text in reply_msg.get_entities_text():
+                if isinstance(entity, (tg.types.MessageEntityUrl, tg.types.MessageEntityTextUrl)):
+                    link = text
+
+        if not link:
+            return "__That message doesn't contain any links."
+
+        await msg.result(f'Updating embed for [link]({link})...')
+
+        async with self.bot.client.conversation('WebpageBot') as conv:
+            await conv.send_message(link)
+
+            response = await conv.get_response()
+            await conv.mark_read()
+
+            if 'Link previews was updated successfully' in response.raw_text:
+                # Provide a status update
+                await msg.result('Waiting for embed update to propagate...')
+
+                # Give Telegram some time to propagate the update
+                await asyncio.sleep(1)
+
+                # Send the new preview
+                await msg.result(f'Updated embed for link: {link}', link_preview=True)
+            else:
+                # Failed for some reason, send the error
+                await msg.result(f'Error updating embed for [link]({link}): `{response.raw_text}`')
