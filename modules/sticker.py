@@ -91,6 +91,7 @@ class StickerModule(module.Module):
             ('text', '/done')
         ]
 
+        success = False
         before = datetime.now()
 
         async with self.bot.client.conversation(target) as conv:
@@ -127,9 +128,12 @@ class StickerModule(module.Module):
                         delta_seconds = int((after - before).total_seconds())
 
                         return ('error', f'Sticker creation failed after {delta_seconds} seconds because [the bot](https://t.me/{target}) failed to respond within 1 minute of issuing the last command.')
+
+                success = True
             finally:
                 # Cancel the operation if we return early
-                await conv.send_message('/cancel')
+                if not success:
+                    await conv.send_message('/cancel')
 
         return ('success', f'https://t.me/addstickers/{pack_name}')
 
