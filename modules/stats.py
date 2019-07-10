@@ -97,8 +97,10 @@ class StatsModule(module.Module):
         uptime = st['uptime']
         sent = st['sent']
         sent_stickers = st['sent_stickers']
+        sent_edits = st['sent_edits']
         recv = st['received']
         recv_stickers = st['received_stickers']
+        recv_edits = st['received_edits']
         processed = st['processed']
         replaced = st['replaced']
         banned = st['spambots_banned']
@@ -106,8 +108,8 @@ class StatsModule(module.Module):
 
         return f'''**Stats since last reset**:
     • **Total time elapsed**: {util.format_duration_us(uptime)}
-    • **Messages received**: {recv} ({self.calc_ph(recv, uptime)}/h) • {self.calc_pct(recv_stickers, recv)}% are stickers
-    • **Messages sent**: {sent} ({self.calc_ph(sent, uptime)}/h) • {self.calc_pct(sent_stickers, sent)}% are stickers
+    • **Messages received**: {recv} ({self.calc_ph(recv, uptime)}/h) • {self.calc_pct(recv_stickers, recv)}% are stickers • {self.calc_pct(recv_edits, recv)}% were edited
+    • **Messages sent**: {sent} ({self.calc_ph(sent, uptime)}/h) • {self.calc_pct(sent_stickers, sent)}% are stickers • {self.calc_pct(sent_edits, sent)}% were edited
     • **Total messages sent**: {self.calc_pct(sent, sent + recv)}% of all accounted messages
     • **Commands processed**: {processed} ({self.calc_ph(processed, uptime)}/h) • {self.calc_pct(processed, sent)}% of sent messages
     • **Snippets replaced**: {replaced} ({self.calc_ph(replaced, uptime)}/h) • {self.calc_pct(replaced, sent)}% of sent messages
