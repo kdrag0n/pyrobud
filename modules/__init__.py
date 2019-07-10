@@ -8,7 +8,7 @@ from . import *
 
 try:
     _reload_flag
-except:
+except NameError:
     _reload_flag = True
 else:
     # Module has been reloaded, reload our submodules
