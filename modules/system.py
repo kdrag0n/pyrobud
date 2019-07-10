@@ -8,7 +8,7 @@ class SystemModule(module.Module):
 
     async def run_process(self, command, **kwargs):
         def _run_process():
-            return subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, **kwargs)
+            return subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, **kwargs)
 
         return await util.run_sync(_run_process)
 

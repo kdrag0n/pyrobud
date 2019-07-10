@@ -113,8 +113,8 @@ class StickerModule(module.Module):
 
                     # Wait for both the rate-limit and the bot's response
                     try:
-                        wait_task = asyncio.create_task(reply_and_ack())
-                        ratelimit_task = asyncio.create_task(asyncio.sleep(0.25))
+                        wait_task = self.bot.loop.create_task(reply_and_ack())
+                        ratelimit_task = self.bot.loop.create_task(asyncio.sleep(0.25))
                         await asyncio.wait({wait_task, ratelimit_task})
 
                         response = wait_task.result()

@@ -204,6 +204,9 @@ class Bot():
         return False
 
     async def start(self):
+        # Get and store current event loop, since this is the first coroutine
+        self.loop = asyncio.get_event_loop()
+
         # Load modules and save config in case any migration changes were made
         self.load_all_modules()
         await self.dispatch_event('load')
@@ -242,7 +245,7 @@ class Bot():
         self.client.add_event_handler(self.on_command, tg.events.NewMessage(outgoing=True, func=self.command_predicate))
 
         # Save config in the background
-        asyncio.create_task(self.writer())
+        self.loop.create_task(self.writer())
 
         print('Bot is ready')
 

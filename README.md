@@ -2,7 +2,7 @@
 
 A Telegram selfbot written in Python using Pyrogram.
 
-**Python 3.7+** is required. This greatly improves the development experience.
+**Python 3.6+** is required.
 
 # Installation
 Simply run `pip3 install -r requirements.txt`. This installs all the dependencies.

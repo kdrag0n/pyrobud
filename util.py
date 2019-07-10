@@ -77,7 +77,7 @@ def format_exception(exp):
     return f'Traceback (most recent call last):\n{stack}{type(exp).__name__}{msg}'
 
 async def run_sync(func):
-    loop = asyncio.get_running_loop()
+    loop = asyncio.get_event_loop()
     future = loop.run_in_executor(None, func)
     await future
     return future.result()
@@ -95,7 +95,8 @@ async def msg_download_file(download_msg, status_msg, destination=bytes, file_ty
         # This reduces Telegram rate-limit exhaustion
         percent = int((current_bytes / total_bytes) * 100)
         if abs(percent - last_percent) >= 5:
-            asyncio.create_task(status_msg.result(f'Downloading {file_type}... {percent}% complete'))
+            loop = asyncio.get_event_loop()
+            loop.create_task(status_msg.result(f'Downloading {file_type}... {percent}% complete'))
 
         last_percent = percent
 
