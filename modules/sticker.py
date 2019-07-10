@@ -104,7 +104,7 @@ class StickerModule(module.Module):
                 return response
 
             try:
-                for (cmd_type, data) in commands:
+                for cmd_type, data in commands:
                     if cmd_type == 'text':
                         await conv.send_message(data)
                     elif cmd_type == 'file':
