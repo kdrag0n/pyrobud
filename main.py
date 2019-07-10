@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 
-from bot import Bot
 import asyncio
-import uvloop
+
 import toml
+import uvloop
+
 import util
+from bot import Bot
+
 
 def main():
     config_path = 'config.toml'

@@ -1,6 +1,8 @@
+import re
+
 import command
 import module
-import re
+
 
 class SnippetModule(module.Module):
     name = 'Snippet'

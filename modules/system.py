@@ -1,7 +1,9 @@
 import subprocess
+
 import command
 import module
 import util
+
 
 class SystemModule(module.Module):
     name = 'System'

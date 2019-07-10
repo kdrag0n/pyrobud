@@ -1,11 +1,14 @@
-import telethon as tg
-from datetime import datetime
 import asyncio
+import time
+from datetime import datetime
+
+import telethon as tg
+import toml
+
 import command
 import module
-import time
-import toml
 import util
+
 
 class BotSetupModule(module.Module):
     name = 'Bot Setup'

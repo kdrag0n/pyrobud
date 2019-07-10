@@ -2,6 +2,7 @@ import command
 import module
 import util
 
+
 class ManagerModule(module.Module):
     name = 'Manager'
 

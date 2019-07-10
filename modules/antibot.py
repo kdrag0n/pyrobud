@@ -1,6 +1,8 @@
 import telethon as tg
+
 import command
 import module
+
 
 class AntibotModule(module.Module):
     name = 'Antibot'

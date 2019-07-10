@@ -1,7 +1,10 @@
+import random
+
 import telethon as tg
+
 import command
 import module
-import random
+
 
 class TextModule(module.Module):
     name = 'Text'

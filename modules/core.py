@@ -2,6 +2,7 @@ import command
 import module
 import util
 
+
 class CoreModule(module.Module):
     name = 'Core'
 

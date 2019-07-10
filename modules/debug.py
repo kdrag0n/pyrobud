@@ -1,9 +1,11 @@
-import command
 import inspect
-import module
 import json
-import util
 import re
+
+import command
+import module
+import util
+
 
 class DebugModule(module.Module):
     name = 'Debug'

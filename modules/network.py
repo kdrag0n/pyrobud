@@ -1,10 +1,13 @@
-import telethon as tg
-import aiohttp
 import asyncio
+import os
+
+import aiohttp
+import telethon as tg
+
 import command
 import module
 import util
-import os
+
 
 class NetworkModule(module.Module):
     name = 'Network'

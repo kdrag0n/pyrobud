@@ -1,18 +1,20 @@
-import telethon as tg
-import traceback
-import importlib
-import aiofiles
-import logging
-import aiohttp
 import asyncio
-import modules
-import command
+import importlib
 import inspect
-import module
-import toml
-import util
-import sys
+import logging
 import os
+import sys
+import traceback
+
+import aiofiles
+import aiohttp
+import telethon as tg
+import toml
+
+import command
+import module
+import modules
+import util
 
 logging.basicConfig(format='[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s', level=logging.WARNING)
 
