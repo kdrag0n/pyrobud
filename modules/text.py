@@ -27,3 +27,11 @@ class TextModule(module.Module):
             chars[idx] = ch
 
         return ''.join(chars)
+
+    @command.desc('Apply strike-through formatting to the given text')
+    @command.alias('str', 'strikethrough')
+    async def cmd_strike(self, msg, text):
+        if not text:
+            return '__Text required.__'
+
+        return '\u0336'.join(text) + '\u0336'
