@@ -48,19 +48,18 @@ class StatsModule(module.Module):
         if msg.edit_date:
             stat += '_edits'
 
-        self.bot.config['stats'][stat] += 1
+        await self.bot.dispatch_event('stat_event', stat)
 
         if msg.sticker:
-            stat = base_stat + '_stickers'
-            self.bot.config['stats'][stat] += 1
-
-        self.update_uptime()
+            sticker_stat = base_stat + '_stickers'
+            await self.bot.dispatch_event('stat_event', sticker_stat)
 
     async def on_command(self, msg, cmd_info, args):
-        self.bot.config['stats']['processed'] += 1
+        await self.bot.dispatch_event('stat_event', 'processed')
 
     async def on_stat_event(self, key):
         self.bot.config['stats'][key] += 1
+        self.update_uptime()
 
     def update_uptime(self):
         now = util.time_us()
