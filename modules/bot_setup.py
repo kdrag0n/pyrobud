@@ -157,7 +157,7 @@ Please read the rules _before_ participating.
                 await conv.mark_read()
 
             for idx, cmd in enumerate(commands):
-                await conv.send_message(cmd)
+                await conv.send_message(cmd, parse_mode=None)
 
                 cur_cmd_list = self.truncate_cmd_list(commands[:idx+1])
                 cmd_log = '\n'.join(cur_cmd_list)
