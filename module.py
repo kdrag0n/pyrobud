@@ -8,13 +8,6 @@ class ExistingModuleError(ModuleLoadError):
         self.old_module = old_module
         self.new_module = new_module
 
-class UnknownEventError(ModuleLoadError):
-    def __init__(self, event_name, listener):
-        super().__init__(f"Unknown event '{event_name}'")
-
-        self.event_name = event_name
-        self.listener = listener
-
 class ExistingCommandError(ModuleLoadError):
     def __init__(self, old_cmd, new_cmd, alias=False):
         al_str = 'alias of ' if alias else ''

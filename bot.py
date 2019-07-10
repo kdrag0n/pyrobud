@@ -259,7 +259,12 @@ class Bot():
     async def dispatch_event(self, event, *args):
         tasks = set()
 
-        for l in self.listeners[event]:
+        try:
+            listeners = self.listeners[event]
+        except KeyError:
+            return None
+
+        for l in listeners:
             task = self.loop.create_task(l.func(*args))
             tasks.add(task)
 
