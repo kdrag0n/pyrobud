@@ -59,6 +59,9 @@ class StatsModule(module.Module):
     async def on_command(self, msg, cmd_info, args):
         self.bot.config['stats']['processed'] += 1
 
+    async def on_stat_event(self, key):
+        self.bot.config['stats'][key] += 1
+
     def update_uptime(self):
         now = util.time_us()
         delta_us = now - self.last_time

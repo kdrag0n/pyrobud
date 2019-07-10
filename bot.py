@@ -315,7 +315,3 @@ class Bot():
                 await event.result(ret)
 
         await self.dispatch_event('command', event, cmd_info, args)
-
-    def log_stat(self, key):
-        if 'Stats' in self.modules and 'stats' in self.config and key in self.config['stats']:
-            self.config['stats'][key] += 1

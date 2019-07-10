@@ -12,7 +12,7 @@ class SnippetModule(module.Module):
 
     def snip_repl(self, m):
         if m.group(1) in self.bot.config['snippets']:
-            self.bot.log_stat('replaced')
+            self.bot.dispatch_event_nowait('stat_event', 'replaced')
             return self.bot.config['snippets'][m.group(1)]
 
         return m.group(0)
