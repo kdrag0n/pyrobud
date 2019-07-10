@@ -285,40 +285,48 @@ class Bot():
 
     async def on_command(self, event):
         try:
-            cmd_info = self.commands[event.segments[0]]
-        except KeyError:
-            return
-
-        cmd_func = cmd_info.func
-        cmd_spec = inspect.getfullargspec(cmd_func)
-        cmd_args = cmd_spec.args
-
-        args = []
-        if len(cmd_args) == 3:
-            txt = event.text
-
-            # Contrary to typical terms, text = raw text (i.e. with Markdown formatting)
-            # and raw_text = parsed text (i.e. plain text without formatting symbols)
-            if cmd_args[2].startswith('parsed_'):
-                txt = event.raw_text
-
-            args = [txt[len(self.prefix) + len(event.segments[0]) + 1:]]
-        elif cmd_spec.varargs is not None and len(cmd_spec.varargs) > 0:
-            args = event.segments[1:]
-
-        try:
-            ret = await cmd_func(event, *args)
-        except Exception as e:
-            traceback.print_exc(file=sys.stderr)
-            ret = f'⚠️ Error executing command:\n```{util.format_exception(e)}```'
-
-        if ret is not None:
             try:
-                await event.result(ret)
+                cmd_info = self.commands[event.segments[0]]
+            except KeyError:
+                return
+
+            cmd_func = cmd_info.func
+            cmd_spec = inspect.getfullargspec(cmd_func)
+            cmd_args = cmd_spec.args
+
+            args = []
+            if len(cmd_args) == 3:
+                txt = event.text
+
+                # Contrary to typical terms, text = raw text (i.e. with Markdown formatting)
+                # and raw_text = parsed text (i.e. plain text without formatting symbols)
+                if cmd_args[2].startswith('parsed_'):
+                    txt = event.raw_text
+
+                args = [txt[len(self.prefix) + len(event.segments[0]) + 1:]]
+            elif cmd_spec.varargs is not None and len(cmd_spec.varargs) > 0:
+                args = event.segments[1:]
+
+            try:
+                ret = await cmd_func(event, *args)
             except Exception as e:
                 traceback.print_exc(file=sys.stderr)
-                ret = f'⚠️ Error updating message:\n```{util.format_exception(e)}```'
+                ret = f'⚠️ Error executing command:\n```{util.format_exception(e)}```'
 
-                await event.result(ret)
+            if ret is not None:
+                try:
+                    await event.result(ret)
+                except Exception as e:
+                    traceback.print_exc(file=sys.stderr)
+                    ret = f'⚠️ Error updating message:\n```{util.format_exception(e)}```'
 
-        await self.dispatch_event('command', event, cmd_info, args)
+                    await event.result(ret)
+
+            await self.dispatch_event('command', event, cmd_info, args)
+        except Exception as e:
+            try:
+                await event.result(f'⚠️ Error in command handler:\n```{util.format_exception(e)}```')
+            except Exception:
+                raise
+
+            raise
