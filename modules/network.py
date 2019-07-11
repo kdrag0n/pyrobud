@@ -1,5 +1,6 @@
 import asyncio
 import os
+import urllib.parse
 
 import aiohttp
 import telethon as tg
@@ -153,3 +154,11 @@ class NetworkModule(module.Module):
             else:
                 # Failed for some reason, send the error
                 await msg.result(f'Error updating embed for [link]({link}): `{response.raw_text}`')
+
+    @command.desc('Generate a LMGTFY link (Let Me Google That For You)')
+    async def cmd_lmgtfy(self, msg, query):
+        if not query:
+            return '__Provide the search terms to use in the link.__'
+
+        params = urllib.parse.urlencode({'q': query})
+        return f'https://lmgtfy.com/?{params}'
