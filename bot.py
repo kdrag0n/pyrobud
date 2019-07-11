@@ -16,8 +16,6 @@ import module
 import modules
 import util
 
-logging.basicConfig(format='[%(levelname) 5s/%(asctime)s] %(name)s: %(message)s', level=logging.WARNING)
-
 class Listener():
     def __init__(self, event, func, module):
         self.event = event
@@ -30,6 +28,7 @@ class Bot():
         self.modules = {}
         self.listeners = {}
 
+        self.log = logging.getLogger('bot')
         self.client = tg.TelegramClient('anon', config['telegram']['api_id'], config['telegram']['api_hash'])
         self.http_session = aiohttp.ClientSession()
 
@@ -120,7 +119,7 @@ class Bot():
             self.unregister_listener(listener)
 
     def load_module(self, cls):
-        print(f"Loading module '{cls.name}' ({cls.__name__}) from '{os.path.relpath(inspect.getfile(cls))}'...")
+        self.log.info(f"Loading module '{cls.name}' ({cls.__name__}) from '{os.path.relpath(inspect.getfile(cls))}'")
 
         if cls.name in self.modules:
             old = self.modules[cls.name].__class__
@@ -133,14 +132,14 @@ class Bot():
 
     def unload_module(self, mod):
         cls = mod.__class__
-        print(f"Unloading module '{cls.name}' ({cls.__name__}) from '{os.path.relpath(inspect.getfile(cls))}'...")
+        self.log.info(f"Unloading module '{cls.name}' ({cls.__name__}) from '{os.path.relpath(inspect.getfile(cls))}'")
 
         self.unregister_listeners(mod)
         self.unregister_commands(mod)
         del self.modules[cls.name]
 
     def load_all_modules(self):
-        print('Loading modules...')
+        self.log.info('Loading modules')
 
         for _sym in dir(modules):
             module_mod = getattr(modules, _sym)
@@ -152,17 +151,17 @@ class Bot():
                         self.load_module(cls)
 
     def unload_all_modules(self):
-        print('Unloading modules...')
+        self.log.info('Unloading modules...')
 
         # Can't modify while iterating, so collect a list first
         for mod in list(self.modules.values()):
             self.unload_module(mod)
 
     async def reload_module_pkg(self):
-        print('Reloading base module class...')
+        self.log.info('Reloading base module class...')
         await util.run_sync(lambda: importlib.reload(module))
 
-        print('Reloading master module...')
+        self.log.info('Reloading master module...')
         await util.run_sync(lambda: importlib.reload(modules))
 
     async def save_config(self, data=None):
@@ -250,12 +249,12 @@ class Bot():
         # Save config in the background
         self.loop.create_task(self.writer())
 
-        print('Bot is ready')
+        self.log.info('Bot is ready')
 
         # Catch up on missed events
-        print('Catching up on missed events...')
+        self.log.info('Catching up on missed events')
         await self.client.catch_up()
-        print('Finished catching up')
+        self.log.info('Finished catching up')
 
         # Save config to sync updated stats after catching up
         await self.save_config()
@@ -315,14 +314,14 @@ class Bot():
             try:
                 ret = await cmd_func(event, *args)
             except Exception as e:
-                traceback.print_exc(file=sys.stderr)
+                self.log.error('Error in command function', exc_info=e)
                 ret = f'⚠️ Error executing command:\n```{util.format_exception(e)}```'
 
             if ret is not None:
                 try:
                     await event.result(ret)
                 except Exception as e:
-                    traceback.print_exc(file=sys.stderr)
+                    self.log.error('Error updating message with data returned by command {}', cmd_info.name, exc_info=e)
                     ret = f'⚠️ Error updating message:\n```{util.format_exception(e)}```'
 
                     await event.result(ret)

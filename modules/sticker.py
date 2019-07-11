@@ -41,7 +41,7 @@ class StickerModule(module.Module):
             del user['sticker_pack']
             user['kang_pack'] = kang_pack
 
-            print('Migrated saved stickers to new config format')
+            self.log.info('Migrated saved stickers to new config format')
 
         # Migrate old sticker data
         migrated_files = False
@@ -74,7 +74,7 @@ class StickerModule(module.Module):
                     new_fn = fn[:-len('01.webp')] + '.webp'
                     self.bot.config['stickers'][name] = new_fn
 
-            print('Migrated local stickers to new disk format')
+            self.log.info('Migrated local stickers to new disk format')
 
     async def add_sticker(self, sticker_data, pack_name, emoji='❓'):
         # User to send messages to

@@ -109,7 +109,7 @@ class AntibotModule(module.Module):
         await self.bot.client(ban_request)
 
         # Log the event
-        print(f'NOTICE: banned spambot with ID {sender.id} in group "{chat.title}"')
+        self.log.info(f'Banned spambot with ID {sender.id} in group "{chat.title}"')
         await msg.reply(f'❯❯ **Banned spambot** with ID `{sender.id}`')
         self.bot.dispatch_event_nowait('stat_event', 'spambots_banned')
 
