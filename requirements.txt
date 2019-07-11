@@ -3,6 +3,7 @@ aiohttp
 cryptg
 hachoir
 pillow
+pycparser
 telethon
 toml
 uvloop
