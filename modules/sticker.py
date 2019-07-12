@@ -334,12 +334,12 @@ class StickerModule(module.Module):
         await msg.delete()
 
     @command.desc('Create a sticker from an image and add it to the given pack')
-    async def cmd_sticker(self, msg, args):
+    async def cmd_sticker(self, msg, *args):
         if not msg.is_reply:
             return '__Reply to an image to sticker it.__'
 
         if not args:
-            await msg.result('__Provide the name of the pack to add the sticker to.__')
+            await msg.result('__Provide the name of the pack to add the sticker to, and optionally the emoji to associate with it.__')
             return
 
         reply_msg = await msg.get_reply_message()
@@ -347,9 +347,8 @@ class StickerModule(module.Module):
         if not reply_msg.file:
             return "__That message doesn't contain an image.__"
 
-        ps = args.split()
-        pack_name = ps[0]
-        emoji = ps[1] if len(ps) > 1 else '❓'
+        pack_name = args[0]
+        emoji = args[1] if len(args) > 1 else '❓'
 
         await msg.result('Creating sticker...')
 
