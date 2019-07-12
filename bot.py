@@ -321,7 +321,7 @@ class Bot():
                 try:
                     await event.result(ret)
                 except Exception as e:
-                    self.log.error('Error updating message with data returned by command {}', cmd_info.name, exc_info=e)
+                    self.log.error("Error updating message with data returned by command '%s'", cmd_info.name, exc_info=e)
                     ret = f'⚠️ Error updating message:\n```{util.format_exception(e)}```'
 
                     await event.result(ret)
