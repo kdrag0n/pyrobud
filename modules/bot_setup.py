@@ -90,7 +90,7 @@ Please read the rules _before_ participating.
 {button_str}''',
             '/cleanwelcome on',
             f'/setrules {rule_str}',
-            '/setflood 10',
+            '/setflood 13',
             '/setfloodmode tmute 3h',
             '/reports on',
             '/welcomemute on',
