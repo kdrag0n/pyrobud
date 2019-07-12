@@ -1,4 +1,5 @@
 import random
+import string
 
 import telethon as tg
 
@@ -44,6 +45,32 @@ class TextModule(module.Module):
             return '__Text required.__'
 
         return '\u0336'.join(text) + '\u0336'
+
+    @command.desc('Generate fake Google Play-style codes (optional arguments: count, length)')
+    async def cmd_gencode(self, msg, *args):
+        count = 10
+        length = 23
+
+        if args:
+            try:
+                count = int(args[0])
+            except ValueError:
+                return '__Invalid number provided for count.__'
+
+        if len(args) >= 2:
+            try:
+                length = int(args[1])
+            except ValueError:
+                return '__Invalid number provided for length.__'
+
+        codes = []
+        alphabet = string.ascii_uppercase + string.digits
+        for _ in range(count):
+            code = ''.join([random.choice(alphabet) for _ in range(length)])
+            codes.append(code)
+
+        codes_str = '\n'.join(codes)
+        return f'```{codes_str}```'
 
     @command.desc('Mention everyone in this group (**DO NOT ABUSE**)')
     @command.alias('evo', '@everyone')
