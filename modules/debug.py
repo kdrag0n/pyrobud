@@ -44,6 +44,19 @@ class DebugModule(module.Module):
 
 Time: {el_str}'''
 
+    @command.desc('Evalulate code (statement)')
+    async def cmd_exec(self, msg, raw_args):
+        def _exec():
+            nonlocal msg, raw_args, self
+
+            def send(text):
+                return self.bot.loop.create_task(msg.respond(text))
+
+            exec(util.filter_code_block(raw_args))
+
+        await util.run_sync(_exec)
+        return 'Code evaulated.'
+
     @command.desc('Get the code of a command')
     async def cmd_src(self, msg, cmd_name):
         if cmd_name is None or len(cmd_name) < 1:
@@ -54,11 +67,6 @@ Time: {el_str}'''
         src = await util.run_sync(lambda: inspect.getsource(self.bot.commands[cmd_name].func))
         filtered_src = re.sub(r'^    ', '', src, flags=re.MULTILINE)
         return f'```{filtered_src}```'
-
-    @command.desc('Evalulate code (statement)')
-    async def cmd_exec(self, msg, raw_args):
-        await util.run_sync(lambda: exec(util.filter_code_block(raw_args)))
-        return 'Code evaulated.'
 
     @command.desc('Get plain text of a message')
     @command.alias('text', 'raw')
