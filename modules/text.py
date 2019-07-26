@@ -25,7 +25,11 @@ class TextModule(module.Module):
     @command.alias('sar', 'sarc', 'scm', 'mock')
     async def cmd_sarcasm(self, msg, text):
         if not text:
-            return '__Text required.__'
+            if msg.is_reply:
+                reply_msg = await msg.get_reply_message()
+                text = reply_msg.text
+            else:
+                return '__Reply to a message with text or provide text to filter.__'
 
         chars = list(text)
         for idx, ch in enumerate(chars):
