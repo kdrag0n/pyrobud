@@ -8,8 +8,10 @@ from datetime import datetime
 def time_us():
     return int(time.time() * 1000000)
 
+
 def time_ms():
     return int(time_us() / 1000)
+
 
 def format_duration_us(t_us):
     t_us = int(t_us)
@@ -24,27 +26,28 @@ def format_duration_us(t_us):
         rem_h = t_h % 24
         rem_m = t_m % 60
         rem_s = t_s % (24 * 60 * 60) % 60
-        return '%dd%dh%dm%ds' % (t_d, rem_h, rem_m, rem_s)
+        return "%dd%dh%dm%ds" % (t_d, rem_h, rem_m, rem_s)
     elif t_h >= 1:
         rem_m = t_m % 60
         rem_s = t_s % (60 * 60) % 60
-        return '%dh%dm%ds' % (t_h, rem_m, rem_s)
+        return "%dh%dm%ds" % (t_h, rem_m, rem_s)
     elif t_m >= 1:
         rem_s = t_s % 60
-        return '%dm%ds' % (t_m, rem_s)
+        return "%dm%ds" % (t_m, rem_s)
     elif t_s >= 10:
-        return '%ds' % t_s
+        return "%ds" % t_s
     elif t_ms >= 10:
-        return '%d ms' % t_ms
+        return "%d ms" % t_ms
     else:
-        return '%d μs' % t_us
+        return "%d μs" % t_us
+
 
 def find_prefixed_funcs(obj, prefix):
     results = []
 
     for sym in dir(obj):
         if sym.startswith(prefix):
-            name = sym[len(prefix):]
+            name = sym[len(prefix) :]
             func = getattr(obj, sym)
             if not callable(func):
                 continue
@@ -53,13 +56,15 @@ def find_prefixed_funcs(obj, prefix):
 
     return results
 
+
 def filter_code_block(inp):
-    if inp.startswith('```') and inp.endswith('```'):
+    if inp.startswith("```") and inp.endswith("```"):
         inp = inp[3:][:-3]
-    elif inp.startswith('`') and inp.endswith('`'):
+    elif inp.startswith("`") and inp.endswith("`"):
         inp = inp[1:][:-1]
 
     return inp
+
 
 def format_exception(exp):
     tb = traceback.extract_tb(exp.__traceback__)
@@ -70,12 +75,13 @@ def format_exception(exp):
         if cwd in frame.filename:
             frame.filename = os.path.relpath(frame.filename)
 
-    stack = ''.join(traceback.format_list(tb))
+    stack = "".join(traceback.format_list(tb))
     msg = str(exp)
     if msg:
-        msg = ': ' + msg
+        msg = ": " + msg
 
-    return f'Traceback (most recent call last):\n{stack}{type(exp).__name__}{msg}'
+    return f"Traceback (most recent call last):\n{stack}{type(exp).__name__}{msg}"
+
 
 async def run_sync(func):
     loop = asyncio.get_event_loop()
@@ -83,7 +89,8 @@ async def run_sync(func):
     await future
     return future.result()
 
-async def msg_download_file(download_msg, status_msg, destination=bytes, file_type='file'):
+
+async def msg_download_file(download_msg, status_msg, destination=bytes, file_type="file"):
     last_percent = -5
 
     def prog_func(current_bytes, total_bytes):
@@ -97,7 +104,7 @@ async def msg_download_file(download_msg, status_msg, destination=bytes, file_ty
         percent = int((current_bytes / total_bytes) * 100)
         if abs(percent - last_percent) >= 5:
             loop = asyncio.get_event_loop()
-            loop.create_task(status_msg.result(f'Downloading {file_type}... {percent}% complete'))
+            loop.create_task(status_msg.result(f"Downloading {file_type}... {percent}% complete"))
 
         last_percent = percent
 

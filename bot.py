@@ -16,25 +16,27 @@ import module
 import modules
 import util
 
-class Listener():
+
+class Listener:
     def __init__(self, event, func, module):
         self.event = event
         self.func = func
         self.module = module
 
-class Bot():
+
+class Bot:
     def __init__(self, config, config_path):
         self.commands = {}
         self.modules = {}
         self.listeners = {}
 
-        self.log = logging.getLogger('bot')
-        self.client = tg.TelegramClient('anon', config['telegram']['api_id'], config['telegram']['api_hash'])
+        self.log = logging.getLogger("bot")
+        self.client = tg.TelegramClient("anon", config["telegram"]["api_id"], config["telegram"]["api_hash"])
         self.http_session = aiohttp.ClientSession()
 
         self.config = config
         self.config_path = config_path
-        self.prefix = config['bot']['prefix']
+        self.prefix = config["bot"]["prefix"]
         self.last_saved_cfg = toml.dumps(config)
 
     def register_command(self, mod, name, func):
@@ -46,7 +48,7 @@ class Bot():
 
         self.commands[name] = info
 
-        for alias in getattr(func, 'aliases', []):
+        for alias in getattr(func, "aliases", []):
             if alias in self.commands:
                 orig = self.commands[alias]
                 raise module.ExistingCommandError(orig, info, alias=True)
@@ -63,7 +65,7 @@ class Bot():
                 continue
 
     def register_commands(self, mod):
-        for name, func in util.find_prefixed_funcs(mod, 'cmd_'):
+        for name, func in util.find_prefixed_funcs(mod, "cmd_"):
             try:
                 self.register_command(mod, name, func)
             except:
@@ -98,7 +100,7 @@ class Bot():
         self.listeners[listener.event].remove(listener)
 
     def register_listeners(self, mod):
-        for event, func in util.find_prefixed_funcs(mod, 'on_'):
+        for event, func in util.find_prefixed_funcs(mod, "on_"):
             try:
                 self.register_listener(mod, event, func)
             except:
@@ -139,7 +141,7 @@ class Bot():
         del self.modules[cls.name]
 
     def load_all_modules(self):
-        self.log.info('Loading modules')
+        self.log.info("Loading modules")
 
         for _sym in dir(modules):
             module_mod = getattr(modules, _sym)
@@ -151,28 +153,28 @@ class Bot():
                         self.load_module(cls)
 
     def unload_all_modules(self):
-        self.log.info('Unloading modules...')
+        self.log.info("Unloading modules...")
 
         # Can't modify while iterating, so collect a list first
         for mod in list(self.modules.values()):
             self.unload_module(mod)
 
     async def reload_module_pkg(self):
-        self.log.info('Reloading base module class...')
+        self.log.info("Reloading base module class...")
         await util.run_sync(lambda: importlib.reload(module))
 
-        self.log.info('Reloading master module...')
+        self.log.info("Reloading master module...")
         await util.run_sync(lambda: importlib.reload(modules))
 
     async def save_config(self, data=None):
-        tmp_path = self.config_path + '.tmp'
+        tmp_path = self.config_path + ".tmp"
 
         if data is None:
             data = toml.dumps(self.config)
 
         try:
-            async with aiofiles.open(tmp_path, 'wb+') as f:
-                await f.write(data.encode('utf-8'))
+            async with aiofiles.open(tmp_path, "wb+") as f:
+                await f.write(data.encode("utf-8"))
                 await f.flush()
                 await util.run_sync(lambda: os.fsync(f.fileno()))
 
@@ -194,7 +196,7 @@ class Bot():
     def command_predicate(self, event):
         if event.raw_text.startswith(self.prefix):
             parts = event.raw_text.split()
-            parts[0] = parts[0][len(self.prefix):]
+            parts[0] = parts[0][len(self.prefix) :]
 
             event.segments = parts
             return True
@@ -207,7 +209,7 @@ class Bot():
 
         # Load modules and save config in case any migration changes were made
         self.load_all_modules()
-        await self.dispatch_event('load')
+        await self.dispatch_event("load")
         await self.save_config()
 
         # Start Telegram client
@@ -219,19 +221,19 @@ class Bot():
 
         # Hijack Message class to provide result function
         async def result(msg, new_text, **kwargs):
-            t = self.config['telegram']
-            api_id = str(t['api_id'])
-            api_hash = t['api_hash']
+            t = self.config["telegram"]
+            api_id = str(t["api_id"])
+            api_hash = t["api_hash"]
 
             if api_id in new_text:
-                new_text = new_text.replace(api_id, '[REDACTED]')
+                new_text = new_text.replace(api_id, "[REDACTED]")
             if api_hash in new_text:
-                new_text = new_text.replace(api_hash, '[REDACTED]')
+                new_text = new_text.replace(api_hash, "[REDACTED]")
             if self.user.phone in new_text:
-                new_text = new_text.replace(self.user.phone, '[REDACTED]')
+                new_text = new_text.replace(self.user.phone, "[REDACTED]")
 
-            if 'link_preview' not in kwargs:
-                kwargs['link_preview'] = False
+            if "link_preview" not in kwargs:
+                kwargs["link_preview"] = False
 
             await msg.edit(text=new_text, **kwargs)
 
@@ -239,7 +241,7 @@ class Bot():
 
         # Record start time and dispatch start event
         self.start_time_us = util.time_us()
-        await self.dispatch_event('start', self.start_time_us)
+        await self.dispatch_event("start", self.start_time_us)
 
         # Register handlers
         self.client.add_event_handler(self.on_message, tg.events.NewMessage)
@@ -249,18 +251,18 @@ class Bot():
         # Save config in the background
         self.loop.create_task(self.writer())
 
-        self.log.info('Bot is ready')
+        self.log.info("Bot is ready")
 
         # Catch up on missed events
-        self.log.info('Catching up on missed events')
+        self.log.info("Catching up on missed events")
         await self.client.catch_up()
-        self.log.info('Finished catching up')
+        self.log.info("Finished catching up")
 
         # Save config to sync updated stats after catching up
         await self.save_config()
 
     async def stop(self):
-        await self.dispatch_event('stop')
+        await self.dispatch_event("stop")
         await self.save_config()
         await self.http_session.close()
 
@@ -282,10 +284,10 @@ class Bot():
         return self.loop.create_task(self.dispatch_event(*args, **kwargs))
 
     async def on_message(self, event):
-        await self.dispatch_event('message', event)
+        await self.dispatch_event("message", event)
 
     async def on_message_edit(self, event):
-        await self.dispatch_event('message_edit', event)
+        await self.dispatch_event("message_edit", event)
 
     async def on_command(self, event):
         try:
@@ -304,32 +306,34 @@ class Bot():
 
                 # Contrary to typical terms, text = raw text (i.e. with Markdown formatting)
                 # and raw_text = parsed text (i.e. plain text without formatting symbols)
-                if cmd_args[2].startswith('parsed_'):
+                if cmd_args[2].startswith("parsed_"):
                     txt = event.raw_text
 
-                args = [txt[len(self.prefix) + len(event.segments[0]) + 1:]]
+                args = [txt[len(self.prefix) + len(event.segments[0]) + 1 :]]
             elif cmd_spec.varargs is not None and len(cmd_spec.varargs) > 0 and not cmd_spec.kwonlyargs:
                 args = event.segments[1:]
 
             try:
                 ret = await cmd_func(event, *args)
             except Exception as e:
-                self.log.error('Error in command function', exc_info=e)
-                ret = f'⚠️ Error executing command:\n```{util.format_exception(e)}```'
+                self.log.error("Error in command function", exc_info=e)
+                ret = f"⚠️ Error executing command:\n```{util.format_exception(e)}```"
 
             if ret is not None:
                 try:
                     await event.result(ret)
                 except Exception as e:
-                    self.log.error("Error updating message with data returned by command '%s'", cmd_info.name, exc_info=e)
-                    ret = f'⚠️ Error updating message:\n```{util.format_exception(e)}```'
+                    self.log.error(
+                        "Error updating message with data returned by command '%s'", cmd_info.name, exc_info=e
+                    )
+                    ret = f"⚠️ Error updating message:\n```{util.format_exception(e)}```"
 
                     await event.result(ret)
 
-            await self.dispatch_event('command', event, cmd_info, args)
+            await self.dispatch_event("command", event, cmd_info, args)
         except Exception as e:
             try:
-                await event.result(f'⚠️ Error in command handler:\n```{util.format_exception(e)}```')
+                await event.result(f"⚠️ Error in command handler:\n```{util.format_exception(e)}```")
             except Exception:
                 raise
 

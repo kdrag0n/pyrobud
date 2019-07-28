@@ -5,37 +5,26 @@ import module
 
 
 class AntibotModule(module.Module):
-    name = 'Antibot'
+    name = "Antibot"
 
-    suspicious_keywords = [
-        'investment',
-        'profit',
-        'binance',
-        'binanse',
-        'bitcoin',
-        'testnet',
-        'bitmex'
-    ]
+    suspicious_keywords = ["investment", "profit", "binance", "binanse", "bitcoin", "testnet", "bitmex"]
 
     suspicious_entities = [
         tg.types.MessageEntityUrl,
         tg.types.MessageEntityTextUrl,
         tg.types.MessageEntityEmail,
-        tg.types.MessageEntityPhone
+        tg.types.MessageEntityPhone,
     ]
 
     async def on_load(self):
         # Populate config if necessary
-        if 'antibot' not in self.bot.config:
-            self.bot.config['antibot'] = {
-                'threshold_time': 30,
-                'group_ids': []
-            }
+        if "antibot" not in self.bot.config:
+            self.bot.config["antibot"] = {"threshold_time": 30, "group_ids": []}
         else:
-            if 'threshold_time' not in self.bot.config['antibot']:
-                self.bot.config['antibot']['threshold_time'] = 30 # seconds
-            if 'group_ids' not in self.bot.config['antibot']:
-                self.bot.config['antibot']['group_ids'] = []
+            if "threshold_time" not in self.bot.config["antibot"]:
+                self.bot.config["antibot"]["threshold_time"] = 30  # seconds
+            if "group_ids" not in self.bot.config["antibot"]:
+                self.bot.config["antibot"]["group_ids"] = []
 
     def msg_has_suspicious_entity(self, msg):
         if not msg.entities:
@@ -93,7 +82,7 @@ class AntibotModule(module.Module):
             return False
 
         delta = msg.date - participant.date
-        if delta.total_seconds() <= self.bot.config['antibot']['threshold_time']:
+        if delta.total_seconds() <= self.bot.config["antibot"]["threshold_time"]:
             # Suspicious message was sent shortly after joining
             return True
 
@@ -110,25 +99,25 @@ class AntibotModule(module.Module):
 
         # Log the event
         self.log.info(f'Banned spambot with ID {sender.id} in group "{chat.title}"')
-        await msg.reply(f'❯❯ **Banned spambot** with ID `{sender.id}`')
-        self.bot.dispatch_event_nowait('stat_event', 'spambots_banned')
+        await msg.reply(f"❯❯ **Banned spambot** with ID `{sender.id}`")
+        self.bot.dispatch_event_nowait("stat_event", "spambots_banned")
 
         # Delete the spam message
         await msg.delete()
 
     async def on_message(self, msg):
-        enabled_in_chat = msg.is_group and msg.chat_id in self.bot.config['antibot']['group_ids']
+        enabled_in_chat = msg.is_group and msg.chat_id in self.bot.config["antibot"]["group_ids"]
 
         if enabled_in_chat and await self.msg_is_suspicious(msg):
             # This is most likely a spambot, take action against the user
             await self.take_action(msg)
 
-    @command.desc('Toggle the antibot auto-moderation feature in this group')
+    @command.desc("Toggle the antibot auto-moderation feature in this group")
     async def cmd_antibot(self, msg):
         if not msg.is_group:
             return "__Antibot can only be used in groups.__"
 
-        gid_table = self.bot.config['antibot']['group_ids']
+        gid_table = self.bot.config["antibot"]["group_ids"]
         state = msg.chat_id in gid_table
         state = not state
 
@@ -139,5 +128,5 @@ class AntibotModule(module.Module):
 
         await self.bot.save_config()
 
-        status = 'enabled' if state else 'disabled'
-        return f'Antibot is now **{status}** in this group.'
+        status = "enabled" if state else "disabled"
+        return f"Antibot is now **{status}** in this group."

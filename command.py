@@ -5,9 +5,10 @@ def desc(_desc):
 
     return desc_decorator
 
+
 def alias(*aliases):
     def alias_decorator(func):
-        if not hasattr(func, 'aliases'):
+        if not hasattr(func, "aliases"):
             func.aliases = []
 
         func.aliases.extend(aliases)
@@ -15,10 +16,11 @@ def alias(*aliases):
 
     return alias_decorator
 
-class Info():
+
+class Info:
     def __init__(self, name, module, func):
         self.name = name
-        self.desc = getattr(func, 'description', None)
-        self.aliases = getattr(func, 'aliases', [])
+        self.desc = getattr(func, "description", None)
+        self.aliases = getattr(func, "aliases", [])
         self.module = module
         self.func = func

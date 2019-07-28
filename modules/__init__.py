@@ -8,7 +8,7 @@ __all__ = list(module for _, module, _ in pkgutil.iter_modules([os.path.dirname(
 from . import *
 
 
-log = logging.getLogger('metamod')
+log = logging.getLogger("metamod")
 
 try:
     _reload_flag
@@ -16,7 +16,7 @@ except NameError:
     _reload_flag = True
 else:
     # Module has been reloaded, reload our submodules
-    log.info('Reloading module classes')
+    log.info("Reloading module classes")
     for sym in __all__:
         module = globals()[sym]
         importlib.reload(module)

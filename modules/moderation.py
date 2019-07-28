@@ -7,23 +7,23 @@ import module
 
 
 class ModerationModule(module.Module):
-    name = 'Moderation'
+    name = "Moderation"
 
-    @command.desc('Mention everyone in this group (**DO NOT ABUSE**)')
-    @command.alias('evo', '@everyone')
-    async def cmd_everyone(self, msg, comment, *, tag='\U000e0020everyone', filter=None):
+    @command.desc("Mention everyone in this group (**DO NOT ABUSE**)")
+    @command.alias("evo", "@everyone")
+    async def cmd_everyone(self, msg, comment, *, tag="\U000e0020everyone", filter=None):
         if not msg.is_group:
-            return '__This command can only be used in groups.__'
+            return "__This command can only be used in groups.__"
 
-        mention_text = f'@{tag}'
+        mention_text = f"@{tag}"
         if comment:
-            mention_text += ' ' + comment
+            mention_text += " " + comment
 
         mention_slots = 4096 - len(mention_text)
 
         chat = await msg.get_chat()
         async for user in self.bot.client.iter_participants(chat, filter=filter):
-            mention_text += f'[\u200b](tg://user?id={user.id})'
+            mention_text += f"[\u200b](tg://user?id={user.id})"
 
             mention_slots -= 1
             if mention_slots == 0:
@@ -32,12 +32,12 @@ class ModerationModule(module.Module):
         await msg.respond(mention_text, reply_to=msg.reply_to_msg_id)
         await msg.delete()
 
-    @command.desc('Mention all admins in a group (**DO NOT ABUSE**)')
-    @command.alias('adm', '@admin')
+    @command.desc("Mention all admins in a group (**DO NOT ABUSE**)")
+    @command.alias("adm", "@admin")
     async def cmd_admin(self, msg, comment):
-        await self.cmd_everyone(msg, comment, tag='admin', filter=tg.tl.types.ChannelParticipantsAdmins)
+        await self.cmd_everyone(msg, comment, tag="admin", filter=tg.tl.types.ChannelParticipantsAdmins)
 
-    @command.desc('Prune deleted members in this group or the specified group')
+    @command.desc("Prune deleted members in this group or the specified group")
     async def cmd_prune(self, msg, chat):
         incl_chat_name = bool(chat)
         if chat:
@@ -46,13 +46,13 @@ class ModerationModule(module.Module):
             chat = await msg.get_chat()
 
         if incl_chat_name:
-            _chat_name = f' from **{chat.title}**'
-            _chat_name2 = f' in **{chat.title}**'
+            _chat_name = f" from **{chat.title}**"
+            _chat_name2 = f" in **{chat.title}**"
         else:
-            _chat_name = ''
-            _chat_name2 = ''
+            _chat_name = ""
+            _chat_name2 = ""
 
-        await msg.result(f'Fetching members{_chat_name}...')
+        await msg.result(f"Fetching members{_chat_name}...")
         all_members = await self.bot.client.get_participants(chat)
 
         last_time = datetime.now()
@@ -60,7 +60,7 @@ class ModerationModule(module.Module):
         pruned_count = 0
         idx = 0
 
-        status_text = f'Pruning deleted members{_chat_name}...'
+        status_text = f"Pruning deleted members{_chat_name}..."
         await msg.result(status_text)
 
         for user in all_members:
@@ -75,10 +75,14 @@ class ModerationModule(module.Module):
             now = datetime.now()
             delta = now - last_time
             if delta.total_seconds() >= 0.25:
-                await msg.result(f'{status_text} {percent_done}% done ({idx + 1} of {total_count} processed; {pruned_count} banned)')
+                await msg.result(
+                    f"{status_text} {percent_done}% done ({idx + 1} of {total_count} processed; {pruned_count} banned)"
+                )
 
             last_time = now
             idx += 1
 
         percent_pruned = int(pruned_count / total_count * 100)
-        await msg.result(f'Pruned {pruned_count} deleted users{_chat_name2} — {percent_pruned}% of the original member count.')
+        await msg.result(
+            f"Pruned {pruned_count} deleted users{_chat_name2} — {percent_pruned}% of the original member count."
+        )
