@@ -6,6 +6,8 @@ import command
 import module
 import util
 
+import telethon as tg
+
 
 class DebugModule(module.Module):
     name = "Debug"
@@ -137,13 +139,20 @@ Time: {el_str}"""
 
             # TODO: update
             if reply_msg.forward:
-                lines.append(f"Forwarded message author ID: `{reply_msg.forward_from.id}`")
+                lines.append(f"Forwarded message author ID: `{reply_msg.forward.sender.id}`")
+                """
+                forward_dir = dir(reply_msg.forward)
+                for fd in forward_dir:
+                    evaled = ""
+                    try: evaled = str(eval(fd))
+                    except: evaled = "Error"
+                    print(fd, evaled)
+                """
+                if reply_msg.forward.chat:
+                    lines.append(f"Forwarded message chat ID: `{reply_msg.forward.chat.id}`")
 
-                if reply_msg.forward_from_chat:
-                    lines.append(f"Forwarded message chat ID: `{reply_msg.forward_from_chat.id}`")
-
-                if reply_msg.forward_from_message_id:
-                    lines.append(f"Forwarded message's original ID: `{reply_msg.forward_from_message_id}`")
+                if reply_msg.forward.saved_from_msg_id:
+                    lines.append(f"Forwarded message's original ID: `{reply_msg.forward.saved_from_msg_id}`")
 
         if msg.chat_id:
             lines.append(f"Chat ID: `{msg.chat_id}`")
@@ -151,3 +160,14 @@ Time: {el_str}"""
         lines.append(f"My user ID: `{self.bot.uid}`")
 
         return "\n".join(lines)
+
+
+    @command.desc("Get user infos by ID")
+    async def cmd_getuser(self, msg : tg.events.newmessage, input_user : str):
+        input_user = util.sanitize(input_user)
+        if input_user.isdigit(): input_user = int(input_user)
+        try:
+            user = await self.bot.client.get_entity(input_user)
+            await msg.respond(util.UserStr(user), reply_to=msg.reply_to_msg_id)
+        except ValueError: await msg.respond(f"Could not find any user matching `{input_user}`!", reply_to=msg.reply_to_msg_id)
+        await msg.delete()
