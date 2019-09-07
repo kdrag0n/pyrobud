@@ -3,7 +3,42 @@ import os
 import time
 import traceback
 from datetime import datetime
+from base64 import b64encode, b64decode
 
+import telethon as tg
+
+
+def ChatStr(chat : tg.types.Chat):
+    return f"\"{chat.title}\" ({chat.id})"
+
+def UserStr(user : tg.types.User):
+    result = ""
+    if user.first_name or user.last_name:
+        result += "\""
+        if user.first_name: result += user.first_name
+        if user.first_name and user.last_name: result += " "
+        if user.last_name: result += user.last_name
+        result += "\" "
+    if user.username: result += f"@{user.username} "
+    if user.id: result += f"(`{user.id})`"
+    return result
+
+def sanitize(input : str):
+    return input.replace("`", "")
+
+def add_lrm(input):
+    '''Add a Left to Right Mark (LRM) at provided string start'''
+    barray = bytearray(b"\xe2\x80\x8e")
+    input = input.encode("utf-8")
+    for b in input:
+        barray.append(b)
+    input = barray.decode("utf-8")
+    return input
+
+def base64encode(input : str):
+    return b64encode(bytes(str(input), "utf-8")).decode("utf-8", "ignore")
+def base64decode(input : str):
+    return b64decode(input).decode("utf-8", "ignore")
 
 def time_us():
     return int(time.time() * 1000000)
