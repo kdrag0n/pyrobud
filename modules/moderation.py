@@ -4,6 +4,7 @@ import telethon as tg
 
 import command
 import module
+import util
 
 
 class ModerationModule(module.Module):
@@ -36,6 +37,29 @@ class ModerationModule(module.Module):
     @command.alias("adm", "@admin")
     async def cmd_admin(self, msg, comment):
         await self.cmd_everyone(msg, comment, tag="admin", filter=tg.tl.types.ChannelParticipantsAdmins)
+
+
+    @command.desc("Ban users from the current channel")
+    async def cmd_ban(self, msg : tg.events.newmessage, *input_userids : tuple):
+        userids = list(map(int, input_userids))
+        if msg.is_reply:
+            replied_msg = await msg.get_reply_message()
+            userids.append(replied_msg.from_id)
+        chat = await msg.get_chat()
+        reply = await self.banUserIDs(userids, chat)
+        await msg.respond(reply, reply_to=msg.reply_to_msg_id)
+        await msg.delete()
+
+    async def banUserIDs(self, userids, chat):
+        userids = list(set(userids))
+        reply = f"{len(userids)} users have been banned from {chat.title}!\n"
+        for userid in userids:
+            user = await self.bot.client.get_entity(userid)
+            reply += "\n" + util.UserStr(user)
+            rights = tg.tl.types.ChatBannedRights(until_date=None, view_messages=True)
+            ban_request = tg.tl.functions.channels.EditBannedRequest(chat, user, rights)
+            await self.bot.client(ban_request)
+        return reply
 
     @command.desc("Prune deleted members in this group or the specified group")
     async def cmd_prune(self, msg, chat):
