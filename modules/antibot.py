@@ -99,7 +99,7 @@ class AntibotModule(module.Module):
 
         # Log the event
         self.log.info(f'Banned spambot with ID {sender.id} in group "{chat.title}"')
-        await msg.reply(f"❯❯ **Banned spambot** with ID `{sender.id}`")
+        await msg.reply(f"❯❯ **Banned auto-detected spambot** with ID `{sender.id}`")
         self.bot.dispatch_event_nowait("stat_event", "spambots_banned")
 
         # Delete the spam message
