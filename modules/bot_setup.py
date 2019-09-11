@@ -17,11 +17,11 @@ class BotSetupModule(module.Module):
         target = "MissRose_bot"
         rules = [
             "Rules:",
-            "**Use common sense.** We're all people.",
-            "**Don't spam.** Consider other people's notifications.",
-            "**English only.** This is a universal chat — make sure everyone can understand your messages.",
-            "**Search before asking questions.** It saves everyone's time, including yours.",
-            "**Limit off-topic discussion.** While minor off-topic content is allowed, keep the chat's original topic in mind.",
+            "*Use common sense.* We're all people.",
+            "*Don't spam.* Consider other people's notifications.",
+            "*English only.* This is a universal chat — make sure everyone can understand your messages.",
+            "*Search before asking questions.* It saves everyone's time, including yours.",
+            "*Limit off-topic discussion.* While minor off-topic content is allowed, keep the chat's original topic in mind.",
         ]
 
         default_rules_list = ", ".join(f'"{rule}"' for rule in rules)
@@ -49,6 +49,7 @@ GitHub = "https://github.com/"```
 
         button_map = {"Rules": f"https://t.me/{target}?start=rules_{chat_id}"}
 
+        cfg = {}
         if input_cfg:
             try:
                 cfg = toml.loads(input_cfg)
