@@ -89,28 +89,68 @@ class AntibotModule(module.Module):
         # Allow this message
         return False
 
-    async def take_action(self, msg):
+    def user_is_suspicious(self, user):
+        # Users with names that are composed of 2-3 Chinese characters and
+        # don't have avatars or usernames tend to be spambots
+        if len(user.first_name) == 2 or len(user.first_name) == 3:
+            # Check for a last name
+            if user.last_name:
+                return False
+
+            # Check each character
+            for char in user.first_name:
+                # U+4E00 - U+9FFF is the "CJK Unified Ideographs" block
+                if char < '\u4e00' or char > '\u9fff':
+                    return False
+
+            # Check for a username and/or an avatar
+            if user.username or user.photo:
+                return False
+
+            # User has suspicious profile info
+            return True
+
+        # Allow this user
+        return False
+
+    async def take_action(self, event, user):
         # Ban the sender
-        chat = await msg.get_chat()
-        sender = await msg.get_sender()
+        chat = await event.get_chat()
         rights = tg.tl.types.ChatBannedRights(until_date=None, view_messages=True)
-        ban_request = tg.tl.functions.channels.EditBannedRequest(chat, sender, rights)
+        ban_request = tg.tl.functions.channels.EditBannedRequest(chat, user, rights)
         await self.bot.client(ban_request)
 
         # Log the event
-        self.log.info(f'Banned spambot with ID {sender.id} in group "{chat.title}"')
-        await msg.reply(f"❯❯ **Banned auto-detected spambot** with ID `{sender.id}`")
+        self.log.info(f'Banned spambot with ID {user.id} in group "{chat.title}"')
+        await event.reply(f"❯❯ **Banned auto-detected spambot** with ID `{user.id}`")
         self.bot.dispatch_event_nowait("stat_event", "spambots_banned")
 
         # Delete the spam message
-        await msg.delete()
+        await event.delete()
+
+    def is_enabled(self, event):
+        return event.is_group and event.chat_id in self.bot.config["antibot"]["group_ids"]
 
     async def on_message(self, msg):
-        enabled_in_chat = msg.is_group and msg.chat_id in self.bot.config["antibot"]["group_ids"]
-
-        if enabled_in_chat and await self.msg_is_suspicious(msg):
+        if self.is_enabled(msg) and await self.msg_is_suspicious(msg):
             # This is most likely a spambot, take action against the user
-            await self.take_action(msg)
+            user = await msg.get_sender()
+            await self.take_action(msg, user)
+
+    async def on_chat_action(self, action):
+        # Only filter new users
+        if not action.user_added and not action.user_joined:
+            return
+
+        # Only act in groups where this is enabled
+        if not self.is_enabled(action):
+            return
+
+        # Fetch the user's data and run checks
+        user = await action.get_user()
+        if self.user_is_suspicious(user):
+            # This is most likely a spambot, take action against the user
+            await self.take_action(action, user)
 
     @command.desc("Toggle the antibot auto-moderation feature in this group")
     async def cmd_antibot(self, msg):
