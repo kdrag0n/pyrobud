@@ -247,6 +247,7 @@ class Bot:
         self.client.add_event_handler(self.on_message, tg.events.NewMessage)
         self.client.add_event_handler(self.on_message_edit, tg.events.MessageEdited)
         self.client.add_event_handler(self.on_command, tg.events.NewMessage(outgoing=True, func=self.command_predicate))
+        self.client.add_event_handler(self.on_chat_action, tg.events.ChatAction)
 
         # Save config in the background
         self.loop.create_task(self.writer())
@@ -288,6 +289,9 @@ class Bot:
 
     async def on_message_edit(self, event):
         await self.dispatch_event("message_edit", event)
+
+    async def on_chat_action(self, event):
+        await self.dispatch_event("chat_action", event)
 
     async def on_command(self, event):
         try:
