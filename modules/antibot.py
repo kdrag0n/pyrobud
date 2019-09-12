@@ -16,6 +16,12 @@ class AntibotModule(module.Module):
         tg.types.MessageEntityPhone,
     ]
 
+    suspicious_first_names = [
+        "Announcement",
+        "Info",
+        "Urgent"
+    ]
+
     async def on_load(self):
         # Populate config if necessary
         if "antibot" not in self.bot.config:
@@ -108,6 +114,12 @@ class AntibotModule(module.Module):
                 return False
 
             # User has suspicious profile info
+            return True
+
+        # Many cryptocurrency spammers have attention-grabbing names that no
+        # legitimate users would actually use as a name
+        if user.first_name in self.__class__.suspicious_first_names:
+            # Suspicious first name
             return True
 
         # Allow this user
