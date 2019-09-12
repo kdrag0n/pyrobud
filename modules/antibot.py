@@ -122,6 +122,12 @@ class AntibotModule(module.Module):
             # Suspicious first name
             return True
 
+        # Many cryptocurrency spammers also have Telegram invite links in their
+        # first or last names
+        if 't.me' in user.first_name or 't.me' in user.last_name:
+            # Suspicious name
+            return True
+
         # Allow this user
         return False
 
