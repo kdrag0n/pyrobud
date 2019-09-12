@@ -135,6 +135,11 @@ Time: {el_str}"""
 
         lines = []
 
+        if msg.chat_id:
+            lines.append(f"Chat ID: `{msg.chat_id}`")
+
+        lines.append(f"My user ID: `{self.bot.uid}`")
+
         if msg.is_reply:
             reply_msg = await msg.get_reply_message()
             sender = await reply_msg.get_sender()
@@ -143,19 +148,19 @@ Time: {el_str}"""
             if sender:
                 lines.append(f"Message author ID: `{sender.id}`")
 
-            # TODO: update
             if reply_msg.forward:
-                lines.append(f"Forwarded message author ID: `{reply_msg.forward_from.id}`")
+                if reply_msg.forward.from_id:
+                    lines.append(f"Forwarded message author ID: `{reply_msg.forward.from_id}`")
 
-                if reply_msg.forward_from_chat:
-                    lines.append(f"Forwarded message chat ID: `{reply_msg.forward_from_chat.id}`")
+                if reply_msg.forward.saved_from_peer:
+                    f_chat_id = reply_msg.forward.saved_from_peer.channel_id
+                    lines.append(f"Forwarded message chat ID: `{f_chat_id}`")
 
-                if reply_msg.forward_from_message_id:
-                    lines.append(f"Forwarded message's original ID: `{reply_msg.forward_from_message_id}`")
+                if reply_msg.forward.saved_from_msg_id:
+                    f_msg_id = reply_msg.forward.saved_from_msg_id
+                    lines.append(f"Forwarded message original ID: `{f_msg_id}`")
 
-        if msg.chat_id:
-            lines.append(f"Chat ID: `{msg.chat_id}`")
-
-        lines.append(f"My user ID: `{self.bot.uid}`")
+                if reply_msg.forward.saved_from_peer and reply_msg.forward.saved_from_msg_id:
+                    lines.append(f"[Link to forwarded message](https://t.me/c/{f_chat_id}/{f_msg_id})")
 
         return "\n".join(lines)
