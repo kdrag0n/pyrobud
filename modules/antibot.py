@@ -126,11 +126,15 @@ class AntibotModule(module.Module):
         return False
 
     async def take_action(self, event, user):
-        # Ban the sender
+        # Delete all of the sender's messages
         chat = await event.get_chat()
+        request = tg.tl.functions.channels.DeleteUserHistoryRequest(chat, user)
+        await self.bot.client(request)
+
+        # Ban the sender
         rights = tg.tl.types.ChatBannedRights(until_date=None, view_messages=True)
-        ban_request = tg.tl.functions.channels.EditBannedRequest(chat, user, rights)
-        await self.bot.client(ban_request)
+        request = tg.tl.functions.channels.EditBannedRequest(chat, user, rights)
+        await self.bot.client(request)
 
         # Log the event
         self.log.info(f'Banned spambot with ID {user.id} in group "{chat.title}"')
