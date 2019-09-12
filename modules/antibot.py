@@ -100,7 +100,7 @@ class AntibotModule(module.Module):
             # Check each character
             for char in user.first_name:
                 # U+4E00 - U+9FFF is the "CJK Unified Ideographs" block
-                if char < '\u4e00' or char > '\u9fff':
+                if char < "\u4e00" or char > "\u9fff":
                     return False
 
             # Check for a username and/or an avatar
