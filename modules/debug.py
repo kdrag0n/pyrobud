@@ -123,8 +123,16 @@ Time: {el_str}"""
 
             return "__No compatible media found.__"
 
-    @command.desc("Get all contextually relevant IDs")
-    async def cmd_id(self, msg):
+    @command.desc("Get all contextually relevant IDs, or the ID of the given entity")
+    async def cmd_id(self, msg, entity_str):
+        if entity_str:
+            try:
+                entity = await self.bot.client.get_entity(entity_str)
+            except ValueError as e:
+                return f"Error getting entity `{entity_str}`: {e}"
+
+            return f"ID of `{entity_str}` ({util.mention_user(entity)}) is: `{entity.id}`"
+
         lines = []
 
         if msg.is_reply:
