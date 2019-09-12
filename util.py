@@ -4,6 +4,15 @@ import time
 import traceback
 from datetime import datetime
 
+import telethon as tg
+
+
+def mention_user(user):
+    if user.username:
+        return f"@{user.username}"
+    else:
+        return f"[{tg.utils.get_display_name(user)}](tg://user?id={user.id})"
+
 
 def time_us():
     return int(time.time() * 1000000)
