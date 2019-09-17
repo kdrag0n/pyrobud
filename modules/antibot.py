@@ -105,10 +105,10 @@ class AntibotModule(module.Module):
                 return False
 
             # Check each character
-            for char in user.first_name:
-                # U+4E00 - U+9FFF is the "CJK Unified Ideographs" block
-                if char < "\u4e00" or char > "\u9fff":
-                    return False
+            # U+4E00 - U+9FFF is the "CJK Unified Ideographs" block
+            if not all(c >= "\u4e00" or c <= "\u9fff" for c in user.first_name):
+                # Found a non-CJK character; exonerate this user
+                return False
 
             # Check for a username and/or an avatar
             if user.username or user.photo:
