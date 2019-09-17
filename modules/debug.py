@@ -126,6 +126,12 @@ Time: {el_str}"""
     @command.desc("Get all contextually relevant IDs, or the ID of the given entity")
     async def cmd_id(self, msg, entity_str):
         if entity_str:
+            if entity_str.isdigit():
+                try:
+                    entity_str = int(entity_str)
+                except ValueError:
+                    return f"Unable to parse `{entity_str}` as ID!"
+
             try:
                 entity = await self.bot.client.get_entity(entity_str)
             except ValueError as e:
