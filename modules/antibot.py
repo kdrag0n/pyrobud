@@ -2,6 +2,7 @@ import telethon as tg
 
 import command
 import module
+import string
 
 
 class AntibotModule(module.Module):
@@ -114,6 +115,26 @@ class AntibotModule(module.Module):
                 return False
 
             # User has suspicious profile info
+            return True
+
+        # Users with lowercase names composed of 4 ASCII letters for both their
+        # first and last names tend to be spambots
+        if len(user.first_name) == 4 and user.last_name and len(user.last_name) == 4:
+            # Check whether all characters in the first name are within a-z
+            if not all(c in string.ascii_lowercase for c in user.first_name):
+                # Found a non a-z character in first name; exonerate this user
+                return False
+
+            # Check whether all characters in the last name are within a-z
+            if not all(c in string.ascii_lowercase for c in user.last_name):
+                # Found a non a-z character in last name; exonerate this user
+                return False
+
+            # Check for a username and/or an avatar
+            if user.username or user.photo:
+                return False
+
+            # Both names match our criteria; mark user as suspicious
             return True
 
         # Many cryptocurrency spammers have attention-grabbing names that no
