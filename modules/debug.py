@@ -124,6 +124,7 @@ Time: {el_str}"""
             return "__No compatible media found.__"
 
     @command.desc("Get all contextually relevant IDs, or the ID of the given entity")
+    @command.alias("user", "entity", "info", "einfo")
     async def cmd_id(self, msg, entity_str):
         if entity_str:
             if entity_str.isdigit():
@@ -137,7 +138,10 @@ Time: {el_str}"""
             except ValueError as e:
                 return f"Error getting entity `{entity_str}`: {e}"
 
-            return f"ID of `{entity_str}` ({util.mention_user(entity)}) is: `{entity.id}`"
+            return f"""ID of `{entity_str}` ({util.mention_user(entity)}) is: `{entity.id}`
+
+Additional entity info:
+```{entity.stringify()}```"""
 
         lines = []
 
