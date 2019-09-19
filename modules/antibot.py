@@ -1,5 +1,6 @@
 import telethon as tg
 
+import asyncio
 import command
 import module
 import string
@@ -153,6 +154,9 @@ class AntibotModule(module.Module):
         return False
 
     async def take_action(self, event, user):
+        # Wait a bit for welcome bots to react
+        await asyncio.sleep(1)
+
         # Delete all of the sender's messages
         chat = await event.get_chat()
         request = tg.tl.functions.channels.DeleteUserHistoryRequest(chat, user)
@@ -168,7 +172,7 @@ class AntibotModule(module.Module):
         await event.reply(f"❯❯ **Banned auto-detected spambot** with ID `{user.id}`")
         self.bot.dispatch_event_nowait("stat_event", "spambots_banned")
 
-        # Delete the spam message
+        # Delete the spam message just in case
         await event.delete()
 
     def is_enabled(self, event):
