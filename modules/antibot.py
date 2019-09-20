@@ -98,9 +98,9 @@ class AntibotModule(module.Module):
         return False
 
     def user_is_suspicious(self, user):
-        # Users with names that are composed of 2-3 Chinese characters and
+        # Users with names that are composed of 2-4 Chinese characters and
         # don't have avatars or usernames tend to be spambots
-        if len(user.first_name) == 2 or len(user.first_name) == 3:
+        if 2 <= len(user.first_name) <= 4:
             # Check for a last name
             if user.last_name:
                 return False
