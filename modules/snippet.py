@@ -28,7 +28,7 @@ class SnippetModule(module.Module):
             txt = re.sub(r"/([^ ]+?)/", self.snip_repl, orig_txt)
 
             if txt != orig_txt:
-                await asyncio.sleep(100)
+                await asyncio.sleep(0.1)
                 await msg.result(txt)
 
     @command.desc("Save a snippet (fetch: `/snippet/`)")
