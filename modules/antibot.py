@@ -1,4 +1,5 @@
 import telethon as tg
+import nostril
 
 import asyncio
 import command
@@ -97,7 +98,7 @@ class AntibotModule(module.Module):
         # Allow this message
         return False
 
-    def user_is_suspicious(self, user):
+    async def user_is_suspicious(self, user):
         # Users with names that are composed of 2-4 Chinese characters and
         # don't have avatars or usernames tend to be spambots
         if 2 <= len(user.first_name) <= 4:
@@ -118,24 +119,37 @@ class AntibotModule(module.Module):
             # User has suspicious profile info
             return True
 
-        # Users with lowercase names composed of 4 ASCII letters for both their
-        # first and last names tend to be spambots
-        if len(user.first_name) == 4 and user.last_name and len(user.last_name) == 4:
-            # Check whether all characters in the first name are within a-z
-            if not all(c in string.ascii_lowercase for c in user.first_name):
-                # Found a non a-z character in first name; exonerate this user
+        # Users with unpronounceable ~12-character-long usernames that have the
+        # first character capitalized and lack a profile (avatar/bio) tend to
+        # be spambots
+        if user.username and 11 <= len(user.username) <= 12:
+            # Exonerate the user if the first character isn't capital A-Z or
+            # subsequent characters aren't lowercase a-z
+            if user.username[0] not in string.ascii_uppercase:
+                return False
+            if not all(c in string.ascii_lowercase for c in user.username[1:]):
                 return False
 
-            # Check whether all characters in the last name are within a-z
-            if not all(c in string.ascii_lowercase for c in user.last_name):
-                # Found a non a-z character in last name; exonerate this user
+            # Exonerate users with an avatar
+            if user.photo:
                 return False
 
-            # Check for a username and/or an avatar
-            if user.username or user.photo:
+            # Exonerate users who have a bio set
+            full_user = await self.bot.client(tg.tl.functions.users.GetFullUserRequest(user))
+            if full_user.about:
                 return False
 
-            # Both names match our criteria; mark user as suspicious
+            # Check whether the username is pronounceable
+            try:
+                if not nostril.nonsense(user.username):
+                    return False
+            except ValueError as e:
+                # Nostril failed to process the string; log a warning and
+                # exonerate the user
+                self.log.warn(f"Nostril's nonsense word checker failed to process name '{user.username}'", exc_info=e)
+                return True
+
+            # All conditions match; mark this user as suspicious
             return True
 
         # Many cryptocurrency spammers have attention-grabbing names that no
@@ -195,7 +209,7 @@ class AntibotModule(module.Module):
 
         # Fetch the user's data and run checks
         user = await action.get_user()
-        if self.user_is_suspicious(user):
+        if await self.user_is_suspicious(user):
             # This is most likely a spambot, take action against the user
             await self.take_action(action, user)
 
