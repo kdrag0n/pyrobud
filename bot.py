@@ -201,12 +201,16 @@ class Bot:
     # Custom Shit
     async def updateChannelLeaves(self):
         gay_events = []
-        channel = await self.client.get_entity(PeerChannel(1441900591))  # "https://t.me/joinchat/AAAAAFXxqC9BNDFm8uFc3A"
+        channel = await self.client.get_entity(PeerChannel(1441900591))
         logchannel = await self.client.get_entity(PeerChannel(1262543505))
         while True:
             if len(gay_events) > 250: gay_events = gay_events[:250]
             await asyncio.sleep(60)
+            events = list()
             async for event in self.client.iter_admin_log(channel, leave=True):
+                events.append(event)
+            events.reverse()
+            for event in events:
                 if not event.left or event in gay_events: continue
                 gay_events.append(event)
                 user = await self.client.get_entity(PeerUser(event.user_id))
