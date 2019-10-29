@@ -38,7 +38,6 @@ class ModerationModule(module.Module):
     async def cmd_admin(self, msg, comment):
         await self.cmd_everyone(msg, comment, tag="admin", filter=tg.tl.types.ChannelParticipantsAdmins)
 
-
     @command.desc("Ban users from all chats where you have permissions to do so")
     @command.alias("gban")
     async def cmd_globalban(self, msg : tg.events.newmessage, *users : tuple):
@@ -90,6 +89,32 @@ class ModerationModule(module.Module):
         rights = tg.tl.types.ChatBannedRights(until_date=None, view_messages=True)
         ban_request = tg.tl.functions.channels.EditBannedRequest(chat, user, rights)
         await self.bot.client(ban_request)
+
+    @command.desc("Ban users from the current chat by ID")
+    async def cmd_ban(self, msg, *input_ids):
+        try:
+            # Parse user IDs without duplicates
+            user_ids = list(dict.fromkeys(map(int, input_ids)))
+        except ValueError:
+            return ""
+
+        if msg.is_reply:
+            reply_msg = await msg.get_reply_message()
+            user_ids.append(reply_msg.from_id)
+
+        chat = await msg.get_chat()
+        lines = [f"Banned {len(user_ids)} users:"]
+        await msg.result(f"Banning {len(user_ids)} users...")
+
+        for user_id in user_ids:
+            user = await self.bot.client.get_entity(user_id)
+            lines.append(f"    \u2022 {util.mention_user(user)} (`{user_id}`)")
+
+            rights = tg.tl.types.ChatBannedRights(until_date=None, view_messages=True)
+            ban_request = tg.tl.functions.channels.EditBannedRequest(chat, user, rights)
+            await self.bot.client(ban_request)
+
+        return "\n".join(lines)
 
     @command.desc("Prune deleted members in this group or the specified group")
     async def cmd_prune(self, msg, chat):

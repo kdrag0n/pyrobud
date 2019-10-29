@@ -117,9 +117,32 @@ Time: {el_str}"""
 
             return "__No compatible media found.__"
 
-    @command.desc("Get all contextually relevant IDs")
-    async def cmd_id(self, msg):
+    @command.desc("Get all contextually relevant IDs, or the ID of the given entity")
+    @command.alias("user", "entity", "info", "einfo")
+    async def cmd_id(self, msg, entity_str):
+        if entity_str:
+            if entity_str.isdigit():
+                try:
+                    entity_str = int(entity_str)
+                except ValueError:
+                    return f"Unable to parse `{entity_str}` as ID!"
+
+            try:
+                entity = await self.bot.client.get_entity(entity_str)
+            except ValueError as e:
+                return f"Error getting entity `{entity_str}`: {e}"
+
+            return f"""ID of `{entity_str}` ({util.mention_user(entity)}) is: `{entity.id}`
+
+Additional entity info:
+```{entity.stringify()}```"""
+
         lines = []
+
+        if msg.chat_id:
+            lines.append(f"Chat ID: `{msg.chat_id}`")
+
+        lines.append(f"My user ID: `{self.bot.uid}`")
 
         if msg.is_reply:
             reply_msg = await msg.get_reply_message()
@@ -129,7 +152,6 @@ Time: {el_str}"""
             if sender:
                 lines.append(f"Message author ID: `{sender.id}`")
 
-            # TODO: update
             if reply_msg.forward:
                 lines.append(f"Forwarded message author ID: `{reply_msg.forward.sender.id}`")
                 """
@@ -145,11 +167,19 @@ Time: {el_str}"""
 
                 if reply_msg.forward.saved_from_msg_id:
                     lines.append(f"Forwarded message's original ID: `{reply_msg.forward.saved_from_msg_id}`")
+                if reply_msg.forward.from_id:
+                    lines.append(f"Forwarded message author ID: `{reply_msg.forward.from_id}`")
 
-        if msg.chat_id:
-            lines.append(f"Chat ID: `{msg.chat_id}`")
+                if reply_msg.forward.saved_from_peer:
+                    f_chat_id = reply_msg.forward.saved_from_peer.channel_id
+                    lines.append(f"Forwarded message chat ID: `{f_chat_id}`")
 
-        lines.append(f"My user ID: `{self.bot.uid}`")
+                if reply_msg.forward.saved_from_msg_id:
+                    f_msg_id = reply_msg.forward.saved_from_msg_id
+                    lines.append(f"Forwarded message original ID: `{f_msg_id}`")
+
+                if reply_msg.forward.saved_from_peer and reply_msg.forward.saved_from_msg_id:
+                    lines.append(f"[Link to forwarded message](https://t.me/c/{f_chat_id}/{f_msg_id})")
 
         return "\n".join(lines)
 

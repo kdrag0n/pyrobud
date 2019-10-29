@@ -1,4 +1,5 @@
 import re
+import asyncio
 
 import command
 import module
@@ -27,6 +28,7 @@ class SnippetModule(module.Module):
             txt = re.sub(r"/([^ ]+?)/", self.snip_repl, orig_txt)
 
             if txt != orig_txt:
+                await asyncio.sleep(0.1)
                 await msg.result(txt)
 
     @command.desc("Save a snippet (fetch: `/snippet/`)")
@@ -75,7 +77,9 @@ class SnippetModule(module.Module):
         return out
 
     @command.desc("Delete a snippet")
-    @command.alias("ds", "sd", "snd", "spd", "rms", "srm", "rs", "sr", "rmsnip", "delsnip")
+    @command.alias(
+        "ds", "sd", "snd", "spd", "rms", "srm", "rs", "sr", "rmsnip", "delsnip"
+    )
     async def cmd_snipdel(self, msg, name):
         if not name:
             return "__Provide the name of a snippet to delete.__"

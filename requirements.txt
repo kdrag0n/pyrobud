@@ -8,3 +8,4 @@ pycparser
 telethon
 toml
 uvloop
+git+https://github.com/casics/nostril.git

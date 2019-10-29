@@ -42,6 +42,12 @@ def base64encode(input : str):
 def base64decode(input : str):
     return b64decode(input).decode("utf-8", "ignore")
 
+def mention_user(user):
+    if user.username:
+        return f"@{user.username}"
+    else:
+        return f"[{tg.utils.get_display_name(user)}](tg://user?id={user.id})"
+
 def time_us():
     return int(time.time() * 1000000)
 
