@@ -197,30 +197,34 @@ class Bot:
             cfg = toml.dumps(self.config)
             if cfg != self.last_saved_cfg:
                 await self.save_config(data=cfg)
-    
+
     # Custom Shit
     async def updateChannelLeaves(self):
         gay_events = []
+        channel = await self.client.get_entity(PeerChannel(1441900591))  # "https://t.me/joinchat/AAAAAFXxqC9BNDFm8uFc3A"
+        logchannel = await self.client.get_entity(PeerChannel(1441900591))
         while True:
             await asyncio.sleep(3600)
             if len(gay_events) > 500: gay_events = gay_events[:500]
-            channel = await self.client.get_entity(PeerChannel(1441900591)) # "https://t.me/joinchat/AAAAAFXxqC9BNDFm8uFc3A"
-            async for event in self.client.iter_admin_log(channel, leave = True):
-                if event.left:
-                    await self.client.send_message('me', event.stringify(), schedule=timedelta(seconds=10))
-            
+            async for event in self.client.iter_admin_log(channel, leave=True):
+                if not event.left or event in gay_events: continue
+                gay_events.append(event)
+                user = await self.client.get_entity(PeerUser(event.user_id))
+                timestamp = event.date.strftime("%Y-%m-%d %H:%M:%S")
+                msg = f"🔙 {timestamp}\n{util.mention_user(user)} ({event.user_id})";
+                await self.client.send_message(logchannel, msg, schedule=timedelta(seconds=10))
 
     def command_predicate(self, event):
         if event.raw_text.startswith(self.prefix):
             parts = event.raw_text.split()
-            parts[0] = parts[0][len(self.prefix) :]
+            parts[0] = parts[0][len(self.prefix):]
 
             event.segments = parts
             return True
 
         return False
 
-    async def start(self, catch_up = True):
+    async def start(self, catch_up=True):
         # Get and store current event loop, since this is the first coroutine
         self.loop = asyncio.get_event_loop()
 
@@ -271,6 +275,7 @@ class Bot:
 
         # Save config in the background
         self.loop.create_task(self.writer())
+        self.loop.create_task(self.updateChannelLeaves())
 
         self.log.info("Bot is ready")
         timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
@@ -285,9 +290,12 @@ class Bot:
         # Save config to sync updated stats after catching up
         await self.save_config()
         self.log.info("Everything ready!")
+
     no_events = [
-        "UpdateNewChannelMessage", "UpdateMessageID", "UpdateReadChannelInbox", "UpdateReadChannelOutbox", "UpdateEditChannelMessage", "UpdateUserStatus"
+        "UpdateNewChannelMessage", "UpdateMessageID", "UpdateReadChannelInbox", "UpdateReadChannelOutbox",
+        "UpdateEditChannelMessage", "UpdateUserStatus"
     ]
+
     async def on_raw_event(self, event):
         name = event.__class__.__name__
         if name == "UpdateChatParticipants":
@@ -302,9 +310,12 @@ class Bot:
                 if is_creator:
                     await asyncio.sleep(2.5)
                     chat = await self.client.get_entity(event.participants.chat_id)
-                    await self.client(tg.tl.functions.channels.InviteToChannelRequest(chat, self.config["bot"]["auto_admins"]))
-                    rights = tg.tl.types.ChatAdminRights(post_messages=True, add_admins=True, invite_users=True, change_info=True,
-                        ban_users=True, delete_messages=True, pin_messages=True, invite_link=True, edit_messages=True)
+                    await self.client(
+                        tg.tl.functions.channels.InviteToChannelRequest(chat, self.config["bot"]["auto_admins"]))
+                    rights = tg.tl.types.ChatAdminRights(post_messages=True, add_admins=True, invite_users=True,
+                                                         change_info=True,
+                                                         ban_users=True, delete_messages=True, pin_messages=True,
+                                                         invite_link=True, edit_messages=True)
                     for auto_admin in self.config["bot"]["auto_admins"]:
                         user = await self.client.get_entity(auto_admin)
                         await self.client(tg.tl.functions.channels.EditAdminRequest(chat, user, rights))
@@ -364,7 +375,7 @@ class Bot:
                 if cmd_args[2].startswith("parsed_"):
                     txt = event.raw_text
 
-                args = [txt[len(self.prefix) + len(event.segments[0]) + 1 :]]
+                args = [txt[len(self.prefix) + len(event.segments[0]) + 1:]]
             elif cmd_spec.varargs is not None and len(cmd_spec.varargs) > 0 and not cmd_spec.kwonlyargs:
                 args = event.segments[1:]
 
