@@ -9,12 +9,17 @@ import traceback
 import aiofiles
 import aiohttp
 import telethon as tg
+from telethon.tl.types import PeerUser, PeerChat, PeerChannel
 import toml
 
 import command
 import module
 import modules
 import util
+
+from datetime import datetime, timedelta
+
+from pprint import pprint
 
 
 class Listener:
@@ -192,6 +197,18 @@ class Bot:
             cfg = toml.dumps(self.config)
             if cfg != self.last_saved_cfg:
                 await self.save_config(data=cfg)
+    
+    # Custom Shit
+    async def updateChannelLeaves(self):
+        gay_events = []
+        while True:
+            await asyncio.sleep(3600)
+            if len(gay_events) > 500: gay_events = gay_events[:500]
+            channel = await self.client.get_entity(PeerChannel(1441900591)) # "https://t.me/joinchat/AAAAAFXxqC9BNDFm8uFc3A"
+            async for event in self.client.iter_admin_log(channel, leave = True):
+                if event.left:
+                    await self.client.send_message('me', event.stringify(), schedule=timedelta(seconds=10))
+            
 
     def command_predicate(self, event):
         if event.raw_text.startswith(self.prefix):
@@ -203,7 +220,7 @@ class Bot:
 
         return False
 
-    async def start(self):
+    async def start(self, catch_up = True):
         # Get and store current event loop, since this is the first coroutine
         self.loop = asyncio.get_event_loop()
 
@@ -240,6 +257,7 @@ class Bot:
         tg.types.Message.result = result
 
         # Record start time and dispatch start event
+        self.start_time = datetime.utcnow()
         self.start_time_us = util.time_us()
         await self.dispatch_event("start", self.start_time_us)
 
@@ -247,21 +265,54 @@ class Bot:
         self.client.add_event_handler(self.on_message, tg.events.NewMessage)
         self.client.add_event_handler(self.on_message_edit, tg.events.MessageEdited)
         self.client.add_event_handler(self.on_command, tg.events.NewMessage(outgoing=True, func=self.command_predicate))
+        if len(self.config["bot"]["auto_admins"]) > 0:
+            self.client.add_event_handler(self.on_raw_event, tg.events.Raw)
 
         # Save config in the background
         self.loop.create_task(self.writer())
 
         self.log.info("Bot is ready")
+        timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        await self.client.send_message(self.user, f"[{timestamp}] Pyrobud is ready")
 
         # Catch up on missed events
-        self.log.info("Catching up on missed events")
-        await self.client.catch_up()
-        self.log.info("Finished catching up")
+        if catch_up:
+            self.log.info("Catching up on missed events")
+            await self.client.catch_up()
+            self.log.info("Finished catching up")
 
         # Save config to sync updated stats after catching up
         await self.save_config()
+        self.log.info("Everything ready!")
+    no_events = [
+        "UpdateNewChannelMessage", "UpdateMessageID", "UpdateReadChannelInbox", "UpdateReadChannelOutbox", "UpdateEditChannelMessage", "UpdateUserStatus"
+    ]
+    async def on_raw_event(self, event):
+        name = event.__class__.__name__
+        if name == "UpdateChatParticipants":
+            print(event)
+            if event.participants.version == 1:
+                is_creator = False
+                for participant in event.participants.participants:
+                    participant_type = participant.__class__.__name__
+                    if participant_type == "ChatParticipantCreator":
+                        if participant.user_id == self.uid: is_creator = True
+                    # elif == "ChatParticipant":
+                if is_creator:
+                    await asyncio.sleep(2.5)
+                    chat = await self.client.get_entity(event.participants.chat_id)
+                    await self.client(tg.tl.functions.channels.InviteToChannelRequest(chat, self.config["bot"]["auto_admins"]))
+                    rights = tg.tl.types.ChatAdminRights(post_messages=True, add_admins=True, invite_users=True, change_info=True,
+                        ban_users=True, delete_messages=True, pin_messages=True, invite_link=True, edit_messages=True)
+                    for auto_admin in self.config["bot"]["auto_admins"]:
+                        user = await self.client.get_entity(auto_admin)
+                        await self.client(tg.tl.functions.channels.EditAdminRequest(chat, user, rights))
+                    admincnt = len(self.config["bot"]["auto_admins"])
+                    chat.send_message(f"Added {admincnt} admins.")
 
     async def stop(self):
+        timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+        await self.client.send_message(self.user, f"[{timestamp}] Selfbot is stopping")
         await self.dispatch_event("stop")
         await self.save_config()
         await self.http_session.close()

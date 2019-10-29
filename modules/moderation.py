@@ -4,6 +4,7 @@ import telethon as tg
 
 import command
 import module
+import util
 
 
 class ModerationModule(module.Module):
@@ -36,6 +37,59 @@ class ModerationModule(module.Module):
     @command.alias("adm", "@admin")
     async def cmd_admin(self, msg, comment):
         await self.cmd_everyone(msg, comment, tag="admin", filter=tg.tl.types.ChannelParticipantsAdmins)
+
+
+    @command.desc("Ban users from all chats where you have permissions to do so")
+    @command.alias("gban")
+    async def cmd_globalban(self, msg : tg.events.newmessage, *users : tuple):
+        users = list(map(int, users))
+        if msg.is_reply:
+            replied_msg = await msg.get_reply_message()
+            users.append(replied_msg.from_id)
+        users = list(set(users))
+        chatcount = 0; users_to_ban = []
+        for userid in users:
+            user = await self.bot.client.get_entity(userid)
+            users_to_ban.append(user)
+        async for dialog in self.bot.client.iter_dialogs():
+            if not dialog.is_group or not dialog.is_channel: continue
+            chat = await msg.get_entity(dialog.id)
+            async for user in self.bot.client.iter_participants(chat, filter=tg.tl.types.ChannelParticipantsAdmins):
+                if user.id == self.bot.uid:
+                    await self.banUsers(users_to_ban, chat)
+                    chatcount += 1
+                    break
+        return f"{len(users_to_ban)} users have been banned from {chatcount} chats!"
+
+
+    @command.desc("Ban users from the current channel")
+    async def cmd_ban(self, msg : tg.events.newmessage, *input_userids : tuple):
+        userids = list(map(int, input_userids))
+        if msg.is_reply:
+            replied_msg = await msg.get_reply_message()
+            userids.append(replied_msg.from_id)
+        chat = await msg.get_chat()
+        reply = await self.banUserIDs(userids, chat)
+        await msg.respond(reply, reply_to=msg.reply_to_msg_id)
+        await msg.delete()
+
+    async def banUserIDs(self, userids, chat):
+        userids = list(set(userids))
+        reply = f"{len(userids)} users have been banned from {chat.title}!\n"
+        for userid in userids:
+            user = await self.bot.client.get_entity(userid)
+            reply += "\n" + util.UserStr(user)
+            await self.banUser(user, chat)
+        return reply
+
+    async def banUsers(self, users, chat):
+        for user in users:
+            await self.banUser(user, chat)
+
+    async def banUser(self, user, chat):
+        rights = tg.tl.types.ChatBannedRights(until_date=None, view_messages=True)
+        ban_request = tg.tl.functions.channels.EditBannedRequest(chat, user, rights)
+        await self.bot.client(ban_request)
 
     @command.desc("Prune deleted members in this group or the specified group")
     async def cmd_prune(self, msg, chat):

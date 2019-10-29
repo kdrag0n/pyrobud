@@ -1,11 +1,5 @@
-import inspect
-import json
-import re
-
-import command
-import module
-import util
-
+import inspect, json, re, command,module, util, telethon as tg
+from datetime import datetime
 
 class DebugModule(module.Module):
     name = "Debug"
@@ -137,13 +131,20 @@ Time: {el_str}"""
 
             # TODO: update
             if reply_msg.forward:
-                lines.append(f"Forwarded message author ID: `{reply_msg.forward_from.id}`")
+                lines.append(f"Forwarded message author ID: `{reply_msg.forward.sender.id}`")
+                """
+                forward_dir = dir(reply_msg.forward)
+                for fd in forward_dir:
+                    evaled = ""
+                    try: evaled = str(eval(fd))
+                    except: evaled = "Error"
+                    print(fd, evaled)
+                """
+                if reply_msg.forward.chat:
+                    lines.append(f"Forwarded message chat ID: `{reply_msg.forward.chat.id}`")
 
-                if reply_msg.forward_from_chat:
-                    lines.append(f"Forwarded message chat ID: `{reply_msg.forward_from_chat.id}`")
-
-                if reply_msg.forward_from_message_id:
-                    lines.append(f"Forwarded message's original ID: `{reply_msg.forward_from_message_id}`")
+                if reply_msg.forward.saved_from_msg_id:
+                    lines.append(f"Forwarded message's original ID: `{reply_msg.forward.saved_from_msg_id}`")
 
         if msg.chat_id:
             lines.append(f"Chat ID: `{msg.chat_id}`")
@@ -151,3 +152,51 @@ Time: {el_str}"""
         lines.append(f"My user ID: `{self.bot.uid}`")
 
         return "\n".join(lines)
+
+
+    @command.desc("Get user infos by ID")
+    async def cmd_getuser(self, msg : tg.events.newmessage, input_user: str):
+        input_user = util.sanitize(input_user)
+        if input_user.isdigit(): input_user = int(input_user)
+        try:
+            user = await self.bot.client.get_entity(input_user)
+            await msg.respond(util.UserStr(user), reply_to=msg.reply_to_msg_id)
+        except ValueError: await msg.respond(f"Could not find any user matching `{input_user}`!", reply_to=msg.reply_to_msg_id)
+        await msg.delete()
+
+    @command.desc("List all chats with IDs")
+    async def cmd_listchats(self, msg: tg.events.newmessage):
+        dialogs = await self.bot.client.get_dialogs()
+        lines = [f"**{len(dialogs)} Chats:**\n"]
+        await msg.respond(lines[0])
+        for dialog in dialogs: lines.append(util.ChatStr(dialog))
+        await msg.delete()
+        msgs = util.splitMsg("\n".join(lines))
+        # await msg.respond(msgs[0])
+        for message in msgs: await msg.respond(message)
+
+    @command.desc("Get recent actions of a chat")
+    @command.alias("actions")
+    async def cmd_recentactions(self, msg: tg.events.newmessage, input_chat: str = None):
+        await msg.result("Collecting recent actions...")
+        log_items = list()
+        async for event in self.bot.client.iter_admin_log(input_chat if input_chat else msg.to_id):
+            event = event.stringify().replace("\n", " ")
+            log_items.append(f"```\n{event}\n```")
+        msgs = util.splitMsg("\n".join(log_items))
+        for message in msgs: await msg.respond(message)
+
+    @command.desc("Get information about pyrobud")
+    @command.alias("bi")
+    async def cmd_botinfo(self, msg):
+        await msg.result("Collecting bot information...")
+        botinfo = list()
+        botinfo.append("Bot: Pyrobud")
+        botinfo.append(f"User: @{self.bot.user.username} ({self.bot.uid})")
+        botinfo.append(f"Telethon Version: {tg.__version__}")
+        botinfo.append(f"Local Time: {datetime.now()}")
+        botinfo.append(f"Starttime: {self.bot.start_time}")
+        botinfo.append(f"Uptime: {datetime.utcnow() - self.bot.start_time}")
+        # botinfo.append(f"Uptime: {util.format_duration_us(self.bot.start_time_us)}")
+        botinfo = "\n".join(botinfo)
+        return f"```{botinfo}```"

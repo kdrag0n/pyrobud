@@ -1,11 +1,6 @@
 #!/usr/bin/env python3
 
-import asyncio
-import logging
-
-import colorlog
-import toml
-import uvloop
+import asyncio, logging, colorlog, toml, uvloop
 
 import util
 from bot import Bot
@@ -30,6 +25,7 @@ def setup_logging():
 
 
 def main():
+    global bot_tries
     config_path = "config.toml"
 
     setup_logging()
@@ -40,16 +36,19 @@ def main():
     log.info("Initializing bot")
     bot = Bot(config, config_path)
 
-    log.info("Starting bot")
+    log.info("Starting bot %d", bot_tries)
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(bot.start())
-
+    if bot_tries > 3:
+        loop.run_until_complete(bot.start(catch_up=False))
+        bot_tries = 0
+    else: loop.run_until_complete(bot.start())
     bot.client.run_until_disconnected()
 
     log.info("Stopping bot")
     loop.run_until_complete(bot.stop())
 
-
+bot_tries = 0
 if __name__ == "__main__":
     uvloop.install()
     main()
+    bot_tries += 1
