@@ -202,17 +202,18 @@ class Bot:
     async def updateChannelLeaves(self):
         gay_events = []
         channel = await self.client.get_entity(PeerChannel(1441900591))  # "https://t.me/joinchat/AAAAAFXxqC9BNDFm8uFc3A"
-        logchannel = await self.client.get_entity(PeerChannel(1441900591))
+        logchannel = await self.client.get_entity(PeerChannel(1262543505))
         while True:
-            await asyncio.sleep(3600)
-            if len(gay_events) > 500: gay_events = gay_events[:500]
+            if len(gay_events) > 250: gay_events = gay_events[:250]
+            await asyncio.sleep(60)
             async for event in self.client.iter_admin_log(channel, leave=True):
                 if not event.left or event in gay_events: continue
                 gay_events.append(event)
                 user = await self.client.get_entity(PeerUser(event.user_id))
                 timestamp = event.date.strftime("%Y-%m-%d %H:%M:%S")
-                msg = f"🔙 {timestamp}\n{util.mention_user(user)} ({event.user_id})";
+                msg = f"🔙 {timestamp}\n{util.mention_user(user)} ({event.user_id})"
                 await self.client.send_message(logchannel, msg, schedule=timedelta(seconds=10))
+            await asyncio.sleep(3540)
 
     def command_predicate(self, event):
         if event.raw_text.startswith(self.prefix):
