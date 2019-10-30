@@ -119,13 +119,8 @@ class ModerationModule(module.Module):
     @command.desc("Purge specified amount or all messages in the current chat")
     @command.alias("prunemessages", "purgemsgs", "prunemsgs")
     async def cmd_purgemessages(self, msg: tg.events.newmessage): # , amount: int = None
-        chat = await msg.get_chat()
-        last_msg_id = 0
-        async for msg in self.bot.client.iter_messages(chat, 1): last_msg_id = msg.id; break
-        if not last_msg_id: await msg.result("Could not find any messages to purge!"); return
-        del_range = [x for x in range(last_msg_id)]
-        await self.bot.client.delete_messages(chat, del_range)
-        await msg.result(f"Purged last {len(del_range)} messages!")
+        await self.bot.client.delete_messages(msg.chat_id, [x for x in range(msg.id)])
+        await msg.result(f"Purged last {msg.id} messages!")
 
     @command.desc("Prune deleted members in this group or the specified group")
     @command.alias("purgemembers")

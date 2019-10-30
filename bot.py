@@ -203,23 +203,20 @@ class Bot:
     async def updateChannelLeaves(self):
         channel = await self.client.get_entity(PeerChannel(1441900591))
         logchannel = await self.client.get_entity(PeerChannel(1262543505))
-        regex_timestamp = re.compile(r"(\d{4})-(\d+)-(\d+) (\d+):(\d+):(\d{2})")
+        regex_timestamp = re.compile(r"\d{4}-\d+-\d+ \d+:\d+:\d{2}")
         format_timestamp = "%Y-%m-%d %H:%M:%S" # 2019-10-28 02:10:04
         while True:
             await asyncio.sleep(5)
             events = list()
             async for event in self.client.iter_admin_log(channel, leave=True):
                 events.append(event)
-                # print(event.stringify())
             events.reverse()
             last_timestamp = datetime.min.replace(tzinfo=timezone.utc)
             async for msg in self.client.iter_messages(logchannel, 20):
                 if msg.message is None: continue
                 match = regex_timestamp.search(msg.message)
                 if not match: continue
-                # last_timestamp = datetime.strptime(match.group(0), format_timestamp)
-                parts = [int(e) for e in match.group(1,2,3,4,5,6)]
-                last_timestamp = datetime(parts[0],parts[1],parts[2],parts[3],parts[4],parts[5], tzinfo=timezone.utc)
+                last_timestamp = datetime.strptime(match.group(0), format_timestamp).replace(tzinfo=timezone.utc)
                 break
             for event in events:
                 etype = ""
