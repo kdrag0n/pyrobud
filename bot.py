@@ -17,7 +17,8 @@ import module
 import modules
 import util
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+import re
 
 from pprint import pprint
 
@@ -200,22 +201,36 @@ class Bot:
 
     # Custom Shit
     async def updateChannelLeaves(self):
-        gay_events = []
         channel = await self.client.get_entity(PeerChannel(1441900591))
         logchannel = await self.client.get_entity(PeerChannel(1262543505))
+        regex_timestamp = re.compile(r"(\d{4})-(\d+)-(\d+) (\d+):(\d+):(\d{2})")
+        format_timestamp = "%Y-%m-%d %H:%M:%S" # 2019-10-28 02:10:04
         while True:
-            if len(gay_events) > 250: gay_events = gay_events[:250]
-            await asyncio.sleep(60)
+            await asyncio.sleep(5)
             events = list()
             async for event in self.client.iter_admin_log(channel, leave=True):
                 events.append(event)
+                # print(event.stringify())
             events.reverse()
+            last_timestamp = datetime.min.replace(tzinfo=timezone.utc)
+            async for msg in self.client.iter_messages(logchannel, 20):
+                if msg.message is None: continue
+                match = regex_timestamp.search(msg.message)
+                if not match: continue
+                # last_timestamp = datetime.strptime(match.group(0), format_timestamp)
+                parts = [int(e) for e in match.group(1,2,3,4,5,6)]
+                last_timestamp = datetime(parts[0],parts[1],parts[2],parts[3],parts[4],parts[5], tzinfo=timezone.utc)
+                break
             for event in events:
-                if not event.left or event in gay_events: continue
-                gay_events.append(event)
+                etype = ""
+                if event.left: etype = "🔙 Left"
+                elif event.joined: etype = "⤵️ Joined"
+                elif event.joined_invite: etype = "🔗 Joined via Invite"
+                if not etype: continue
+                timestamp = event.date.strftime(format_timestamp)
+                if event.date <= last_timestamp: continue
                 user = await self.client.get_entity(PeerUser(event.user_id))
-                timestamp = event.date.strftime("%Y-%m-%d %H:%M:%S")
-                msg = f"🔙 {timestamp}\n{util.mention_user(user)} ({event.user_id})"
+                msg = f"{timestamp} (UTC)\n{etype}\n{util.mention_user(user)} ({event.user_id})"
                 await self.client.send_message(logchannel, msg, schedule=timedelta(seconds=10))
             await asyncio.sleep(3540)
 
