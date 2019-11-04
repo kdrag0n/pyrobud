@@ -108,7 +108,7 @@ class AntibotModule(module.Module):
 
             # Check each character
             # U+4E00 - U+9FFF is the "CJK Unified Ideographs" block
-            if not all(c >= "\u4e00" or c <= "\u9fff" for c in user.first_name):
+            if not all("\u4e00" <= c <= "\u9fff" for c in user.first_name):
                 # Found a non-CJK character; exonerate this user
                 return False
 
@@ -122,7 +122,7 @@ class AntibotModule(module.Module):
         # Users with unpronounceable ~12-character-long usernames that have the
         # first character capitalized and lack a profile (avatar/bio) tend to
         # be spambots
-        if user.username and 11 <= len(user.username) <= 12:
+        if user.username and 10 <= len(user.username) <= 12:
             # Exonerate the user if the first character isn't capital A-Z or
             # subsequent characters aren't lowercase a-z
             if user.username[0] not in string.ascii_uppercase:
