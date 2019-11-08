@@ -28,7 +28,7 @@ class AntibotModule(module.Module):
         "verified",
         "solidified",
         "recommended",
-        "temporarily"
+        "temporarily",
     ]
 
     async def on_load(self):
@@ -164,7 +164,6 @@ class AntibotModule(module.Module):
 
         # Allow this user
         return False
-
 
     def profile_check_crypto(self, user):
         # Many cryptocurrency spammers have attention-grabbing names that no

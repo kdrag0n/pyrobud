@@ -77,9 +77,7 @@ class SnippetModule(module.Module):
         return out
 
     @command.desc("Delete a snippet")
-    @command.alias(
-        "ds", "sd", "snd", "spd", "rms", "srm", "rs", "sr", "rmsnip", "delsnip"
-    )
+    @command.alias("ds", "sd", "snd", "spd", "rms", "srm", "rs", "sr", "rmsnip", "delsnip")
     async def cmd_snipdel(self, msg, name):
         if not name:
             return "__Provide the name of a snippet to delete.__"
