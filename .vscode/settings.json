@@ -1,4 +1,5 @@
 {
     "python.pythonPath": "/usr/bin/python",
-    "python.formatting.provider": "none",
+    "python.formatting.provider": "black",
+    "python.formatting.blackArgs": ["--line-length", "120"],
 }
