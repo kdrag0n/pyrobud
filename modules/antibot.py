@@ -98,7 +98,7 @@ class AntibotModule(module.Module):
         # Allow this message
         return False
 
-    async def user_is_suspicious(self, user):
+    def profile_check_24char(self, user):
         # Users with names that are composed of 2-4 Chinese characters and
         # don't have avatars or usernames tend to be spambots
         if 2 <= len(user.first_name) <= 4:
@@ -119,6 +119,10 @@ class AntibotModule(module.Module):
             # User has suspicious profile info
             return True
 
+        # Allow this user
+        return False
+
+    async def profile_check_nonsense(self, user):
         # Users with unpronounceable ~12-character-long usernames that have the
         # first character capitalized and lack a profile (avatar/bio) tend to
         # be spambots
@@ -152,6 +156,11 @@ class AntibotModule(module.Module):
             # All conditions match; mark this user as suspicious
             return True
 
+        # Allow this user
+        return False
+
+
+    def profile_check_crypto(self, user):
         # Many cryptocurrency spammers have attention-grabbing names that no
         # legitimate users would actually use as a name
         if user.first_name in self.__class__.suspicious_first_names:
@@ -165,6 +174,22 @@ class AntibotModule(module.Module):
             return True
 
         # Allow this user
+        return False
+
+    async def user_is_suspicious(self, user):
+        # 2-4 character CJK names without profile info
+        if self.profile_check_24char(user):
+            return True
+
+        # 10-12 character nonsense names without profile info
+        if await self.profile_check_nonsense(user):
+            return True
+
+        # Cryptocurrency spammers with attention-grabbing names
+        if self.profile_check_crypto(user):
+            return True
+
+        # No profile checks matched; exonerate this user
         return False
 
     async def take_action(self, event, user):
