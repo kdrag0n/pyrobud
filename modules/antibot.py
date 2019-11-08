@@ -20,9 +20,15 @@ class AntibotModule(module.Module):
     ]
 
     suspicious_first_names = [
-        "Announcement",
-        "Info",
-        "Urgent"
+        "announcement",
+        "info",
+        "urgent",
+        "limited",
+        "holiday",
+        "verified",
+        "solidified",
+        "recommended",
+        "temporarily"
     ]
 
     async def on_load(self):
@@ -163,7 +169,7 @@ class AntibotModule(module.Module):
     def profile_check_crypto(self, user):
         # Many cryptocurrency spammers have attention-grabbing names that no
         # legitimate users would actually use as a name
-        if user.first_name in self.__class__.suspicious_first_names:
+        if user.first_name.lower() in self.__class__.suspicious_first_names:
             # Suspicious first name
             return True
 
