@@ -106,7 +106,7 @@ class AntibotModule(module.Module):
         if join_time_sec > await self.db.get("first_msg_start_time"):
             # We started tracking first messages before the user joined, so
             # we can run the first message check
-            if not await self.user_db.get(f"{sender.id}.has_spoken_in_{chat.id}", False):
+            if not await self.user_db.get(f"{sender.id}.has_spoken_in_{msg.chat_id}", False):
                 # Suspicious message was the user's first message in this group
                 return True
 
