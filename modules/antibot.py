@@ -103,7 +103,7 @@ class AntibotModule(module.Module):
             return True
 
         join_time_sec = participant.date.replace(tzinfo=timezone.utc).timestamp()
-        if join_time_sec > await self.db.get("first_msg_start_time"):
+        if join_time_sec >= await self.db.get("first_msg_start_time"):
             # We started tracking first messages before the user joined, so
             # we can run the first message check
             if not await self.user_db.get(f"{sender.id}.has_spoken_in_{msg.chat_id}", False):
