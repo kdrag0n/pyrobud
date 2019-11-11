@@ -32,14 +32,8 @@ class AntibotModule(module.Module):
     ]
 
     async def on_load(self):
-        # Populate config if necessary
-        if "antibot" not in self.bot.config:
-            self.bot.config["antibot"] = {"threshold_time": 30, "group_ids": []}
-        else:
-            if "threshold_time" not in self.bot.config["antibot"]:
-                self.bot.config["antibot"]["threshold_time"] = 30  # seconds
-            if "group_ids" not in self.bot.config["antibot"]:
-                self.bot.config["antibot"]["group_ids"] = []
+        self.db = self.bot.get_db("antibot")
+        self.group_db = self.db.prefixed_db("groups.")
 
     def msg_has_suspicious_entity(self, msg):
         if not msg.entities:
@@ -97,7 +91,7 @@ class AntibotModule(module.Module):
             return False
 
         delta = msg.date - participant.date
-        if delta.total_seconds() <= self.bot.config["antibot"]["threshold_time"]:
+        if delta.total_seconds() <= await self.db.get("threshold_time", 30):
             # Suspicious message was sent shortly after joining
             return True
 
@@ -219,11 +213,11 @@ class AntibotModule(module.Module):
         # Delete the spam message just in case
         await event.delete()
 
-    def is_enabled(self, event):
-        return event.is_group and event.chat_id in self.bot.config["antibot"]["group_ids"]
+    async def is_enabled(self, event):
+        return event.is_group and await self.group_db.get(f"{event.chat_id}.enabled", False)
 
     async def on_message(self, msg):
-        if self.is_enabled(msg) and await self.msg_is_suspicious(msg):
+        if await self.is_enabled(msg) and await self.msg_is_suspicious(msg):
             # This is most likely a spambot, take action against the user
             user = await msg.get_sender()
             await self.take_action(msg, user)
@@ -234,7 +228,7 @@ class AntibotModule(module.Module):
             return
 
         # Only act in groups where this is enabled
-        if not self.is_enabled(action):
+        if not await self.is_enabled(action):
             return
 
         # Fetch the user's data and run checks
@@ -248,16 +242,8 @@ class AntibotModule(module.Module):
         if not msg.is_group:
             return "__Antibot can only be used in groups.__"
 
-        gid_table = self.bot.config["antibot"]["group_ids"]
-        state = msg.chat_id in gid_table
-        state = not state
-
-        if state:
-            gid_table.append(msg.chat_id)
-        else:
-            gid_table.remove(msg.chat_id)
-
-        await self.bot.save_config()
+        state = not await self.group_db.get(f"{msg.chat_id}.enabled", False)
+        await self.group_db.put(f"{msg.chat_id}.enabled", state)
 
         status = "enabled" if state else "disabled"
         return f"Antibot is now **{status}** in this group."

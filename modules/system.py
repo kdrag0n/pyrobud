@@ -23,17 +23,17 @@ class SystemModule(module.Module):
             return "__Provide a snippet to run in shell.__"
 
         await msg.result("Running snippet...")
-        before = util.time_us()
+        before = util.time.usec()
 
         try:
             proc = await self.run_process(parsed_snip, shell=True, timeout=120)
         except subprocess.TimeoutExpired:
             return "🕑 Snippet failed to finish within 2 minutes."
 
-        after = util.time_us()
+        after = util.time.usec()
 
         el_us = after - before
-        el_str = f"\nTime: {util.format_duration_us(el_us)}"
+        el_str = f"\nTime: {util.time.format_duration_us(el_us)}"
 
         err = f"⚠️ Return code: {proc.returncode}" if proc.returncode != 0 else ""
 
@@ -61,17 +61,17 @@ class SystemModule(module.Module):
     async def cmd_speedtest(self, msg):
         await msg.result("Testing Internet speed; this may take a while...")
 
-        before = util.time_us()
+        before = util.time.usec()
         try:
             proc = await self.run_process("speedtest", timeout=120)
         except subprocess.TimeoutExpired:
             return "🕑 `speedtest` failed to finish within 2 minutes."
         except FileNotFoundError:
             return "❌ The `speedtest` [program](https://github.com/sivel/speedtest-cli) (package name: `speedtest-cli`) must be installed on the host system."
-        after = util.time_us()
+        after = util.time.usec()
 
         el_us = after - before
-        el_str = f"\nTime: {util.format_duration_us(el_us)}"
+        el_str = f"\nTime: {util.time.format_duration_us(el_us)}"
 
         err = f"⚠️ Return code: {proc.returncode}" if proc.returncode != 0 else ""
 

@@ -15,9 +15,9 @@ class NetworkModule(module.Module):
 
     @command.desc("Pong")
     async def cmd_ping(self, msg):
-        before = util.time_ms()
+        before = util.time.msec()
         await msg.result("Calculating response time...")
-        after = util.time_ms()
+        after = util.time.msec()
 
         return "Request response time: %d ms" % (after - before)
 
@@ -26,14 +26,14 @@ class NetworkModule(module.Module):
             reply_msg = await msg.get_reply_message()
 
             if reply_msg.document:
-                text = await util.msg_download_file(reply_msg, msg)
+                text = await util.tg.msg_download_file(reply_msg, msg)
             elif reply_msg.text:
                 text = reply_msg.text
             else:
                 return ("error", "__Reply to a message with text or a text file, or provide text in command.__")
         else:
             if input_arg:
-                text = util.filter_code_block(input_arg).encode()
+                text = util.tg.filter_code_block(input_arg).encode()
             else:
                 return ("error", "__Reply to a message or provide text in command.__")
 
@@ -86,7 +86,7 @@ class NetworkModule(module.Module):
         if not reply_msg.document:
             return "__That message doesn't contain a file.__"
 
-        data = await util.msg_download_file(reply_msg, msg)
+        data = await util.tg.msg_download_file(reply_msg, msg)
 
         await msg.result("Uploading file to [file.io](https://file.io/)...")
 
@@ -107,7 +107,7 @@ class NetworkModule(module.Module):
         if not reply_msg.document:
             return "__That message doesn't contain a file.__"
 
-        data = await util.msg_download_file(reply_msg, msg)
+        data = await util.tg.msg_download_file(reply_msg, msg)
 
         await msg.result("Uploading file to [transfer.sh](https://transfer.sh/)...")
 

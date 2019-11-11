@@ -103,10 +103,13 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-# Pyrobud exclusive
 # Configuration files
 *.toml
 # Telegram sessions
 *.session*
-stickers
+# Stickers
+stickers/
+# Temporary atomic save artifacts
 *.tmp
+# LevelDB databases
+*.db/

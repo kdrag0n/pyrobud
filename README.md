@@ -4,10 +4,12 @@ A Telegram selfbot written in Python using [Telethon](https://github.com/LonamiW
 
 **Python 3.6+** is required.
 
-# Installation
-Simply run `pip3 install -r requirements.txt`. This installs all the dependencies.
+## Installation
 
-# Usage
+Run `pip3 install -r requirements.txt` to install all the dependencies.
+
+## Usage
+
 Copy `config.toml.sample` to `config.toml` and edit the settings as desired.
 Obtain the API ID and hash from [Telegram's website](https://my.telegram.org/apps).
 **KEEP THIS SECRET!**

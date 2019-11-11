@@ -1,4 +1,4 @@
-version = 2
+version = 3
 
 [telegram]
 api_id = 12345
@@ -6,4 +6,5 @@ api_hash = "0123456789abcdef0123456789abcdef"
 session_name = "main"
 
 [bot]
-prefix = "."
+default_prefix = "."
+db_path = "main.db"

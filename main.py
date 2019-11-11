@@ -41,8 +41,12 @@ def main():
         log.info("Upgrading config to version 2")
         util.config.upgrade_v2(config, config_path)
 
+    if config["version"] < 3:
+        log.info("Upgrading config to version 3")
+        util.config.upgrade_v3(config, config_path)
+
     log.info("Initializing bot")
-    bot = Bot(config, config_path)
+    bot = Bot(config)
 
     log.info("Starting bot")
     loop = asyncio.get_event_loop()

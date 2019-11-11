@@ -1,8 +1,11 @@
 aiohttp
+async_generator
 colorlog
 cryptg
 hachoir
+msgpack
 pillow
+plyvel
 pycparser
 telethon
 toml

@@ -9,6 +9,7 @@ import traceback
 import aiohttp
 import telethon as tg
 import toml
+import plyvel
 
 import command
 import module
@@ -24,21 +25,29 @@ class Listener:
 
 
 class Bot:
-    def __init__(self, config, config_path):
+    def __init__(self, config):
+        # Initialize module dicts
         self.commands = {}
         self.modules = {}
         self.listeners = {}
 
+        # Save reference to config
         self.config = config
-        self.config_path = config_path
-        self.prefix = config["bot"]["prefix"]
-        self.last_saved_cfg = toml.dumps(config)
 
+        # Initialize other objects
         self.log = logging.getLogger("bot")
         self.http_session = aiohttp.ClientSession()
 
+        # Initialize database
+        self._db = util.db.AsyncDB(plyvel.DB(config["bot"]["db_path"], create_if_missing=True))
+        self.db = self.get_db("bot")
+
+        # Initialize Telegram client
         tg_config = config["telegram"]
         self.client = tg.TelegramClient(tg_config["session_name"], tg_config["api_id"], tg_config["api_hash"])
+
+    def get_db(self, prefix):
+        return self._db.prefixed_db(prefix + ".")
 
     def register_command(self, mod, name, func):
         info = command.Info(name, mod, func)
@@ -167,18 +176,6 @@ class Bot:
         self.log.info("Reloading master module...")
         await util.run_sync(lambda: importlib.reload(modules))
 
-    async def save_config(self):
-        await util.run_sync(lambda: util.config.save(self.config, self.config_path))
-        self.last_saved_cfg = toml.dumps(self.config)
-
-    async def writer(self):
-        while True:
-            cfg = toml.dumps(self.config)
-            if cfg != self.last_saved_cfg:
-                await self.save_config()
-
-            await asyncio.sleep(15)
-
     def command_predicate(self, event):
         if event.raw_text.startswith(self.prefix):
             parts = event.raw_text.split()
@@ -193,10 +190,12 @@ class Bot:
         # Get and store current event loop, since this is the first coroutine
         self.loop = asyncio.get_event_loop()
 
-        # Load modules and save config in case any migration changes were made
+        # Load prefix
+        self.prefix = await self.db.get("prefix", self.config["bot"]["default_prefix"])
+
+        # Load modules
         self.load_all_modules()
         await self.dispatch_event("load")
-        await self.save_config()
 
         # Start Telegram client
         await self.client.start()
@@ -207,9 +206,9 @@ class Bot:
 
         # Hijack Message class to provide result function
         async def result(msg, new_text, **kwargs):
-            t = self.config["telegram"]
-            api_id = str(t["api_id"])
-            api_hash = t["api_hash"]
+            tg_config = self.config["telegram"]
+            api_id = str(tg_config["api_id"])
+            api_hash = tg_config["api_hash"]
 
             if api_id in new_text:
                 new_text = new_text.replace(api_id, "[REDACTED]")
@@ -226,7 +225,7 @@ class Bot:
         tg.types.Message.result = result
 
         # Record start time and dispatch start event
-        self.start_time_us = util.time_us()
+        self.start_time_us = util.time.usec()
         await self.dispatch_event("start", self.start_time_us)
 
         # Register handlers
@@ -235,9 +234,6 @@ class Bot:
         self.client.add_event_handler(self.on_command, tg.events.NewMessage(outgoing=True, func=self.command_predicate))
         self.client.add_event_handler(self.on_chat_action, tg.events.ChatAction)
 
-        # Save config in the background
-        self.loop.create_task(self.writer())
-
         self.log.info("Bot is ready")
 
         # Catch up on missed events
@@ -245,13 +241,10 @@ class Bot:
         await self.client.catch_up()
         self.log.info("Finished catching up")
 
-        # Save config to sync updated stats after catching up
-        await self.save_config()
-
     async def stop(self):
         await self.dispatch_event("stop")
-        await self.save_config()
         await self.http_session.close()
+        await self._db.close()
 
     async def dispatch_event(self, event, *args):
         tasks = set()
@@ -265,6 +258,7 @@ class Bot:
             task = self.loop.create_task(l.func(*args))
             tasks.add(task)
 
+        self.log.debug(f"Dispatching event '{event}' with data {args}")
         return await asyncio.wait(tasks)
 
     def dispatch_event_nowait(self, *args, **kwargs):
