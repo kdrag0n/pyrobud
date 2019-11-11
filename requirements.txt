@@ -1,4 +1,3 @@
-aiofiles
 aiohttp
 colorlog
 cryptg

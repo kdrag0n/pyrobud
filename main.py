@@ -37,6 +37,10 @@ def main():
     log.info("Loading config")
     config = toml.load(config_path)
 
+    if "version" not in config or config["version"] < 2:
+        log.info("Upgrading config to version 2")
+        util.config.upgrade_v2(config, config_path)
+
     log.info("Initializing bot")
     bot = Bot(config, config_path)
 

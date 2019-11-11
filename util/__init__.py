@@ -6,6 +6,8 @@ from datetime import datetime
 
 import telethon as tg
 
+from . import config
+
 
 def mention_user(user):
     if user.username:

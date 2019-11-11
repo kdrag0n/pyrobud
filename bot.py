@@ -6,7 +6,6 @@ import os
 import sys
 import traceback
 
-import aiofiles
 import aiohttp
 import telethon as tg
 import toml
@@ -30,14 +29,16 @@ class Bot:
         self.modules = {}
         self.listeners = {}
 
-        self.log = logging.getLogger("bot")
-        self.client = tg.TelegramClient("anon", config["telegram"]["api_id"], config["telegram"]["api_hash"])
-        self.http_session = aiohttp.ClientSession()
-
         self.config = config
         self.config_path = config_path
         self.prefix = config["bot"]["prefix"]
         self.last_saved_cfg = toml.dumps(config)
+
+        self.log = logging.getLogger("bot")
+        self.http_session = aiohttp.ClientSession()
+
+        tg_config = config["telegram"]
+        self.client = tg.TelegramClient(tg_config["session_name"], tg_config["api_id"], tg_config["api_hash"])
 
     def register_command(self, mod, name, func):
         info = command.Info(name, mod, func)
@@ -166,32 +167,17 @@ class Bot:
         self.log.info("Reloading master module...")
         await util.run_sync(lambda: importlib.reload(modules))
 
-    async def save_config(self, data=None):
-        tmp_path = self.config_path + ".tmp"
-
-        if data is None:
-            data = toml.dumps(self.config)
-
-        try:
-            async with aiofiles.open(tmp_path, "wb+") as f:
-                await f.write(data.encode("utf-8"))
-                await f.flush()
-                await util.run_sync(lambda: os.fsync(f.fileno()))
-
-            await util.run_sync(lambda: os.rename(tmp_path, self.config_path))
-        except:
-            await util.run_sync(lambda: os.remove(tmp_path))
-            raise
-
-        self.last_saved_cfg = data
+    async def save_config(self):
+        await util.run_sync(lambda: util.config.save(self.config, self.config_path))
+        self.last_saved_cfg = toml.dumps(self.config)
 
     async def writer(self):
         while True:
-            await asyncio.sleep(15)
-
             cfg = toml.dumps(self.config)
             if cfg != self.last_saved_cfg:
-                await self.save_config(data=cfg)
+                await self.save_config()
+
+            await asyncio.sleep(15)
 
     def command_predicate(self, event):
         if event.raw_text.startswith(self.prefix):
