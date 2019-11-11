@@ -1,5 +1,7 @@
 import subprocess
 
+import speedtest
+
 import command
 import module
 import util
@@ -59,25 +61,29 @@ class SystemModule(module.Module):
     @command.desc("Test Internet speed")
     @command.alias("stest", "st")
     async def cmd_speedtest(self, msg):
-        await msg.result("Testing Internet speed; this may take a while...")
-
         before = util.time.usec()
-        try:
-            proc = await self.run_process("speedtest", timeout=120)
-        except subprocess.TimeoutExpired:
-            return "🕑 `speedtest` failed to finish within 2 minutes."
-        except FileNotFoundError:
-            return "❌ The `speedtest` [program](https://github.com/sivel/speedtest-cli) (package name: `speedtest-cli`) must be installed on the host system."
-        after = util.time.usec()
 
-        el_us = after - before
-        el_str = f"\nTime: {util.time.format_duration_us(el_us)}"
+        st = await util.run_sync(speedtest.Speedtest)
+        status = "Selecting server..."
 
-        err = f"⚠️ Return code: {proc.returncode}" if proc.returncode != 0 else ""
+        await msg.result(status)
+        server = await util.run_sync(st.get_best_server)
+        status += f" {server['sponsor']} ({server['name']})\n"
+        status += "Ping: %.2f ms\n" % server["latency"]
 
-        out = proc.stdout.strip()
-        if proc.returncode == 0:
-            lines = out.split("\n")
-            out = "\n".join((lines[4], lines[6], lines[8]))  # Server, down, up
+        status += "Performing download test..."
+        await msg.result(status)
+        dl_bits = await util.run_sync(st.download)
+        dl_mbit = dl_bits / 1000 / 1000
+        status += " %.2f Mbps\n" % dl_mbit
 
-        return f"```{out}```{err}{el_str}"
+        status += "Performing upload test..."
+        await msg.result(status)
+        ul_bits = await util.run_sync(st.upload)
+        ul_mbit = ul_bits / 1000 / 1000
+        status += " %.2f Mbps\n" % ul_mbit
+
+        delta = util.time.usec() - before
+        status += f"\nTime elapsed: {util.time.format_duration_us(delta)}"
+
+        return status
