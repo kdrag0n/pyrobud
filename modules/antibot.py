@@ -1,10 +1,13 @@
+import asyncio
+import string
+from datetime import timezone
+
 import telethon as tg
 import nostril
 
-import asyncio
 import command
 import module
-import string
+import util
 
 
 class AntibotModule(module.Module):
@@ -34,6 +37,10 @@ class AntibotModule(module.Module):
     async def on_load(self):
         self.db = self.bot.get_db("antibot")
         self.group_db = self.db.prefixed_db("groups.")
+        self.user_db = self.db.prefixed_db("users.")
+
+        if not await self.db.has("first_msg_start_time"):
+            await self.db.put("first_msg_start_time", util.time.sec())
 
     def msg_has_suspicious_entity(self, msg):
         if not msg.entities:
@@ -95,31 +102,15 @@ class AntibotModule(module.Module):
             # Suspicious message was sent shortly after joining
             return True
 
+        join_time_sec = participant.date.replace(tzinfo=timezone.utc).timestamp()
+        if join_time_sec > await self.db.get("first_msg_start_time"):
+            # We started tracking first messages before the user joined, so
+            # we can run the first message check
+            if not await self.user_db.get(f"{sender.id}.has_spoken_in_{chat.id}", False):
+                # Suspicious message was the user's first message in this group
+                return True
+
         # Allow this message
-        return False
-
-    def profile_check_24char(self, user):
-        # Users with names that are composed of 2-4 Chinese characters and
-        # don't have avatars or usernames tend to be spambots
-        if 2 <= len(user.first_name) <= 4:
-            # Check for a last name
-            if user.last_name:
-                return False
-
-            # Check each character
-            # U+4E00 - U+9FFF is the "CJK Unified Ideographs" block
-            if not all("\u4e00" <= c <= "\u9fff" for c in user.first_name):
-                # Found a non-CJK character; exonerate this user
-                return False
-
-            # Check for a username and/or an avatar
-            if user.username or user.photo:
-                return False
-
-            # User has suspicious profile info
-            return True
-
-        # Allow this user
         return False
 
     async def profile_check_nonsense(self, user):
@@ -168,7 +159,7 @@ class AntibotModule(module.Module):
 
         # Many cryptocurrency spammers also have Telegram invite links in their
         # first or last names
-        if "t.me" in user.first_name or "t.me" in user.last_name:
+        if "t.me" in user.first_name or (user.last_name and "t.me" in user.last_name):
             # Suspicious name
             return True
 
@@ -176,10 +167,6 @@ class AntibotModule(module.Module):
         return False
 
     async def user_is_suspicious(self, user):
-        # 2-4 character CJK names without profile info
-        if self.profile_check_24char(user):
-            return True
-
         # 10-12 character nonsense names without profile info
         if await self.profile_check_nonsense(user):
             return True
@@ -217,12 +204,21 @@ class AntibotModule(module.Module):
         return event.is_group and await self.group_db.get(f"{event.chat_id}.enabled", False)
 
     async def on_message(self, msg):
-        if await self.is_enabled(msg) and await self.msg_is_suspicious(msg):
-            # This is most likely a spambot, take action against the user
-            user = await msg.get_sender()
-            await self.take_action(msg, user)
+        # Only run in groups where antibot is enabled
+        if await self.is_enabled(msg):
+            if await self.msg_is_suspicious(msg):
+                # This is most likely a spambot, take action against the user
+                user = await msg.get_sender()
+                await self.take_action(msg, user)
+            else:
+                await self.user_db.put(f"{msg.sender_id}.has_spoken_in_{msg.chat_id}", True)
 
     async def on_chat_action(self, action):
+        # Remove has-spoken-in flag for departing users
+        if action.user_left and await self.is_enabled(action):
+            await self.user_db.delete(f"{action.user_id}.has_spoken_in_{action.chat_id}")
+            return
+
         # Only filter new users
         if not action.user_added and not action.user_joined:
             return

@@ -9,6 +9,10 @@ def msec():
     return int(usec() / 1000)
 
 
+def sec():
+    return int(time.time())
+
+
 def format_duration_us(t_us):
     t_us = int(t_us)
 
