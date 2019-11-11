@@ -2,4 +2,5 @@
     "python.pythonPath": "/usr/bin/python",
     "python.formatting.provider": "black",
     "python.formatting.blackArgs": ["--line-length", "120"],
+    "editor.formatOnSave": true,
 }
