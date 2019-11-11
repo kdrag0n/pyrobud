@@ -108,7 +108,7 @@ class StickerModule(module.Module):
                 src.seek(0)
             im.save(dest, "png")
 
-        await util.run_sync(lambda: _img_to_png())
+        await util.run_sync(_img_to_png)
         return dest
 
     async def img_to_sticker(self, src, formats):
@@ -132,7 +132,7 @@ class StickerModule(module.Module):
             for fmt, dest in formats.items():
                 im.save(dest, fmt)
 
-        await util.run_sync(lambda: _img_to_sticker())
+        await util.run_sync(_img_to_sticker)
         return formats
 
     @command.desc("Kang a sticker into configured/provided pack")

@@ -55,14 +55,14 @@ class AsyncDB:
         return self.db.close()
 
     async def close(self):
-        return await run_sync(lambda: self.close_sync())
+        return await run_sync(self.close_sync)
 
     # Extensions
     def snapshot_sync(self):
         return AsyncDB(self.db.snapshot())
 
     async def snapshot(self):
-        return await run_sync(lambda: self.snapshot_sync())
+        return await run_sync(self.snapshot_sync)
 
     def prefixed_db(self, prefix):
         prefixed_db = self.db.prefixed_db(prefix.encode("utf-8"))
@@ -143,17 +143,17 @@ class AsyncDBIterator:
         await self.close()
 
     async def close(self):
-        return await run_sync(lambda: self.iterator.close())
+        return await run_sync(self.iterator.close)
 
     # plyvel extensions
     async def prev(self):
-        return await run_sync(lambda: self.iterator.prev())
+        return await run_sync(self.iterator.prev)
 
     async def seek_to_start(self):
-        return await run_sync(lambda: self.iterator.seek_to_start())
+        return await run_sync(self.iterator.seek_to_start)
 
     async def seek_to_stop(self):
-        return await run_sync(lambda: self.iterator.seek_to_stop())
+        return await run_sync(self.iterator.seek_to_stop)
 
     async def seek(self, target):
         return await run_sync(lambda: self.iterator.seek(target.encode("utf-8")))
