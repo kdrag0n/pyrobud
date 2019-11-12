@@ -1,5 +1,6 @@
 import random
 import string
+import unicodedata
 
 import command
 import module
@@ -74,3 +75,37 @@ class TextModule(module.Module):
 
         codes_str = "\n".join(codes)
         return f"```{codes_str}```"
+
+    @command.desc("Dissect a string into named Unicode codepoints")
+    @command.alias("cinfo", "chinfo", "ci")
+    async def cmd_charinfo(self, msg, text):
+        if not text and msg.is_reply:
+            reply_msg = await msg.get_reply_message()
+            text = reply_msg.text
+
+        if not text:
+            return "__Provide text or reply to a message with text to dissect.__"
+
+        chars = []
+        for char in text:
+            # Don't preview characters that mess up the output
+            preview = char not in "`"
+
+            # Attempt to get the codepoint's name
+            try:
+                name = unicodedata.name(char)
+            except ValueError:
+                # Control characters don't have names, so insert a placeholder
+                # and prevent the character from being rendered to avoid breaking
+                # the output
+                name = "UNNAMED CONTROL CHARACTER"
+                preview = False
+
+            # Render the line and only show the character if safe
+            line = "`U+%04X` %s" % (ord(char), name)
+            if preview:
+                line += " `%c`" % char
+
+            chars.append(line)
+
+        return "\n".join(chars)
