@@ -187,14 +187,12 @@ class AntibotModule(module.Module):
         request = tg.tl.functions.channels.DeleteUserHistoryRequest(chat, user)
         await self.bot.client(request)
 
-        # Ban the sender
-        rights = tg.tl.types.ChatBannedRights(until_date=None, view_messages=True)
-        request = tg.tl.functions.channels.EditBannedRequest(chat, user, rights)
-        await self.bot.client(request)
+        # Kick the sender
+        await self.bot.client.kick_participant(chat, user)
 
         # Log the event
-        self.log.info(f'Banned spambot with ID {user.id} in group "{chat.title}"')
-        await event.reply(f"❯❯ **Banned auto-detected spambot** with ID `{user.id}`")
+        self.log.info(f'Kicked spambot with ID {user.id} in group "{chat.title}"')
+        await event.reply(f"❯❯ **Kicked auto-detected spambot** with ID `{user.id}`")
         self.bot.dispatch_event_nowait("stat_event", "spambots_banned")
 
         # Delete the spam message just in case

@@ -79,7 +79,7 @@ class StatsModule(module.Module):
         recv_edits = await self.db.get("received_edits", 0)
         processed = await self.db.get("processed", 0)
         replaced = await self.db.get("replaced", 0)
-        banned = await self.db.get("spambots_banned", 0)
+        ab_kicked = await self.db.get("spambots_banned", 0)
         stickers = await self.db.get("stickers_created", 0)
 
         return f"""**Stats since last reset**:
@@ -89,5 +89,5 @@ class StatsModule(module.Module):
     • **Total messages sent**: {self.calc_pct(sent, sent + recv)}% of all accounted messages
     • **Commands processed**: {processed} ({self.calc_ph(processed, uptime)}/h) • {self.calc_pct(processed, sent)}% of sent messages
     • **Snippets replaced**: {replaced} ({self.calc_ph(replaced, uptime)}/h) • {self.calc_pct(replaced, sent)}% of sent messages
-    • **Spambots banned**: {banned} ({self.calc_pd(banned, uptime)}/day)
+    • **Spambots kicked**: {ab_kicked} ({self.calc_pd(ab_kicked, uptime)}/day)
     • **Stickers created**: {stickers} ({self.calc_pd(stickers, uptime)}/day)"""
