@@ -7,8 +7,8 @@ import colorlog
 import toml
 import uvloop
 
-import util
-from bot import Bot
+from pyrobud import util
+from pyrobud.bot import Bot
 
 LOG_LEVEL = logging.INFO
 LOG_FORMAT = "  %(log_color)s%(levelname)-8s%(reset)s | %(name)-7s | %(log_color)s%(message)s%(reset)s"

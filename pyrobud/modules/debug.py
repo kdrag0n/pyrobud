@@ -2,9 +2,7 @@ import inspect
 import json
 import re
 
-import command
-import module
-import util
+from pyrobud import command, module, util
 
 
 class DebugModule(module.Module):

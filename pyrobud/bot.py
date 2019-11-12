@@ -11,10 +11,7 @@ import telethon as tg
 import toml
 import plyvel
 
-import command
-import module
-import modules
-import util
+from . import command, module, modules, util
 
 
 class Listener:
@@ -225,7 +222,7 @@ class Bot:
             # Truncate messages longer than Telegram's 4096-character length limit
             truncated_suffix = "... (truncated)"
             if len(new_text) > 4096:
-                new_text = new_text[:4096 - len(truncated_suffix)] + truncated_suffix
+                new_text = new_text[: 4096 - len(truncated_suffix)] + truncated_suffix
 
             await msg.edit(text=new_text, **kwargs)
 

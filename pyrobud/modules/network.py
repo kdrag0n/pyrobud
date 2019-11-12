@@ -5,9 +5,7 @@ import urllib.parse
 import aiohttp
 import telethon as tg
 
-import command
-import module
-import util
+from pyrobud import command, module, util
 
 
 class NetworkModule(module.Module):

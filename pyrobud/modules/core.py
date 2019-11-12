@@ -1,6 +1,4 @@
-import command
-import module
-import util
+from pyrobud import command, module, util
 
 
 class CoreModule(module.Module):

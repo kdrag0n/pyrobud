@@ -2,9 +2,7 @@ from datetime import datetime
 
 import telethon as tg
 
-import command
-import module
-import util
+from pyrobud import command, module, util
 
 
 class ModerationModule(module.Module):
