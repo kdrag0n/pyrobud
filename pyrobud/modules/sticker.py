@@ -287,8 +287,8 @@ class StickerModule(module.Module):
 
     @command.desc("Create a sticker from an image and add it to the given pack")
     async def cmd_sticker(self, msg, *args):
-        if not msg.is_reply:
-            return "__Reply to an image to sticker it.__"
+        if not msg.is_reply and not msg.file:
+            return "__Reply to or embed an image to sticker it.__"
 
         if not args:
             await msg.result(
@@ -296,7 +296,10 @@ class StickerModule(module.Module):
             )
             return
 
-        reply_msg = await msg.get_reply_message()
+        if msg.file:
+            reply_msg = msg
+        else:
+            reply_msg = await msg.get_reply_message()
 
         if not reply_msg.file:
             return "__That message doesn't contain an image.__"
@@ -328,7 +331,7 @@ class StickerModule(module.Module):
 
     @command.desc("Create a sticker from an image and save it to disk under the given name")
     async def cmd_qstick(self, msg, name):
-        if not msg.is_reply:
+        if not msg.is_reply and not msg.file:
             return "__Reply to an image to sticker it.__"
 
         if not name:
@@ -337,7 +340,10 @@ class StickerModule(module.Module):
         if await self.db.has(name):
             return "__There's already a sticker with that name.__"
 
-        reply_msg = await msg.get_reply_message()
+        if msg.file:
+            reply_msg = msg
+        else:
+            reply_msg = await msg.get_reply_message()
 
         if not reply_msg.file:
             return "__That message isn't an image.__"
@@ -356,7 +362,7 @@ class StickerModule(module.Module):
 
     @command.desc("Glitch an image")
     async def cmd_glitch(self, msg, boffset_str):
-        if not msg.is_reply:
+        if not msg.is_reply and not msg.file:
             return "__Reply to an image to glitch it.__"
 
         boffset = 8
@@ -366,7 +372,10 @@ class StickerModule(module.Module):
             except ValueError:
                 return "__Invalid distorted block offset strength.__"
 
-        reply_msg = await msg.get_reply_message()
+        if msg.file:
+            reply_msg = msg
+        else:
+            reply_msg = await msg.get_reply_message()
 
         if not reply_msg.file:
             return "__That message isn't an image.__"
