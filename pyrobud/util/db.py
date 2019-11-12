@@ -125,6 +125,9 @@ class AsyncDBIterator:
         self.iterator = iterator
 
     # Iterator core
+    def __aiter__(self):
+        return self
+
     async def __anext__(self):
         def _next():
             try:
