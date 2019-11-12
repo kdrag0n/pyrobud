@@ -213,6 +213,16 @@ class AntibotModule(module.Module):
         # Remove has-spoken-in flag for departing users
         if action.user_left and await self.is_enabled(action):
             await self.user_db.delete(f"{action.user_id}.has_spoken_in_{action.chat_id}")
+
+            # Clean up antibot data if we left the group
+            if action.user_id == self.bot.uid:
+                self.log.info(f"Cleaning up settings for group {action.chat_id}")
+                await self.group_db.delete(f"{action.chat_id}.enabled")
+
+                async for key, _ in self.user_db:
+                    if key.endswith(f".has_spoken_in_{action.chat_id}"):
+                        await self.user_db.delete(key)
+
             return
 
         # Only filter new users
