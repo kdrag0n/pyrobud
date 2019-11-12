@@ -99,7 +99,7 @@ Please read the rules _before_ participating.
     async def promote_bot(self, chat, username):
         rights = tg.tl.types.ChatAdminRights(delete_messages=True, ban_users=True, invite_users=True, pin_messages=True)
 
-        request = tg.tl.functions.channels.EditAdminRequest(chat, username, rights)
+        request = tg.tl.functions.channels.EditAdminRequest(chat, username, rights, "bot")
         await self.bot.client(request)
 
     def truncate_cmd_list(self, commands):
