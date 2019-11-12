@@ -9,7 +9,7 @@ class TextModule(module.Module):
     name = "Text"
 
     @command.desc("Unicode character from hex codepoint")
-    @command.alias("cp", "chr", "uc")
+    @command.alias("cp", "chr", "uc", "c")
     async def cmd_uni(self, msg, codepoint):
         if not codepoint:
             return "__Hex codepoint required.__"
@@ -49,6 +49,7 @@ class TextModule(module.Module):
         return "\u0336".join(text) + "\u0336"
 
     @command.desc("Generate fake Google Play-style codes (optional arguments: count, length)")
+    @command.alias("genkey")
     async def cmd_gencode(self, msg, *args):
         count = 10
         length = 23

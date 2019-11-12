@@ -23,7 +23,7 @@ class DebugModule(module.Module):
         return "`1 + 1`: %.0f ns" % (el_us * 1000)
 
     @command.desc("Evaluate code")
-    @command.alias("ev", "c")
+    @command.alias("ev")
     async def cmd_eval(self, msg, raw_args):
         def _eval():
             nonlocal msg, raw_args, self
