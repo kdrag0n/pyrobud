@@ -108,3 +108,10 @@ class TextModule(module.Module):
             chars.append(line)
 
         return "\n".join(chars)
+
+    @command.desc("Replace the spaces in a string with clap emojis")
+    async def cmd_clap(self, msg, text):
+        if not text:
+            return "__Provide text to insert claps into.__"
+
+        return "👏".join(text.split())
