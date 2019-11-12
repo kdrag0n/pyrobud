@@ -210,6 +210,7 @@ class Bot:
             api_id = str(tg_config["api_id"])
             api_hash = tg_config["api_hash"]
 
+            # Redact sensitive information
             if api_id in new_text:
                 new_text = new_text.replace(api_id, "[REDACTED]")
             if api_hash in new_text:
@@ -217,8 +218,14 @@ class Bot:
             if self.user.phone in new_text:
                 new_text = new_text.replace(self.user.phone, "[REDACTED]")
 
+            # Default to disabling link previews in responses
             if "link_preview" not in kwargs:
                 kwargs["link_preview"] = False
+
+            # Truncate messages longer than Telegram's 4096-character length limit
+            truncated_suffix = "... (truncated)"
+            if len(new_text) > 4096:
+                new_text = new_text[:4096 - len(truncated_suffix)] + truncated_suffix
 
             await msg.edit(text=new_text, **kwargs)
 
