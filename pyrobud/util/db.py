@@ -112,6 +112,10 @@ class AsyncDB:
 
     # Iterator support
     def iterator(self, *args, **kwargs):
+        for key, value in kwargs.items():
+            if isinstance(key, str):
+                kwargs[key] = value.encode("utf-8")
+
         iterator = self.db.iterator(*args, **kwargs)
         return AsyncDBIterator(iterator)
 
