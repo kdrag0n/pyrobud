@@ -37,8 +37,16 @@ class AntibotModule(module.Module):
         self.group_db = self.db.prefixed_db("groups.")
         self.user_db = self.db.prefixed_db("users.")
 
-        if not await self.db.has("first_msg_start_time"):
-            await self.db.put("first_msg_start_time", util.time.sec())
+        # Migrate message tracking start times to the new per-group format
+        fmsg_start_time = await self.db.get("first_msg_start_time")
+        if fmsg_start_time is not None:
+            self.log.info("Migrating message tracking start times to the new per-group format")
+
+            async for key, value in self.group_db:
+                if key.endswith(".enabled") and value:
+                    await self.group_db.put(key.replace(".enabled", ".enable_time"), fmsg_start_time)
+
+            await self.db.delete("first_msg_start_time")
 
     def msg_has_suspicious_entity(self, msg):
         if not msg.entities:
@@ -101,9 +109,9 @@ class AntibotModule(module.Module):
             return True
 
         join_time_sec = int(participant.date.replace(tzinfo=timezone.utc).timestamp())
-        if join_time_sec >= await self.db.get("first_msg_start_time"):
-            # We started tracking first messages before the user joined, so
-            # we can run the first message check
+        if join_time_sec > await self.group_db.get(f"{msg.chat_id}.enable_time"):
+            # We started tracking first messages in this group before the user
+            # joined, so we can run the first message check
             if not await self.user_db.get(f"{sender.id}.has_spoken_in_{msg.chat_id}", False):
                 # Suspicious message was the user's first message in this group
                 return True
@@ -209,6 +217,14 @@ class AntibotModule(module.Module):
             else:
                 await self.user_db.put(f"{msg.sender_id}.has_spoken_in_{msg.chat_id}", True)
 
+    async def clear_group(self, group_id):
+        async for key, _ in self.group_db.iterator(prefix=f"{group_id}."):
+            await self.group_db.delete(key)
+
+        async for key, _ in self.user_db:
+            if key.endswith(f".has_spoken_in_{group_id}"):
+                await self.user_db.delete(key)
+
     async def on_chat_action(self, action):
         # Remove has-spoken-in flag for departing users
         if action.user_left and await self.is_enabled(action):
@@ -217,13 +233,7 @@ class AntibotModule(module.Module):
             # Clean up antibot data if we left the group
             if action.user_id == self.bot.uid:
                 self.log.info(f"Cleaning up settings for group {action.chat_id}")
-
-                async for key, _ in self.group_db.iterator(prefix=f"{action.chat_id}."):
-                    await self.group_db.delete(key)
-
-                async for key, _ in self.user_db:
-                    if key.endswith(f".has_spoken_in_{action.chat_id}"):
-                        await self.user_db.delete(key)
+                await self.clear_group(action.chat_id)
 
             return
 
@@ -247,7 +257,12 @@ class AntibotModule(module.Module):
             return "__Antibot can only be used in groups.__"
 
         state = not await self.group_db.get(f"{msg.chat_id}.enabled", False)
-        await self.group_db.put(f"{msg.chat_id}.enabled", state)
+
+        if state:
+            await self.group_db.put(f"{msg.chat_id}.enabled", True)
+            await self.group_db.put(f"{msg.chat_id}.enable_time", util.time.sec())
+        else:
+            await self.clear_group(msg.chat_id)
 
         status = "enabled" if state else "disabled"
         return f"Antibot is now **{status}** in this group."

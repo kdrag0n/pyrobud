@@ -5,6 +5,7 @@ import plyvel
 import toml
 
 from .db import AsyncDB
+from .time import sec as now_sec
 
 log = logging.getLogger("migrate")
 
@@ -53,6 +54,7 @@ def migrate_v3_antibot(config, db):
         group_db = mdb.prefixed_db("groups.")
         for gid in mcfg["group_ids"]:
             group_db.put_sync(f"{gid}.enabled", True)
+            group_db.put_sync(f"{gid}.enable_time", now_sec())
 
         del config["antibot"]
 
