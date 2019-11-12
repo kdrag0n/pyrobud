@@ -105,6 +105,7 @@ venv.bak/
 
 # Configuration files
 *.toml
+!config.example.toml
 # Telegram sessions
 *.session*
 # Stickers
