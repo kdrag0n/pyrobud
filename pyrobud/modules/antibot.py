@@ -217,7 +217,9 @@ class AntibotModule(module.Module):
             # Clean up antibot data if we left the group
             if action.user_id == self.bot.uid:
                 self.log.info(f"Cleaning up settings for group {action.chat_id}")
-                await self.group_db.delete(f"{action.chat_id}.enabled")
+
+                async for key, _ in self.group_db.iterator(prefix=f"{action.chat_id}."):
+                    await self.group_db.delete(key)
 
                 async for key, _ in self.user_db:
                     if key.endswith(f".has_spoken_in_{action.chat_id}"):
