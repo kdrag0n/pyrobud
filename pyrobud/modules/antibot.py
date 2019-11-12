@@ -11,7 +11,7 @@ from pyrobud import command, module, util
 class AntibotModule(module.Module):
     name = "Antibot"
 
-    suspicious_keywords = ["investment", "profit", "binance", "binanse", "bitcoin", "testnet", "bitmex"]
+    suspicious_keywords = ["invest", "profit", "binance", "binanse", "bitcoin", "testnet", "bitmex"]
 
     suspicious_entities = [
         tg.types.MessageEntityUrl,
