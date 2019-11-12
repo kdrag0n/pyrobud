@@ -11,7 +11,7 @@ from . import *
 log = logging.getLogger("metamod")
 
 try:
-    _reload_flag
+    _reload_flag = _reload_flag
 except NameError:
     _reload_flag = True
 else:
