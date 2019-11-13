@@ -304,14 +304,14 @@ class Bot:
             try:
                 ret = await cmd_func(event, *args)
             except Exception as e:
-                self.log.error("Error in command function", exc_info=e)
+                cmd_info.module.log.error("Error in command function", exc_info=e)
                 ret = f"⚠️ Error executing command:\n```{util.format_exception(e)}```"
 
             if ret is not None:
                 try:
                     await event.result(ret)
                 except Exception as e:
-                    self.log.error(
+                    cmd_info.module.log.error(
                         "Error updating message with data returned by command '%s'", cmd_info.name, exc_info=e
                     )
                     ret = f"⚠️ Error updating message:\n```{util.format_exception(e)}```"
