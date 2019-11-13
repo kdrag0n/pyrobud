@@ -66,12 +66,12 @@ class SystemModule(module.Module):
     @command.desc("Get information about the host system")
     @command.alias("si")
     async def cmd_sysinfo(self, msg):
-        await msg.result("Collecting system information...")
+        if msg is not None: await msg.result("Collecting system information...")
 
         try:
-            proc = await self.run_process(["neofetch", "--stdout"], timeout=10)
+            proc = await self.run_process(["neofetch", "--stdout"], timeout=15)
         except subprocess.TimeoutExpired:
-            return "🕑 `neofetch` failed to finish within 10 seconds."
+            return "🕑 `neofetch` failed to finish within 15 seconds."
         except FileNotFoundError:
             return "❌ The `neofetch` [program](https://github.com/dylanaraps/neofetch) must be installed on the host system."
 

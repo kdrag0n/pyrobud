@@ -4,6 +4,7 @@ import time
 import traceback
 from datetime import datetime
 from base64 import b64encode, b64decode
+from telethon.tl.types import PeerUser, PeerChat, PeerChannel, InputPeerChannel
 
 import telethon as tg
 
@@ -11,18 +12,17 @@ def splitMsg(msg, chars = 4096):
     return [msg[i:i+chars] for i in range(0, len(msg), chars)]
 
 def ChatStr(chat : tg.types.Chat):
-    return f"\"{chat.title}\" ({chat.id})"
+    if isinstance(chat, InputPeerChannel): return f"{chat.channel_id}"
+    if hasattr(chat, "title"): return f"\"{chat.title}\" ({chat.id})"
+    return f"{chat.id}"
 
-def UserStr(user : tg.types.User):
-    result = ""
-    if user.first_name or user.last_name:
-        result += "\""
-        if user.first_name: result += user.first_name
-        if user.first_name and user.last_name: result += " "
-        if user.last_name: result += user.last_name
-        result += "\" "
-    if user.username: result += f"@{user.username} "
-    if user.id: result += f"(`{user.id})`"
+def UserStr(user : tg.types.User, full: bool = False):
+    fullname = user.first_name
+    if user.last_name: fullname += f" {user.last_name}"
+    result = f"[`{fullname}`](tg://user?id={user.id})"
+    if full:
+        if user.username: result += f" @{user.username}"
+        if user.id: result += f" (`{user.id})`"
     return result
 
 def sanitize(input):

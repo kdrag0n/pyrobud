@@ -218,15 +218,14 @@ Additional entity info:
 
     @command.desc("Get information about pyrobud")
     @command.alias("bi")
-    async def cmd_botinfo(self, msg):
-        await msg.result("Collecting bot information...")
+    async def cmd_botinfo(self, msg, localtime: bool = True):
+        if msg is not None: await msg.result("Collecting bot information...")
         botinfo = list()
-        botinfo.append("Bot: Pyrobud")
+        botinfo.append("Bot: @pyrobud")
         botinfo.append(f"User: @{self.bot.user.username} ({self.bot.uid})")
-        botinfo.append(f"Telethon Version: {tg.__version__}")
-        botinfo.append(f"Local Time: {datetime.now()}")
-        botinfo.append(f"Starttime: {self.bot.start_time}")
-        botinfo.append(f"Uptime: {datetime.utcnow() - self.bot.start_time}")
+        botinfo.append(f"Telethon Version: `{tg.__version__}`")
+        if localtime: botinfo.append(f"Local Time: `{datetime.now()}`")
+        botinfo.append(f"Starttime: `{self.bot.start_time}`")
+        botinfo.append(f"Uptime: `{datetime.utcnow() - self.bot.start_time}`")
         # botinfo.append(f"Uptime: {util.format_duration_us(self.bot.start_time_us)}")
-        botinfo = "\n".join(botinfo)
-        return f"```{botinfo}```"
+        return "\n".join(botinfo)

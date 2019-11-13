@@ -18,7 +18,6 @@ import modules
 import util
 
 from datetime import datetime, timedelta, timezone
-import re
 
 from pprint import pprint
 
@@ -31,6 +30,9 @@ class Listener:
 
 
 class Bot:
+    user: (tg.types.User, tg.types.PeerUser)
+    uid: int
+
     def __init__(self, config, config_path):
         self.commands = {}
         self.modules = {}
@@ -199,38 +201,6 @@ class Bot:
             if cfg != self.last_saved_cfg:
                 await self.save_config(data=cfg)
 
-    # Custom Shit
-    async def updateChannelLeaves(self):
-        channel = await self.client.get_entity(PeerChannel(1441900591))
-        logchannel = await self.client.get_entity(PeerChannel(1262543505))
-        regex_timestamp = re.compile(r"\d{4}-\d+-\d+ \d+:\d+:\d{2}")
-        format_timestamp = "%Y-%m-%d %H:%M:%S" # 2019-10-28 02:10:04
-        while True:
-            await asyncio.sleep(5)
-            events = list()
-            async for event in self.client.iter_admin_log(channel, leave=True):
-                events.append(event)
-            events.reverse()
-            last_timestamp = datetime.min.replace(tzinfo=timezone.utc)
-            async for msg in self.client.iter_messages(logchannel, 20):
-                if msg.message is None: continue
-                match = regex_timestamp.search(msg.message)
-                if not match: continue
-                last_timestamp = datetime.strptime(match.group(0), format_timestamp).replace(tzinfo=timezone.utc)
-                break
-            for event in events:
-                etype = ""
-                if event.left: etype = "🔙 Left"
-                elif event.joined: etype = "⤵️ Joined"
-                elif event.joined_invite: etype = "🔗 Joined via Invite"
-                if not etype: continue
-                timestamp = event.date.strftime(format_timestamp)
-                if event.date <= last_timestamp: continue
-                user = await self.client.get_entity(PeerUser(event.user_id))
-                msg = f"{timestamp} (UTC)\n{etype}\n{util.mention_user(user)} ({event.user_id})"
-                await self.client.send_message(logchannel, msg, schedule=timedelta(seconds=10))
-            await asyncio.sleep(3540)
-
     def command_predicate(self, event):
         if event.raw_text.startswith(self.prefix):
             parts = event.raw_text.split()
@@ -254,8 +224,8 @@ class Bot:
         await self.client.start()
 
         # Get info
-        self.user = await self.client.get_me()
-        self.uid = self.user.id
+        self.user: (tg.types.User, tg.types.PeerUser) = await self.client.get_me()
+        self.uid: int = self.user.id
 
         # Hijack Message class to provide result function
         async def result(msg, new_text, **kwargs):
@@ -285,6 +255,7 @@ class Bot:
         # Register handlers
         self.client.add_event_handler(self.on_message, tg.events.NewMessage)
         self.client.add_event_handler(self.on_message_edit, tg.events.MessageEdited)
+        self.client.add_event_handler(self.on_message_deleted, tg.events.MessageDeleted)
         self.client.add_event_handler(self.on_command, tg.events.NewMessage(outgoing=True, func=self.command_predicate))
         self.client.add_event_handler(self.on_chat_action, tg.events.ChatAction)
         if len(self.config["bot"]["auto_admins"]) > 0:
@@ -292,11 +263,11 @@ class Bot:
 
         # Save config in the background
         self.loop.create_task(self.writer())
-        self.loop.create_task(self.updateChannelLeaves())
 
         self.log.info("Bot is ready")
+        await self.dispatch_event("ready")
         timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
-        await self.client.send_message(self.user, f"[{timestamp}] Pyrobud is ready")
+        await self.client.send_message(self.user, f"[{timestamp}] Pyrobud is ready", schedule=timedelta(seconds=10))
 
         # Catch up on missed events
         if catch_up:
@@ -308,36 +279,7 @@ class Bot:
         await self.save_config()
         self.log.info("Everything ready!")
 
-    no_events = [
-        "UpdateNewChannelMessage", "UpdateMessageID", "UpdateReadChannelInbox", "UpdateReadChannelOutbox",
-        "UpdateEditChannelMessage", "UpdateUserStatus"
-    ]
 
-    async def on_raw_event(self, event):
-        name = event.__class__.__name__
-        if name == "UpdateChatParticipants":
-            print(event)
-            if event.participants.version == 1:
-                is_creator = False
-                for participant in event.participants.participants:
-                    participant_type = participant.__class__.__name__
-                    if participant_type == "ChatParticipantCreator":
-                        if participant.user_id == self.uid: is_creator = True
-                    # elif == "ChatParticipant":
-                if is_creator:
-                    await asyncio.sleep(2.5)
-                    chat = await self.client.get_entity(event.participants.chat_id)
-                    await self.client(
-                        tg.tl.functions.channels.InviteToChannelRequest(chat, self.config["bot"]["auto_admins"]))
-                    rights = tg.tl.types.ChatAdminRights(post_messages=True, add_admins=True, invite_users=True,
-                                                         change_info=True,
-                                                         ban_users=True, delete_messages=True, pin_messages=True,
-                                                         invite_link=True, edit_messages=True)
-                    for auto_admin in self.config["bot"]["auto_admins"]:
-                        user = await self.client.get_entity(auto_admin)
-                        await self.client(tg.tl.functions.channels.EditAdminRequest(chat, user, rights))
-                    admincnt = len(self.config["bot"]["auto_admins"])
-                    chat.send_message(f"Added {admincnt} admins.")
 
     async def stop(self):
         timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
@@ -369,8 +311,14 @@ class Bot:
     async def on_message_edit(self, event):
         await self.dispatch_event("message_edit", event)
 
+    async def on_message_deleted(self, event):
+        await self.dispatch_event("message_deleted", event)
+
     async def on_chat_action(self, event):
         await self.dispatch_event("chat_action", event)
+
+    async def on_raw_event(self, event):
+        await self.dispatch_event("raw_event", event)
 
     async def on_command(self, event):
         try:

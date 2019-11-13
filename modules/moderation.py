@@ -52,7 +52,7 @@ class ModerationModule(module.Module):
             users_to_ban.append(user)
         async for dialog in self.bot.client.iter_dialogs():
             if not dialog.is_group or not dialog.is_channel: continue
-            chat = await msg.get_entity(dialog.id)
+            chat = await self.bot.client.get_entity(dialog.id)
             async for user in self.bot.client.iter_participants(chat, filter=tg.tl.types.ChannelParticipantsAdmins):
                 if user.id == self.bot.uid:
                     await self.banUsers(users_to_ban, chat)

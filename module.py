@@ -1,4 +1,11 @@
 import logging
+# import os,sys,inspect
+# _currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+# _parentdir = os.path.dirname(_currentdir)
+# sys.path.insert(0,_parentdir)
+import typing
+if typing.TYPE_CHECKING:
+    from bot import Bot
 
 
 class ModuleLoadError(Exception):
@@ -27,7 +34,8 @@ class ExistingCommandError(ModuleLoadError):
 
 class Module:
     name = "Unnamed"
+    bot: 'Bot'
 
-    def __init__(self, bot):
+    def __init__(self, bot: 'Bot'):
         self.bot = bot
         self.log = logging.getLogger(self.__class__.name.lower())

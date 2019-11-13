@@ -68,7 +68,7 @@ class StatsModule(module.Module):
         self.update_uptime()
         self.bot.config["stats"]["stop_time_usec"] = self.last_time
 
-    def calc_pct(self, num1, num2):
+    def calc_pct(self, num1: int, num2: int) -> str:
         if not num2:
             return "0"
 

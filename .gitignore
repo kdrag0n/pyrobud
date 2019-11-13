@@ -111,3 +111,4 @@ venv.bak/
 stickers
 *.tmp
 *.bak
+messages.*db
