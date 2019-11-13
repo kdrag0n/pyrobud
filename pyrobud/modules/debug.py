@@ -1,5 +1,6 @@
 import inspect
 import json
+import logging
 import re
 
 from pyrobud import command, module, util
@@ -22,6 +23,7 @@ class DebugModule(module.Module):
 
     @command.desc("Evaluate code")
     @command.alias("ev")
+    @command.error_level(logging.WARNING)
     async def cmd_eval(self, msg, raw_args):
         def _eval():
             nonlocal msg, raw_args, self
@@ -44,6 +46,7 @@ class DebugModule(module.Module):
 Time: {el_str}"""
 
     @command.desc("Evaluate code (statement)")
+    @command.error_level(logging.WARNING)
     async def cmd_exec(self, msg, raw_args):
         def _exec():
             nonlocal msg, raw_args, self
