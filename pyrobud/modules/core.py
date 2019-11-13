@@ -1,6 +1,4 @@
-import command
-import module
-import util
+from pyrobud import command, module, util
 
 
 class CoreModule(module.Module):
@@ -34,8 +32,8 @@ class CoreModule(module.Module):
 
     @command.desc("Get how long the bot has been up for")
     async def cmd_uptime(self, msg):
-        delta_us = util.time_us() - self.bot.start_time_us
-        return f"Uptime: {util.format_duration_us(delta_us)}"
+        delta_us = util.time.usec() - self.bot.start_time_us
+        return f"Uptime: {util.time.format_duration_us(delta_us)}"
 
     @command.desc("Get or change the bot prefix")
     async def cmd_prefix(self, msg, new_prefix):
@@ -43,7 +41,6 @@ class CoreModule(module.Module):
             return f"The prefix is `{self.bot.prefix}`."
 
         self.bot.prefix = new_prefix
-        self.bot.config["bot"]["prefix"] = new_prefix
+        await self.bot.db.put("prefix", new_prefix)
 
-        await self.bot.save_config()
         return f"Prefix set to `{self.bot.prefix}`."

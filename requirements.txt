@@ -1,10 +1,13 @@
-aiofiles
 aiohttp
+async_generator
 colorlog
 cryptg
 hachoir
+msgpack
 pillow
+plyvel
 pycparser
+speedtest-cli
 telethon
 toml
 uvloop

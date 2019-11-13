@@ -7,9 +7,7 @@ from datetime import datetime
 
 from PIL import Image
 
-import command
-import module
-import util
+from pyrobud import command, module, util
 
 PNG_MAGIC = b"\x89\x50\x4e\x47\x0d\x0a\x1a\x0a"
 
@@ -22,61 +20,8 @@ class StickerModule(module.Module):
     name = "Sticker"
 
     async def on_load(self):
-        # Populate config if necessary
-        if "stickers" not in self.bot.config:
-            self.bot.config["stickers"] = {}
-
-        if "user" not in self.bot.config:
-            self.bot.config["user"] = {}
-
-        # Create local sticker directory if necessary
-        if not os.path.exists("stickers"):
-            await util.run_sync(lambda: os.mkdir("stickers"))
-        elif not os.path.isdir("stickers"):
-            await util.run_sync(lambda: os.remove("stickers"))
-            await util.run_sync(lambda: os.mkdir("stickers"))
-
-        # Migrate old config data
-        if "sticker_pack" in self.bot.config["user"]:
-            user = self.bot.config["user"]
-            kang_pack = user["sticker_pack"]
-            del user["sticker_pack"]
-            user["kang_pack"] = kang_pack
-
-            self.log.info("Migrated saved stickers to new config format")
-
-        # Migrate old sticker data
-        migrated_files = False
-        files = await util.run_sync(lambda: os.listdir("stickers"))
-        for fn in files:
-            # .webp.png -> .png
-            if fn.endswith(".webp.png"):
-                new_fn = fn[: -len(".webp.png")] + ".png"
-                await util.run_sync(lambda: os.rename(f"stickers/{fn}", f"stickers/{new_fn}"))
-                migrated_files = True
-                fn = new_fn
-
-            # [...]01.webp -> [...].webp
-            if fn.endswith("01.webp"):
-                new_fn = fn[: -len("01.webp")] + ".webp"
-                await util.run_sync(lambda: os.rename(f"stickers/{fn}", f"stickers/{new_fn}"))
-                migrated_files = True
-
-            # [...]01.png -> [...].png
-            if fn.endswith("01.png"):
-                new_fn = fn[: -len("01.png")] + ".png"
-                await util.run_sync(lambda: os.rename(f"stickers/{fn}", f"stickers/{new_fn}"))
-                migrated_files = True
-
-        if migrated_files:
-            # Migrate paths in config
-            for name, fn in self.bot.config["stickers"].items():
-                # [...]01.webp -> [...].webp
-                if fn.endswith("01.webp"):
-                    new_fn = fn[: -len("01.webp")] + ".webp"
-                    self.bot.config["stickers"][name] = new_fn
-
-            self.log.info("Migrated local stickers to new disk format")
+        self.db = self.bot.get_db("stickers")
+        self.settings_db = self.bot.get_db("sticker_settings")
 
     async def add_sticker(self, sticker_data, pack_name, emoji="❓"):
         # User to send messages to
@@ -161,7 +106,7 @@ class StickerModule(module.Module):
                 src.seek(0)
             im.save(dest, "png")
 
-        await util.run_sync(lambda: _img_to_png())
+        await util.run_sync(_img_to_png)
         return dest
 
     async def img_to_sticker(self, src, formats):
@@ -185,7 +130,7 @@ class StickerModule(module.Module):
             for fmt, dest in formats.items():
                 im.save(dest, fmt)
 
-        await util.run_sync(lambda: _img_to_sticker())
+        await util.run_sync(_img_to_sticker)
         return formats
 
     @command.desc("Kang a sticker into configured/provided pack")
@@ -193,14 +138,14 @@ class StickerModule(module.Module):
         if not msg.is_reply:
             return "__Reply to a sticker to kang it.__"
 
-        if "kang_pack" not in self.bot.config["user"] and not pack_name:
+        saved_pack_name = await self.settings_db.get("kang_pack")
+        if not saved_pack_name and not pack_name:
             return "__Specify the name of the pack to add the sticker to.__"
 
         if pack_name:
-            self.bot.config["user"]["kang_pack"] = pack_name
-            await self.bot.save_config()
+            await self.settings_db.put("kang_pack", pack_name)
         else:
-            pack_name = self.bot.config["user"]["kang_pack"]
+            pack_name = saved_pack_name
 
         reply_msg = await msg.get_reply_message()
 
@@ -230,7 +175,7 @@ class StickerModule(module.Module):
         if not name:
             return "__Provide a name for the new sticker.__"
 
-        if name in self.bot.config["stickers"]:
+        if await self.db.has(name):
             return "__There's already a sticker with that name.__"
 
         reply_msg = await msg.get_reply_message()
@@ -238,9 +183,7 @@ class StickerModule(module.Module):
         if not reply_msg.sticker:
             return "__That message isn't a sticker.__"
 
-        self.bot.config["stickers"][name] = reply_msg.file.id
-        await self.bot.save_config()
-
+        await self.db.put(name, reply_msg.file.id)
         return f"Sticker saved as `{name}`."
 
     @command.desc("Save a sticker with a name (to disk)")
@@ -251,7 +194,7 @@ class StickerModule(module.Module):
         if not name:
             return "__Provide a name for the new sticker.__"
 
-        if name in self.bot.config["stickers"]:
+        if await self.db.has(name):
             return "__There's already a sticker with that name.__"
 
         reply_msg = await msg.get_reply_message()
@@ -259,38 +202,36 @@ class StickerModule(module.Module):
         if not reply_msg.sticker:
             return "__That message isn't a sticker.__"
 
-        path = await util.msg_download_file(reply_msg, msg, destination=f"stickers/{name}.webp", file_type="sticker")
+        path = await util.tg.msg_download_file(reply_msg, msg, destination=f"stickers/{name}.webp", file_type="sticker")
         if not path:
             return "__Error downloading sticker__"
 
-        self.bot.config["stickers"][name] = path
-        await self.bot.save_config()
-
+        await self.db.put(name, path)
         return f"Sticker saved to disk as `{name}`."
 
     @command.desc("List saved stickers")
     async def cmd_stickers(self, msg):
-        if not self.bot.config["stickers"]:
-            return "__No stickers saved.__"
-
         out = ["**Stickers saved**:"]
 
-        for item in self.bot.config["stickers"]:
-            s_type = "local" if self.bot.config["stickers"][item].endswith(".webp") else "reference"
-            out.append(f"{item} ({s_type})")
+        async for key, value in self.db:
+            typ = "local" if value.endswith(".webp") else "reference"
+            out.append(f"{key} ({typ})")
+
+        if len(out) == 1:
+            return "__No stickers saved.__"
 
         return "\n    \u2022 ".join(out)
 
     @command.desc("List locally saved stickers")
     async def cmd_stickersp(self, msg):
-        if not self.bot.config["stickers"]:
-            return "__No stickers saved.__"
-
         out = ["**Stickers saved**:"]
 
-        for item in self.bot.config["stickers"]:
-            if self.bot.config["stickers"][item].endswith(".webp"):
-                out.append(item)
+        async for key, value in self.db:
+            if value.endswith(".webp"):
+                out.append(key)
+
+        if len(out) == 1:
+            return "__No stickers saved.__"
 
         return "\n    \u2022 ".join(out)
 
@@ -299,12 +240,11 @@ class StickerModule(module.Module):
         if not name:
             return "__Provide the name of a sticker to delete.__"
 
-        s_type = "Local" if self.bot.config["stickers"][name].endswith(".webp") else "Reference"
+        if not await self.db.has(name):
+            return "__That sticker doesn't exist.__"
 
-        del self.bot.config["stickers"][name]
-        await self.bot.save_config()
-
-        return f"{s_type} sticker `{name}` deleted."
+        await self.db.delete(name)
+        return f"Sticker `{name}` deleted."
 
     @command.desc("Fetch a sticker by name")
     async def cmd_s(self, msg, name):
@@ -312,11 +252,11 @@ class StickerModule(module.Module):
             await msg.result("__Provide the name of the sticker to fetch.__")
             return
 
-        if name not in self.bot.config["stickers"]:
+        path = await self.db.get(name)
+        if path is None:
             await msg.result("__That sticker doesn't exist.__")
             return
 
-        path = self.bot.config["stickers"][name]
         await msg.result("Uploading sticker...")
         await msg.respond(file=path, reply_to=msg.reply_to_msg_id)
         await msg.delete()
@@ -328,16 +268,16 @@ class StickerModule(module.Module):
             await msg.result("__Provide the name of the sticker to fetch.__")
             return
 
-        if name not in self.bot.config["stickers"]:
+        webp_path = await self.db.get(name)
+        if webp_path is None:
             await msg.result("__That sticker doesn't exist.__")
             return
 
-        if not self.bot.config["stickers"][name].endswith(".webp"):
-            await msg.result("__That sticker can not be sent as a photo.__")
+        if not webp_path.endswith(".webp"):
+            await msg.result("__That sticker cannot be sent as a photo.__")
             return
 
         await msg.result("Uploading sticker...")
-        webp_path = self.bot.config["stickers"][name]
         png_path = webp_path[: -len(".webp")] + ".png"
         if not os.path.isfile(png_path):
             await self.img_to_png(webp_path, dest=png_path)
@@ -347,8 +287,8 @@ class StickerModule(module.Module):
 
     @command.desc("Create a sticker from an image and add it to the given pack")
     async def cmd_sticker(self, msg, *args):
-        if not msg.is_reply:
-            return "__Reply to an image to sticker it.__"
+        if not msg.is_reply and not msg.file:
+            return "__Reply to or embed an image to sticker it.__"
 
         if not args:
             await msg.result(
@@ -356,7 +296,10 @@ class StickerModule(module.Module):
             )
             return
 
-        reply_msg = await msg.get_reply_message()
+        if msg.file:
+            reply_msg = msg
+        else:
+            reply_msg = await msg.get_reply_message()
 
         if not reply_msg.file:
             return "__That message doesn't contain an image.__"
@@ -388,16 +331,19 @@ class StickerModule(module.Module):
 
     @command.desc("Create a sticker from an image and save it to disk under the given name")
     async def cmd_qstick(self, msg, name):
-        if not msg.is_reply:
+        if not msg.is_reply and not msg.file:
             return "__Reply to an image to sticker it.__"
 
         if not name:
             return "__Provide a name for the new sticker.__"
 
-        if name in self.bot.config["stickers"]:
+        if await self.db.has(name):
             return "__There's already a sticker with that name.__"
 
-        reply_msg = await msg.get_reply_message()
+        if msg.file:
+            reply_msg = msg
+        else:
+            reply_msg = await msg.get_reply_message()
 
         if not reply_msg.file:
             return "__That message isn't an image.__"
@@ -410,15 +356,13 @@ class StickerModule(module.Module):
         path = f"stickers/{name}.webp"
         await self.img_to_sticker(sticker_buf, {"webp": path})
 
-        self.bot.config["stickers"][name] = path
-        await self.bot.save_config()
-
+        self.db.put(name, path)
         self.bot.dispatch_event_nowait("stat_event", "stickers_created")
         return f"Sticker saved to disk as `{name}`."
 
     @command.desc("Glitch an image")
     async def cmd_glitch(self, msg, boffset_str):
-        if not msg.is_reply:
+        if not msg.is_reply and not msg.file:
             return "__Reply to an image to glitch it.__"
 
         boffset = 8
@@ -428,7 +372,10 @@ class StickerModule(module.Module):
             except ValueError:
                 return "__Invalid distorted block offset strength.__"
 
-        reply_msg = await msg.get_reply_message()
+        if msg.file:
+            reply_msg = msg
+        else:
+            reply_msg = await msg.get_reply_message()
 
         if not reply_msg.file:
             return "__That message isn't an image.__"

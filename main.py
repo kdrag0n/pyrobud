@@ -2,8 +2,8 @@
 
 import asyncio, logging, colorlog, toml, uvloop
 
-import util
-from bot import Bot
+from pyrobud import util
+from pyrobud.bot import Bot
 
 LOG_LEVEL = logging.INFO
 LOG_FORMAT = "  %(log_color)s%(levelname)-8s%(reset)s | %(name)-7s | %(log_color)s%(message)s%(reset)s"
@@ -33,8 +33,16 @@ def main():
     log.info("Loading config")
     config = toml.load(config_path)
 
+    if "version" not in config or config["version"] < 2:
+        log.info("Upgrading config to version 2")
+        util.config.upgrade_v2(config, config_path)
+
+    if config["version"] < 3:
+        log.info("Upgrading config to version 3")
+        util.config.upgrade_v3(config, config_path)
+
     log.info("Initializing bot")
-    bot = Bot(config, config_path)
+    bot = Bot(config)
 
     log.info("Starting bot %d", bot_tries)
     loop = asyncio.get_event_loop()

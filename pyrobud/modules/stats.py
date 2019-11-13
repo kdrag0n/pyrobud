@@ -1,6 +1,4 @@
-import command
-import module
-import util
+from pyrobud import command, module, util
 
 USEC_PER_HOUR = 60 * 60 * 1000000
 USEC_PER_DAY = USEC_PER_HOUR * 24
@@ -10,34 +8,11 @@ class StatsModule(module.Module):
     name = "Stats"
 
     async def on_load(self):
-        # Populate config if necessary
-        if "stats" not in self.bot.config:
-            self.bot.config["stats"] = {}
-
-        keys = [
-            "sent",
-            "received",
-            "processed",
-            "replaced",
-            "sent_edits",
-            "received_edits",
-            "sent_stickers",
-            "received_stickers",
-            "uptime",
-            "spambots_banned",
-            "stickers_created",
-        ]
-
-        for k in keys:
-            if k not in self.bot.config["stats"]:
-                self.bot.config["stats"][k] = 0
+        self.db = self.bot.get_db("stats")
 
     async def on_start(self, time_us):
-        if "stop_time_usec" in self.bot.config["stats"]:
-            self.last_time = self.bot.config["stats"]["stop_time_usec"]
-            del self.bot.config["stats"]["stop_time_usec"]
-        else:
-            self.last_time = time_us
+        self.last_time = await self.db.get("stop_time_usec", util.time.usec())
+        await self.db.delete("stop_time_usec")
 
     async def on_message(self, msg):
         stat = "sent" if msg.out else "received"
@@ -55,18 +30,18 @@ class StatsModule(module.Module):
         await self.bot.dispatch_event("stat_event", "processed")
 
     async def on_stat_event(self, key):
-        self.bot.config["stats"][key] += 1
-        self.update_uptime()
+        await self.db.inc(key)
+        await self.update_uptime()
 
-    def update_uptime(self):
-        now = util.time_us()
+    async def update_uptime(self):
+        now = util.time.usec()
         delta_us = now - self.last_time
-        self.bot.config["stats"]["uptime"] += delta_us
+        await self.db.inc("uptime", delta_us)
         self.last_time = now
 
     async def on_stop(self):
-        self.update_uptime()
-        self.bot.config["stats"]["stop_time_usec"] = self.last_time
+        await self.update_uptime()
+        await self.db.put("stop_time_usec", self.last_time)
 
     def calc_pct(self, num1: int, num2: int) -> str:
         if not num2:
@@ -86,33 +61,31 @@ class StatsModule(module.Module):
     @command.alias("stat")
     async def cmd_stats(self, msg, args):
         if args == "reset":
-            self.bot.config["stats"] = {}
+            await self.db.clear()
             await self.on_load()
-            await self.on_start(util.time_us())
+            await self.on_start(util.time.usec())
             return "__All stats have been reset.__"
 
-        self.update_uptime()
-        await self.bot.save_config()
+        await self.update_uptime()
 
-        st = self.bot.config["stats"]
-        uptime = st["uptime"]
-        sent = st["sent"]
-        sent_stickers = st["sent_stickers"]
-        sent_edits = st["sent_edits"]
-        recv = st["received"]
-        recv_stickers = st["received_stickers"]
-        recv_edits = st["received_edits"]
-        processed = st["processed"]
-        replaced = st["replaced"]
-        banned = st["spambots_banned"]
-        stickers = st["stickers_created"]
+        uptime = await self.db.get("uptime", 0)
+        sent = await self.db.get("sent", 0)
+        sent_stickers = await self.db.get("sent_stickers", 0)
+        sent_edits = await self.db.get("sent_edits", 0)
+        recv = await self.db.get("received", 0)
+        recv_stickers = await self.db.get("received_stickers", 0)
+        recv_edits = await self.db.get("received_edits", 0)
+        processed = await self.db.get("processed", 0)
+        replaced = await self.db.get("replaced", 0)
+        ab_kicked = await self.db.get("spambots_banned", 0)
+        stickers = await self.db.get("stickers_created", 0)
 
         return f"""**Stats since last reset**:
-    • **Total time elapsed**: {util.format_duration_us(uptime)}
+    • **Total time elapsed**: {util.time.format_duration_us(uptime)}
     • **Messages received**: {recv} ({self.calc_ph(recv, uptime)}/h) • {self.calc_pct(recv_stickers, recv)}% are stickers • {self.calc_pct(recv_edits, recv)}% were edited
     • **Messages sent**: {sent} ({self.calc_ph(sent, uptime)}/h) • {self.calc_pct(sent_stickers, sent)}% are stickers • {self.calc_pct(sent_edits, sent)}% were edited
     • **Total messages sent**: {self.calc_pct(sent, sent + recv)}% of all accounted messages
     • **Commands processed**: {processed} ({self.calc_ph(processed, uptime)}/h) • {self.calc_pct(processed, sent)}% of sent messages
     • **Snippets replaced**: {replaced} ({self.calc_ph(replaced, uptime)}/h) • {self.calc_pct(replaced, sent)}% of sent messages
-    • **Spambots banned**: {banned} ({self.calc_pd(banned, uptime)}/day)
+    • **Spambots kicked**: {ab_kicked} ({self.calc_pd(ab_kicked, uptime)}/day)
     • **Stickers created**: {stickers} ({self.calc_pd(stickers, uptime)}/day)"""

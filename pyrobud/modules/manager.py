@@ -1,18 +1,15 @@
-import command
-import module
-import util
+from pyrobud import command, module, util
 
 
 class ManagerModule(module.Module):
     name = "Manager"
 
     @command.desc("Reload all modules")
-    @command.alias("ra")
+    @command.alias("ra", "reload", "r")
     async def cmd_reloadall(self, msg):
-        before = util.time_us()
+        before = util.time.usec()
 
         await self.bot.dispatch_event("stop")
-        await self.bot.save_config()
 
         await msg.result("Unloading all modules...")
         self.bot.unload_all_modules()
@@ -28,11 +25,9 @@ class ManagerModule(module.Module):
 
         await msg.result("Dispatching events...")
         await self.bot.dispatch_event("load")
-        await self.bot.dispatch_event("start", util.time_us())
+        await self.bot.dispatch_event("start", util.time.usec())
 
-        await self.bot.save_config()
-
-        after = util.time_us()
+        after = util.time.usec()
         delta = after - before
 
-        return f"All modules reloaded in {util.format_duration_us(delta)}."
+        return f"All modules reloaded in {util.time.format_duration_us(delta)}."

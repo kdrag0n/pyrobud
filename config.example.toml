@@ -1,0 +1,22 @@
+# Config schema version. DO NOT TOUCH!
+# The config upgrader/migrator system will update this automatically as necessary.
+version = 3
+
+[telegram]
+# Client API ID used for authentication, obtained from https://my.telegram.org/apps
+api_id = 12345
+# Client API hash used for authentication, obtained from https://my.telegram.org/apps
+api_hash = "0123456789abcdef0123456789abcdef"
+# Session name, used by Telethon for saving login details and caching entities
+# Filename on disk would be "main.session" (and "main.session-journal" while running)
+# This can be set to any valid filename and is useful for running on multiple accounts
+session_name = "main"
+
+[bot]
+# Default command prefix
+# This is prepended to command names to invoke the command, e.g. ".help" if the prefix is "."
+default_prefix = "."
+# Path to the LevelDB database used for storing settings and other data
+# Note that this is a *directory*, not a file
+# This will be created during startup if it doesn't already exist
+db_path = "main.db"

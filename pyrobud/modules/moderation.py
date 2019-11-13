@@ -2,9 +2,7 @@ from datetime import datetime
 
 import telethon as tg
 
-import command
-import module
-import util
+from pyrobud import command, module, util
 
 
 class ModerationModule(module.Module):
@@ -108,7 +106,7 @@ class ModerationModule(module.Module):
 
         for user_id in user_ids:
             user = await self.bot.client.get_entity(user_id)
-            lines.append(f"    \u2022 {util.mention_user(user)} (`{user_id}`)")
+            lines.append(f"    \u2022 {util.tg.mention_user(user)} (`{user_id}`)")
 
             rights = tg.tl.types.ChatBannedRights(until_date=None, view_messages=True)
             ban_request = tg.tl.functions.channels.EditBannedRequest(chat, user, rights)

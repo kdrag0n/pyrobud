@@ -6,16 +6,13 @@ import os
 import sys
 import traceback
 
-import aiofiles
 import aiohttp
 import telethon as tg
 from telethon.tl.types import PeerUser, PeerChat, PeerChannel
 import toml
+import plyvel
 
-import command
-import module
-import modules
-import util
+from . import command, module, modules, util
 
 from datetime import datetime, timedelta, timezone
 
@@ -34,18 +31,29 @@ class Bot:
     uid: int
 
     def __init__(self, config, config_path):
+    # def __init__(self, config):
+        # Initialize module dicts
         self.commands = {}
         self.modules = {}
         self.listeners = {}
 
+        # Save reference to config
+        self.config = config
+
+        # Initialize other objects
         self.log = logging.getLogger("bot")
-        self.client = tg.TelegramClient("anon", config["telegram"]["api_id"], config["telegram"]["api_hash"])
         self.http_session = aiohttp.ClientSession()
 
-        self.config = config
-        self.config_path = config_path
-        self.prefix = config["bot"]["prefix"]
-        self.last_saved_cfg = toml.dumps(config)
+        # Initialize database
+        self._db = util.db.AsyncDB(plyvel.DB(config["bot"]["db_path"], create_if_missing=True))
+        self.db = self.get_db("bot")
+
+        # Initialize Telegram client
+        tg_config = config["telegram"]
+        self.client = tg.TelegramClient(tg_config["session_name"], tg_config["api_id"], tg_config["api_hash"])
+
+    def get_db(self, prefix):
+        return self._db.prefixed_db(prefix + ".")
 
     def register_command(self, mod, name, func):
         info = command.Info(name, mod, func)
@@ -174,33 +182,6 @@ class Bot:
         self.log.info("Reloading master module...")
         await util.run_sync(lambda: importlib.reload(modules))
 
-    async def save_config(self, data=None):
-        tmp_path = self.config_path + ".tmp"
-
-        if data is None:
-            data = toml.dumps(self.config)
-
-        try:
-            async with aiofiles.open(tmp_path, "wb+") as f:
-                await f.write(data.encode("utf-8"))
-                await f.flush()
-                await util.run_sync(lambda: os.fsync(f.fileno()))
-
-            await util.run_sync(lambda: os.rename(tmp_path, self.config_path))
-        except:
-            await util.run_sync(lambda: os.remove(tmp_path))
-            raise
-
-        self.last_saved_cfg = data
-
-    async def writer(self):
-        while True:
-            await asyncio.sleep(15)
-
-            cfg = toml.dumps(self.config)
-            if cfg != self.last_saved_cfg:
-                await self.save_config(data=cfg)
-
     def command_predicate(self, event):
         if event.raw_text.startswith(self.prefix):
             parts = event.raw_text.split()
@@ -215,10 +196,12 @@ class Bot:
         # Get and store current event loop, since this is the first coroutine
         self.loop = asyncio.get_event_loop()
 
-        # Load modules and save config in case any migration changes were made
+        # Load prefix
+        self.prefix = await self.db.get("prefix", self.config["bot"]["default_prefix"])
+
+        # Load modules
         self.load_all_modules()
         await self.dispatch_event("load")
-        await self.save_config()
 
         # Start Telegram client
         await self.client.start()
@@ -229,10 +212,11 @@ class Bot:
 
         # Hijack Message class to provide result function
         async def result(msg, new_text, **kwargs):
-            t = self.config["telegram"]
-            api_id = str(t["api_id"])
-            api_hash = t["api_hash"]
+            tg_config = self.config["telegram"]
+            api_id = str(tg_config["api_id"])
+            api_hash = tg_config["api_hash"]
 
+            # Redact sensitive information
             if api_id in new_text:
                 new_text = new_text.replace(api_id, "[REDACTED]")
             if api_hash in new_text:
@@ -240,8 +224,14 @@ class Bot:
             if self.user.phone in new_text:
                 new_text = new_text.replace(self.user.phone, "[REDACTED]")
 
+            # Default to disabling link previews in responses
             if "link_preview" not in kwargs:
                 kwargs["link_preview"] = False
+
+            # Truncate messages longer than Telegram's 4096-character length limit
+            truncated_suffix = "... (truncated)"
+            if len(new_text) > 4096:
+                new_text = new_text[: 4096 - len(truncated_suffix)] + truncated_suffix
 
             await msg.edit(text=new_text, **kwargs)
 
@@ -261,9 +251,6 @@ class Bot:
         if len(self.config["bot"]["auto_admins"]) > 0:
             self.client.add_event_handler(self.on_raw_event, tg.events.Raw)
 
-        # Save config in the background
-        self.loop.create_task(self.writer())
-
         self.log.info("Bot is ready")
         await self.dispatch_event("ready")
         timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
@@ -279,14 +266,12 @@ class Bot:
         await self.save_config()
         self.log.info("Everything ready!")
 
-
-
     async def stop(self):
         timestamp = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
         await self.client.send_message(self.user, f"[{timestamp}] Selfbot is stopping")
         await self.dispatch_event("stop")
-        await self.save_config()
         await self.http_session.close()
+        await self._db.close()
 
     async def dispatch_event(self, event, *args):
         tasks = set()
@@ -300,6 +285,7 @@ class Bot:
             task = self.loop.create_task(l.func(*args))
             tasks.add(task)
 
+        self.log.debug(f"Dispatching event '{event}' with data {args}")
         return await asyncio.wait(tasks)
 
     def dispatch_event_nowait(self, *args, **kwargs):

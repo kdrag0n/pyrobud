@@ -5,9 +5,7 @@ from datetime import datetime
 import telethon as tg
 import toml
 
-import command
-import module
-import util
+from pyrobud import command, module, util
 
 
 class BotSetupModule(module.Module):
@@ -43,7 +41,7 @@ GitHub = "https://github.com/"```
 
 {bracket_format}"""
 
-        input_cfg = util.filter_code_block(input_cfg)
+        input_cfg = util.tg.filter_code_block(input_cfg)
         if input_cfg.startswith("?") or input_cfg.startswith("help"):
             return cfg_err.format("")
 
@@ -101,7 +99,7 @@ Please read the rules _before_ participating.
     async def promote_bot(self, chat, username):
         rights = tg.tl.types.ChatAdminRights(delete_messages=True, ban_users=True, invite_users=True, pin_messages=True)
 
-        request = tg.tl.functions.channels.EditAdminRequest(chat, username, rights)
+        request = tg.tl.functions.channels.EditAdminRequest(chat, username, rights, "bot")
         await self.bot.client(request)
 
     def truncate_cmd_list(self, commands):
@@ -130,6 +128,7 @@ Please read the rules _before_ participating.
 
         target, rule_str, button_str, parsed_cfg = parse_results
         commands = self.get_commands(msg.chat_id, rule_str, button_str)
+        formatted_cfg = toml.dumps(parsed_cfg)
 
         before = datetime.now()
 
@@ -181,7 +180,6 @@ The bot failed to respond within 1 minute of issuing the last command. Perhaps t
         after = datetime.now()
         delta_seconds = int((after - before).total_seconds())
 
-        formatted_cfg = toml.dumps(parsed_cfg)
         return f"""Setup of @{target} finished in {delta_seconds} seconds.
 
 Settings used:

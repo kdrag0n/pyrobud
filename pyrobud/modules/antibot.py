@@ -1,16 +1,17 @@
+import asyncio
+import string
+from datetime import timezone
+
 import telethon as tg
 import nostril
 
-import asyncio
-import command
-import module
-import string
+from pyrobud import command, module, util
 
 
 class AntibotModule(module.Module):
     name = "Antibot"
 
-    suspicious_keywords = ["investment", "profit", "binance", "binanse", "bitcoin", "testnet", "bitmex"]
+    suspicious_keywords = ["invest", "profit", "binance", "binanse", "bitcoin", "testnet", "bitmex"]
 
     suspicious_entities = [
         tg.types.MessageEntityUrl,
@@ -20,20 +21,32 @@ class AntibotModule(module.Module):
     ]
 
     suspicious_first_names = [
-        "Announcement",
-        "Info",
-        "Urgent"
+        "announcement",
+        "info",
+        "urgent",
+        "limited",
+        "holiday",
+        "verified",
+        "solidified",
+        "recommended",
+        "temporarily",
     ]
 
     async def on_load(self):
-        # Populate config if necessary
-        if "antibot" not in self.bot.config:
-            self.bot.config["antibot"] = {"threshold_time": 30, "group_ids": []}
-        else:
-            if "threshold_time" not in self.bot.config["antibot"]:
-                self.bot.config["antibot"]["threshold_time"] = 30  # seconds
-            if "group_ids" not in self.bot.config["antibot"]:
-                self.bot.config["antibot"]["group_ids"] = []
+        self.db = self.bot.get_db("antibot")
+        self.group_db = self.db.prefixed_db("groups.")
+        self.user_db = self.db.prefixed_db("users.")
+
+        # Migrate message tracking start times to the new per-group format
+        fmsg_start_time = await self.db.get("first_msg_start_time")
+        if fmsg_start_time is not None:
+            self.log.info("Migrating message tracking start times to the new per-group format")
+
+            async for key, value in self.group_db:
+                if key.endswith(".enabled") and value:
+                    await self.group_db.put(key.replace(".enabled", ".enable_time"), fmsg_start_time)
+
+            await self.db.delete("first_msg_start_time")
 
     def msg_has_suspicious_entity(self, msg):
         if not msg.entities:
@@ -71,7 +84,7 @@ class AntibotModule(module.Module):
         # Check for a date to exonerate empty messages
         if incoming and has_date:
             # Lazily evalulate suspicious content as it is more expensive
-            return forwarded or self.msg_content_suspicious(msg)
+            return (forwarded and msg.photo) or self.msg_content_suspicious(msg)
 
         return False
 
@@ -91,38 +104,26 @@ class AntibotModule(module.Module):
             return False
 
         delta = msg.date - participant.date
-        if delta.total_seconds() <= self.bot.config["antibot"]["threshold_time"]:
+        if delta.total_seconds() <= await self.db.get("threshold_time", 30):
             # Suspicious message was sent shortly after joining
             return True
+
+        join_time_sec = int(participant.date.replace(tzinfo=timezone.utc).timestamp())
+        if join_time_sec > await self.group_db.get(f"{msg.chat_id}.enable_time"):
+            # We started tracking first messages in this group before the user
+            # joined, so we can run the first message check
+            if not await self.user_db.get(f"{sender.id}.has_spoken_in_{msg.chat_id}", False):
+                # Suspicious message was the user's first message in this group
+                return True
 
         # Allow this message
         return False
 
-    async def user_is_suspicious(self, user):
-        # Users with names that are composed of 2-4 Chinese characters and
-        # don't have avatars or usernames tend to be spambots
-        if 2 <= len(user.first_name) <= 4:
-            # Check for a last name
-            if user.last_name:
-                return False
-
-            # Check each character
-            # U+4E00 - U+9FFF is the "CJK Unified Ideographs" block
-            if not all(c >= "\u4e00" or c <= "\u9fff" for c in user.first_name):
-                # Found a non-CJK character; exonerate this user
-                return False
-
-            # Check for a username and/or an avatar
-            if user.username or user.photo:
-                return False
-
-            # User has suspicious profile info
-            return True
-
+    async def profile_check_nonsense(self, user):
         # Users with unpronounceable ~12-character-long usernames that have the
         # first character capitalized and lack a profile (avatar/bio) tend to
         # be spambots
-        if user.username and 11 <= len(user.username) <= 12:
+        if user.username and 10 <= len(user.username) <= 12:
             # Exonerate the user if the first character isn't capital A-Z or
             # subsequent characters aren't lowercase a-z
             if user.username[0] not in string.ascii_uppercase:
@@ -152,19 +153,35 @@ class AntibotModule(module.Module):
             # All conditions match; mark this user as suspicious
             return True
 
+        # Allow this user
+        return False
+
+    def profile_check_crypto(self, user):
         # Many cryptocurrency spammers have attention-grabbing names that no
         # legitimate users would actually use as a name
-        if user.first_name in self.__class__.suspicious_first_names:
+        if user.first_name.lower() in self.__class__.suspicious_first_names:
             # Suspicious first name
             return True
 
         # Many cryptocurrency spammers also have Telegram invite links in their
         # first or last names
-        if "t.me" in user.first_name or "t.me" in user.last_name:
+        if "t.me" in user.first_name or (user.last_name and "t.me" in user.last_name):
             # Suspicious name
             return True
 
         # Allow this user
+        return False
+
+    async def user_is_suspicious(self, user):
+        # 10-12 character nonsense names without profile info
+        if await self.profile_check_nonsense(user):
+            return True
+
+        # Cryptocurrency spammers with attention-grabbing names
+        if self.profile_check_crypto(user):
+            return True
+
+        # No profile checks matched; exonerate this user
         return False
 
     async def take_action(self, event, user):
@@ -176,35 +193,56 @@ class AntibotModule(module.Module):
         request = tg.tl.functions.channels.DeleteUserHistoryRequest(chat, user)
         await self.bot.client(request)
 
-        # Ban the sender
-        rights = tg.tl.types.ChatBannedRights(until_date=None, view_messages=True)
-        request = tg.tl.functions.channels.EditBannedRequest(chat, user, rights)
-        await self.bot.client(request)
+        # Kick the sender
+        await self.bot.client.kick_participant(chat, user)
 
         # Log the event
-        self.log.info(f'Banned spambot with ID {user.id} in group "{chat.title}"')
-        await event.reply(f"❯❯ **Banned auto-detected spambot** with ID `{user.id}`")
+        self.log.info(f'Kicked spambot with ID {user.id} in group "{chat.title}"')
+        await event.reply(f"❯❯ **Kicked auto-detected spambot** with ID `{user.id}`")
         self.bot.dispatch_event_nowait("stat_event", "spambots_banned")
 
         # Delete the spam message just in case
         await event.delete()
 
-    def is_enabled(self, event):
-        return event.is_group and event.chat_id in self.bot.config["antibot"]["group_ids"]
+    async def is_enabled(self, event):
+        return event.is_group and await self.group_db.get(f"{event.chat_id}.enabled", False)
 
     async def on_message(self, msg):
-        if self.is_enabled(msg) and await self.msg_is_suspicious(msg):
-            # This is most likely a spambot, take action against the user
-            user = await msg.get_sender()
-            await self.take_action(msg, user)
+        # Only run in groups where antibot is enabled
+        if await self.is_enabled(msg):
+            if await self.msg_is_suspicious(msg):
+                # This is most likely a spambot, take action against the user
+                user = await msg.get_sender()
+                await self.take_action(msg, user)
+            else:
+                await self.user_db.put(f"{msg.sender_id}.has_spoken_in_{msg.chat_id}", True)
+
+    async def clear_group(self, group_id):
+        async for key, _ in self.group_db.iterator(prefix=f"{group_id}."):
+            await self.group_db.delete(key)
+
+        async for key, _ in self.user_db:
+            if key.endswith(f".has_spoken_in_{group_id}"):
+                await self.user_db.delete(key)
 
     async def on_chat_action(self, action):
+        # Remove has-spoken-in flag for departing users
+        if action.user_left and await self.is_enabled(action):
+            await self.user_db.delete(f"{action.user_id}.has_spoken_in_{action.chat_id}")
+
+            # Clean up antibot data if we left the group
+            if action.user_id == self.bot.uid:
+                self.log.info(f"Cleaning up settings for group {action.chat_id}")
+                await self.clear_group(action.chat_id)
+
+            return
+
         # Only filter new users
         if not action.user_added and not action.user_joined:
             return
 
         # Only act in groups where this is enabled
-        if not self.is_enabled(action):
+        if not await self.is_enabled(action):
             return
 
         # Fetch the user's data and run checks
@@ -218,16 +256,13 @@ class AntibotModule(module.Module):
         if not msg.is_group:
             return "__Antibot can only be used in groups.__"
 
-        gid_table = self.bot.config["antibot"]["group_ids"]
-        state = msg.chat_id in gid_table
-        state = not state
+        state = not await self.group_db.get(f"{msg.chat_id}.enabled", False)
 
         if state:
-            gid_table.append(msg.chat_id)
+            await self.group_db.put(f"{msg.chat_id}.enabled", True)
+            await self.group_db.put(f"{msg.chat_id}.enable_time", util.time.sec())
         else:
-            gid_table.remove(msg.chat_id)
-
-        await self.bot.save_config()
+            await self.clear_group(msg.chat_id)
 
         status = "enabled" if state else "disabled"
         return f"Antibot is now **{status}** in this group."

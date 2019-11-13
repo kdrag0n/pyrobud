@@ -1,15 +1,15 @@
 import random
 import string
+import unicodedata
 
-import command
-import module
+from pyrobud import command, module
 
 
 class TextModule(module.Module):
     name = "Text"
 
     @command.desc("Unicode character from hex codepoint")
-    @command.alias("cp", "chr", "uc")
+    @command.alias("cp", "chr", "uc", "c")
     async def cmd_uni(self, msg, codepoint):
         if not codepoint:
             return "__Hex codepoint required.__"
@@ -49,6 +49,7 @@ class TextModule(module.Module):
         return "\u0336".join(text) + "\u0336"
 
     @command.desc("Generate fake Google Play-style codes (optional arguments: count, length)")
+    @command.alias("genkey")
     async def cmd_gencode(self, msg, *args):
         count = 10
         length = 23
@@ -73,3 +74,44 @@ class TextModule(module.Module):
 
         codes_str = "\n".join(codes)
         return f"```{codes_str}```"
+
+    @command.desc("Dissect a string into named Unicode codepoints")
+    @command.alias("cinfo", "chinfo", "ci")
+    async def cmd_charinfo(self, msg, text):
+        if not text and msg.is_reply:
+            reply_msg = await msg.get_reply_message()
+            text = reply_msg.text
+
+        if not text:
+            return "__Provide text or reply to a message with text to dissect.__"
+
+        chars = []
+        for char in text:
+            # Don't preview characters that mess up the output
+            preview = char not in "`"
+
+            # Attempt to get the codepoint's name
+            try:
+                name = unicodedata.name(char)
+            except ValueError:
+                # Control characters don't have names, so insert a placeholder
+                # and prevent the character from being rendered to avoid breaking
+                # the output
+                name = "UNNAMED CONTROL CHARACTER"
+                preview = False
+
+            # Render the line and only show the character if safe
+            line = "`U+%04X` %s" % (ord(char), name)
+            if preview:
+                line += " `%c`" % char
+
+            chars.append(line)
+
+        return "\n".join(chars)
+
+    @command.desc("Replace the spaces in a string with clap emojis")
+    async def cmd_clap(self, msg, text):
+        if not text:
+            return "__Provide text to insert claps into.__"
+
+        return "👏".join(text.split())

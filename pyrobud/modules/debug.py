@@ -1,5 +1,10 @@
 import inspect, json, re, command,module, util, telethon as tg
 from datetime import datetime
+import inspect
+import json
+import re
+
+from pyrobud import command, module, util
 
 class DebugModule(module.Module):
     name = "Debug"
@@ -8,31 +13,32 @@ class DebugModule(module.Module):
     async def cmd_time11(self, msg):
         reps = 1000000
 
-        before = util.time_us()
+        before = util.time.usec()
         for _ in range(reps):
             _ = 1 + 1
-        after = util.time_us()
+        after = util.time.usec()
 
         el_us = (after - before) / reps
         return "`1 + 1`: %.0f ns" % (el_us * 1000)
 
     @command.desc("Evaluate code")
-    @command.alias("ev", "c")
+    @command.alias("ev")
     async def cmd_eval(self, msg, raw_args):
         def _eval():
             nonlocal msg, raw_args, self
 
+            # pylint: disable=unused-variable
             def send(text):
                 return self.bot.loop.create_task(msg.respond(text))
 
-            return eval(util.filter_code_block(raw_args))
+            return eval(util.tg.filter_code_block(raw_args))
 
-        before = util.time_us()
+        before = util.time.usec()
         result = await util.run_sync(_eval)
-        after = util.time_us()
+        after = util.time.usec()
 
         el_us = after - before
-        el_str = util.format_duration_us(el_us)
+        el_str = util.time.format_duration_us(el_us)
 
         return f"""```{str(result)}```
 
@@ -43,10 +49,11 @@ Time: {el_str}"""
         def _exec():
             nonlocal msg, raw_args, self
 
+            # pylint: disable=unused-variable
             def send(text):
                 return self.bot.loop.create_task(msg.respond(text))
 
-            exec(util.filter_code_block(raw_args))
+            exec(util.tg.filter_code_block(raw_args))
 
         await util.run_sync(_exec)
         return "Code evaulated."
@@ -89,12 +96,6 @@ Time: {el_str}"""
 
         return f"```{data}```"
 
-    @command.desc("Save the config")
-    @command.alias("sc")
-    async def cmd_save_config(self, msg):
-        await self.bot.save_config()
-        return "Config saved to disk."
-
     @command.desc("Send media by file ID")
     @command.alias("file")
     async def cmd_fileid(self, msg, file_id):
@@ -132,7 +133,7 @@ Time: {el_str}"""
             except ValueError as e:
                 return f"Error getting entity `{entity_str}`: {e}"
 
-            return f"""ID of `{entity_str}` ({util.mention_user(entity)}) is: `{entity.id}`
+            return f"""ID of `{entity_str}` ({util.tg.mention_user(entity)}) is: `{entity.id}`
 
 Additional entity info:
 ```{entity.stringify()}```"""
