@@ -1,3 +1,6 @@
+import logging
+
+
 def desc(_desc):
     def desc_decorator(func):
         func.description = _desc
@@ -17,10 +20,19 @@ def alias(*aliases):
     return alias_decorator
 
 
+def error_level(_level):
+    def level_decorator(func):
+        func.error_level = _level
+        return func
+
+    return level_decorator
+
+
 class Info:
     def __init__(self, name, module, func):
         self.name = name
         self.desc = getattr(func, "description", None)
         self.aliases = getattr(func, "aliases", [])
+        self.error_level = getattr(func, "error_level", logging.ERROR)
         self.module = module
         self.func = func
