@@ -1,6 +1,6 @@
 # Config schema version. DO NOT TOUCH!
 # The config upgrader/migrator system will update this automatically as necessary.
-version = 3
+version = 4
 
 [telegram]
 # Client API ID used for authentication, obtained from https://my.telegram.org/apps
@@ -20,3 +20,16 @@ default_prefix = "."
 # Note that this is a *directory*, not a file
 # This will be created during startup if it doesn't already exist
 db_path = "main.db"
+# Whether to report errors to the bot creator's centralized Sentry dashboard
+# This is strongly recommended to help improve the bot's stability for everyone,
+# but you're free to disable it if you're uncomfortable with the prospect of
+# sending such data to a third-party service.
+# PLEASE DISABLE THIS IF YOU ARE TESTING/USING CUSTOM MODIFICATIONS! You're free
+# to modify the bot as you wish, but please do not spam me with errors caused
+# by your modifications.
+report_errors = true
+# Whether to send your account's username (if any) along with automatic error reports.
+# This will help the bot creator follow up on issues you encounter but is
+# disabled by default amid widespread privacy concerns around such practices.
+# No effect if report_errors is disabled.
+report_username = false

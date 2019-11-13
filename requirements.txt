@@ -2,11 +2,13 @@ aiohttp
 async_generator
 colorlog
 cryptg
+gitpython
 hachoir
 msgpack
 pillow
 plyvel
 pycparser
+sentry-sdk
 speedtest-cli
 telethon
 toml

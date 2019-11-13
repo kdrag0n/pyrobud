@@ -10,6 +10,7 @@ import aiohttp
 import telethon as tg
 import toml
 import plyvel
+import sentry_sdk
 
 from . import command, module, modules, util
 
@@ -200,6 +201,11 @@ class Bot:
         # Get info
         self.user = await self.client.get_me()
         self.uid = self.user.id
+
+        # Set Sentry username if enabled
+        if self.config["bot"]["report_username"]:
+            with sentry_sdk.configure_scope() as scope:
+                scope.user = {"username": self.user.username}
 
         # Hijack Message class to provide result function
         async def result(msg, new_text, **kwargs):

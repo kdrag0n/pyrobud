@@ -37,6 +37,12 @@ def main():
     log.info("Loading config")
     config = toml.load(config_path)
 
+    # Initialize Sentry reporting here to exempt config syntax errors and query
+    # the user's report_errors value, defaulting to enabled if not specified
+    if config["bot"].get("report_errors", True):
+        log.info("Initializing error reporting")
+        util.sentry.init()
+
     if "version" not in config or config["version"] < 2:
         log.info("Upgrading config to version 2")
         util.config.upgrade_v2(config, config_path)
@@ -44,6 +50,10 @@ def main():
     if config["version"] < 3:
         log.info("Upgrading config to version 3")
         util.config.upgrade_v3(config, config_path)
+
+    if config["version"] < 4:
+        log.info("Upgrading config to version 4")
+        util.config.upgrade_v4(config, config_path)
 
     log.info("Initializing bot")
     bot = Bot(config)

@@ -1,7 +1,7 @@
 import os
 import traceback
 
-from . import config, db, tg, time, async_helpers
+from . import async_helpers, config, db, sentry, tg, time
 
 
 run_sync = async_helpers.run_sync
