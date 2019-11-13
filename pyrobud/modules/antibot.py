@@ -1,6 +1,6 @@
 import asyncio
 import string
-from datetime import timezone
+from datetime import timezone, timedelta
 
 import telethon as tg
 import nostril
@@ -198,7 +198,7 @@ class AntibotModule(module.Module):
 
         # Log the event
         self.log.info(f'Kicked spambot with ID {user.id} in group "{chat.title}"')
-        await event.reply(f"❯❯ **Kicked auto-detected spambot** with ID `{user.id}`")
+        await event.reply(f"❯❯ **Kicked auto-detected spambot** with ID `{user.id}`", schedule=timedelta(seconds=10))
         self.bot.dispatch_event_nowait("stat_event", "spambots_banned")
 
         # Delete the spam message just in case
