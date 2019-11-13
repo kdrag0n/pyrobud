@@ -43,7 +43,7 @@ class DebugModule(module.Module):
 
 Time: {el_str}"""
 
-    @command.desc("Evalulate code (statement)")
+    @command.desc("Evaluate code (statement)")
     async def cmd_exec(self, msg, raw_args):
         def _exec():
             nonlocal msg, raw_args, self
