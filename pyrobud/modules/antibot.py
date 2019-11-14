@@ -256,9 +256,27 @@ class AntibotModule(module.Module):
         if not msg.is_group:
             return "__Antibot can only be used in groups.__"
 
+        if not msg.is_channel:
+            return "__Please convert this group to a supergroup in order to enable antibot.__"
+
         state = not await self.group_db.get(f"{msg.chat_id}.enabled", False)
 
         if state:
+            # Check for required permissions
+            chat = await msg.get_chat()
+            ch_participant = await self.bot.client(tg.tl.functions.channels.GetParticipantRequest(chat, "me"))
+            ptcp = ch_participant.participant
+
+            if isinstance(ptcp, tg.types.ChannelParticipantCreator):
+                # Group creator always has all permissions
+                pass
+            elif isinstance(ptcp, tg.types.ChannelParticipantAdmin):
+                # Check for the required admin permissions
+                if not ptcp.admin_rights.delete_messages or not ptcp.admin_rights.ban_users:
+                    return "__Antibot requires the **Delete Messages** and **Ban users** permissions.__"
+            else:
+                return "__I must be an admin with the **Delete Messages** and **Ban users** permissions for antibot to work.__"
+
             await self.group_db.put(f"{msg.chat_id}.enabled", True)
             await self.group_db.put(f"{msg.chat_id}.enable_time", util.time.sec())
         else:
