@@ -120,10 +120,12 @@ Time: {el_str}"""
 
             return "__No compatible media found.__"
 
-    @command.desc("Get all contextually relevant IDs, or the ID of the given entity")
-    @command.alias("user", "entity", "info", "einfo")
-    async def cmd_id(self, msg, entity_str):
-        if entity_str:
+    @command.desc("Get all available information about the given entity (or `chat`)")
+    @command.alias("einfo")
+    async def cmd_entity(self, msg, entity_str):
+        if entity_str == "chat":
+            entity = await msg.get_chat()
+        elif entity_str:
             if entity_str.isdigit():
                 try:
                     entity_str = int(entity_str)
@@ -134,12 +136,16 @@ Time: {el_str}"""
                 entity = await self.bot.client.get_entity(entity_str)
             except ValueError as e:
                 return f"Error getting entity `{entity_str}`: {e}"
+        elif msg.is_reply:
+            entity = await msg.get_reply_message()
+        else:
+            return "__No entity given via argument or reply.__"
 
-            return f"""ID of `{entity_str}` ({util.tg.mention_user(entity)}) is: `{entity.id}`
+        return f"```{entity.stringify()}```"
 
-Additional entity info:
-```{entity.stringify()}```"""
-
+    @command.desc("Get all contextually relevant IDs")
+    @command.alias("user", "info")
+    async def cmd_id(self, msg):
         lines = []
 
         if msg.chat_id:
