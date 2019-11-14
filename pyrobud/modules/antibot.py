@@ -84,7 +84,12 @@ class AntibotModule(module.Module):
         # Check for a date to exonerate empty messages
         if incoming and has_date:
             # Lazily evalulate suspicious content as it is more expensive
-            return (forwarded and msg.photo) or self.msg_content_suspicious(msg)
+            if forwarded:
+                # Screen forwarded messages more aggressively
+                return msg.photo or self.msg_content_suspicious(msg)
+            else:
+                # Skip suspicious entity/photo check for non-forwarded messages
+                return self.msg_has_suspicious_keyword(msg)
 
         return False
 
