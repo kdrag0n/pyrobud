@@ -35,9 +35,15 @@ class SystemModule(module.Module):
         el_us = after - before
         el_str = f"\nTime: {util.time.format_duration_us(el_us)}"
 
+        cmd_out = proc.stdout.strip()
+        if not cmd_out:
+            cmd_out = "(no output)"
+        elif cmd_out[-1:] != "\n":
+            cmd_out += "\n"
+
         err = f"⚠️ Return code: {proc.returncode}" if proc.returncode != 0 else ""
 
-        return f"```{proc.stdout.strip()}```{err}{el_str}"
+        return f"```{cmd_out}```{err}{el_str}"
 
     @command.desc("Get information about the host system")
     @command.alias("si")
