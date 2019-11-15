@@ -101,9 +101,16 @@ class AntibotModule(module.Module):
         if not self.msg_data_is_suspicious(msg):
             return False
 
-        # Load group-specific user information
+        # Load message metadata entities
         chat = await msg.get_chat()
         sender = await msg.get_sender()
+
+        # Messages forwarded from a linked channel by Telegram don't have a sender
+        # We can assume these messages are safe since only admins can link channels
+        if sender is None:
+            return False
+
+        # Load group-specific user information
         ch_participant = await self.bot.client(tg.tl.functions.channels.GetParticipantRequest(chat, sender))
         participant = ch_participant.participant
 
