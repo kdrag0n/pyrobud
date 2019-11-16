@@ -63,7 +63,7 @@ Takes arguments: {args_desc}"""
             lines[mod_name].append(f"**{cmd.name}**: {desc}{aliases}")
 
         sections = []
-        for mod, ln in lines.items():
+        for mod, ln in sorted(lines.items()):
             sections.append(f"**{mod}**:\n    \u2022 " + "\n    \u2022 ".join(ln) + "\n")
 
         return "\n".join(sections)
