@@ -25,7 +25,7 @@ class CoreModule(module.Module):
 
                 if len(cmd_args) == 3:
                     args_desc = "Yes, one string"
-                elif cmd_spec.varargs is not None and len(cmd_spec.varargs) > 0 and not cmd_spec.kwonlyargs:
+                elif cmd_spec.varargs and not cmd_spec.kwonlyargs:
                     args_desc = "Yes, whitespace-separated segments"
                 else:
                     args_desc = "No"

@@ -304,7 +304,7 @@ class Bot:
                     txt = event.raw_text
 
                 args = [txt[len(self.prefix) + len(event.segments[0]) + 1 :]]
-            elif cmd_spec.varargs is not None and len(cmd_spec.varargs) > 0 and not cmd_spec.kwonlyargs:
+            elif cmd_spec.varargs and not cmd_spec.kwonlyargs:
                 args = event.segments[1:]
 
             try:
