@@ -130,7 +130,9 @@ class Bot:
 
     def load_module(self, cls, *, comment=None):
         _comment = comment + " " if comment else ""
-        self.log.info(f"Loading {_comment}module '{cls.name}' ({cls.__name__}) from '{os.path.relpath(inspect.getfile(cls))}'")
+        self.log.info(
+            f"Loading {_comment}module '{cls.name}' ({cls.__name__}) from '{os.path.relpath(inspect.getfile(cls))}'"
+        )
 
         if cls.name in self.modules:
             old = self.modules[cls.name].__class__
@@ -146,7 +148,9 @@ class Bot:
         _comment = mod.comment + " " if mod.comment else ""
 
         cls = mod.__class__
-        self.log.info(f"Unloading {_comment}module '{cls.name}' ({cls.__name__}) from '{os.path.relpath(inspect.getfile(cls))}'")
+        self.log.info(
+            f"Unloading {_comment}module '{cls.name}' ({cls.__name__}) from '{os.path.relpath(inspect.getfile(cls))}'"
+        )
 
         self.unregister_listeners(mod)
         self.unregister_commands(mod)
