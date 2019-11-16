@@ -1,3 +1,5 @@
+import inspect
+
 from .. import command, module, util
 
 
@@ -5,13 +7,49 @@ class CoreModule(module.Module):
     name = "Core"
 
     @command.desc("List the commands")
-    async def cmd_help(self, msg):
+    async def cmd_help(self, msg, filt):
         lines = {}
 
+        # Handle command filters
+        if filt and filt not in self.bot.modules:
+            if filt in self.bot.commands:
+                cmd = self.bot.commands[filt]
+
+                # Generate aliases section
+                aliases = f"`{'`, `'.join(cmd.aliases)}`" if cmd.aliases else "none"
+
+                # Generate arguments section
+                cmd_func = cmd.func
+                cmd_spec = inspect.getfullargspec(cmd_func)
+                cmd_args = cmd_spec.args
+
+                if len(cmd_args) == 3:
+                    args_desc = "Yes, one string"
+                elif cmd_spec.varargs is not None and len(cmd_spec.varargs) > 0 and not cmd_spec.kwonlyargs:
+                    args_desc = "Yes, whitespace-separated segments"
+                else:
+                    args_desc = "No"
+
+                # Show info card
+                return f"""`{cmd.name}`: **{cmd.desc if cmd.desc else '__No description provided.__'}**
+
+Module: {cmd.module.name}
+Aliases: {aliases}
+Takes arguments: {args_desc}"""
+            else:
+                return "__That filter didn't match any commands or modules.__"
+
+        # Show full help
         for name, cmd in self.bot.commands.items():
-            # Don't count aliases as separate commands
-            if name != cmd.name:
-                continue
+            # Check if a filter is being used
+            if filt:
+                # Ignore commands that aren't part of the filtered module
+                if cmd.module.name != filt:
+                    continue
+            else:
+                # Don't count aliases as separate commands
+                if name != cmd.name:
+                    continue
 
             desc = cmd.desc if cmd.desc else "__No description provided__"
             aliases = ""
