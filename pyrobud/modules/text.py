@@ -2,7 +2,7 @@ import random
 import string
 import unicodedata
 
-from pyrobud import command, module
+from .. import command, module
 
 
 class TextModule(module.Module):

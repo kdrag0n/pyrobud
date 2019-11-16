@@ -5,7 +5,7 @@ from datetime import datetime
 import telethon as tg
 import toml
 
-from pyrobud import command, module, util
+from .. import command, module, util
 
 
 class BotSetupModule(module.Module):

@@ -5,7 +5,7 @@ from datetime import timezone, timedelta
 import telethon as tg
 import nostril
 
-from pyrobud import command, module, util
+from .. import command, module, util
 
 
 class AntibotModule(module.Module):

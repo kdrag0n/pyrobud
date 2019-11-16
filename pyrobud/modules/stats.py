@@ -1,4 +1,4 @@
-from pyrobud import command, module, util
+from .. import command, module, util
 
 USEC_PER_HOUR = 60 * 60 * 1000000
 USEC_PER_DAY = USEC_PER_HOUR * 24

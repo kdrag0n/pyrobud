@@ -3,7 +3,7 @@ import json
 import logging
 import re
 
-from pyrobud import command, module, util
+from .. import command, module, util
 
 
 class DebugModule(module.Module):

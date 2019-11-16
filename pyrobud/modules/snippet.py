@@ -1,7 +1,7 @@
 import re
 import asyncio
 
-from pyrobud import command, module, util
+from .. import command, module, util
 
 
 class SnippetsModule(module.Module):

@@ -2,7 +2,7 @@ import subprocess
 
 import speedtest
 
-from pyrobud import command, module, util
+from .. import command, module, util
 
 
 class SystemModule(module.Module):

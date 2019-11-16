@@ -1,4 +1,4 @@
-from pyrobud import command, module, util
+from .. import command, module, util
 
 
 class ManagerModule(module.Module):
