@@ -33,7 +33,7 @@ class Bot:
         self.config = config
 
         # Initialize other objects
-        self.log = logging.getLogger("bot")
+        self.log = logging.getLogger(__name__)
         self.http_session = aiohttp.ClientSession()
 
         # Initialize database
