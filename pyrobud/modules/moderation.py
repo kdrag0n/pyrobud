@@ -63,7 +63,8 @@ class ModerationModule(module.Module):
         return "\n".join(lines)
 
     @command.desc("Prune deleted members in this group or the specified group")
-    async def cmd_prune(self, msg, chat):
+    @command.alias("purgemembers")
+    async def cmd_prunemembers(self, msg, chat):
         incl_chat_name = bool(chat)
         if chat:
             chat = await self.bot.client.get_entity(chat)
