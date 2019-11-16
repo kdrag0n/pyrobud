@@ -18,10 +18,7 @@ class ManagerModule(module.Module):
         await self.bot.reload_module_pkg()
 
         await msg.result("Loading new modules...")
-        try:
-            self.bot.load_all_modules()
-        except module.ExistingModuleError:
-            pass
+        self.bot.load_all_modules()
 
         await msg.result("Dispatching events...")
         await self.bot.dispatch_event("load")

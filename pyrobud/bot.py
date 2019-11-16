@@ -151,7 +151,7 @@ class Bot:
     def load_all_modules(self):
         self.log.info("Loading modules")
 
-        for _sym in dir(modules):
+        for _sym in modules.__all__:
             module_mod = getattr(modules, _sym)
 
             if inspect.ismodule(module_mod):
