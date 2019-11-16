@@ -114,3 +114,5 @@ stickers/
 *.tmp
 # LevelDB databases
 *.db/
+# Data directory
+data/
