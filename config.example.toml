@@ -1,6 +1,6 @@
 # Config schema version. DO NOT TOUCH!
 # The config upgrader/migrator system will update this automatically as necessary.
-version = 4
+version = 5
 
 [telegram]
 # Client API ID used for authentication, obtained from https://my.telegram.org/apps
@@ -33,3 +33,8 @@ report_errors = true
 # disabled by default amid widespread privacy concerns around such practices.
 # No effect if report_errors is disabled.
 report_username = false
+# The DSN to pass to the Sentry SDK for error reporting.
+# Leave empty to use the default one, which is controlled by the bot's creator and
+# helps improve the bot's stability for everyone by crowd-sourcing errors.
+# It is highly recommended to leave this alone unless you have good reason not to.
+sentry_dsn = ""

@@ -53,6 +53,10 @@ def main():
         log.info("Upgrading config to version 4")
         util.config.upgrade_v4(config, config_path)
 
+    if config["version"] < 5:
+        log.info("Upgrading config to version 5")
+        util.config.upgrade_v5(config, config_path)
+
     log.info("Initializing bot")
     bot = Bot(config)
 
