@@ -11,7 +11,7 @@ from .bot import Bot
 LOG_LEVEL = logging.INFO
 LOG_FORMAT = "  %(log_color)s%(levelname)-8s%(reset)s | %(name)-7s | %(log_color)s%(message)s%(reset)s"
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("wrapper")
 
 
 def setup_logging():
