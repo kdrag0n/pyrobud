@@ -12,7 +12,7 @@ import toml
 import plyvel
 import sentry_sdk
 
-from . import command, module, modules, util
+from . import command, module, modules, custom_modules, util
 
 
 class Listener:
@@ -128,37 +128,45 @@ class Bot:
         for listener in to_unreg:
             self.unregister_listener(listener)
 
-    def load_module(self, cls):
-        self.log.info(f"Loading module '{cls.name}' ({cls.__name__}) from '{os.path.relpath(inspect.getfile(cls))}'")
+    def load_module(self, cls, *, comment=None):
+        _comment = comment + " " if comment else ""
+        self.log.info(f"Loading {_comment}module '{cls.name}' ({cls.__name__}) from '{os.path.relpath(inspect.getfile(cls))}'")
 
         if cls.name in self.modules:
             old = self.modules[cls.name].__class__
             raise module.ExistingModuleError(old, cls)
 
         mod = cls(self)
+        mod.comment = comment
         self.register_listeners(mod)
         self.register_commands(mod)
         self.modules[cls.name] = mod
 
     def unload_module(self, mod):
+        _comment = mod.comment + " " if mod.comment else ""
+
         cls = mod.__class__
-        self.log.info(f"Unloading module '{cls.name}' ({cls.__name__}) from '{os.path.relpath(inspect.getfile(cls))}'")
+        self.log.info(f"Unloading {_comment}module '{cls.name}' ({cls.__name__}) from '{os.path.relpath(inspect.getfile(cls))}'")
 
         self.unregister_listeners(mod)
         self.unregister_commands(mod)
         del self.modules[cls.name]
 
-    def load_all_modules(self):
-        self.log.info("Loading modules")
-
-        for _sym in modules.__all__:
-            module_mod = getattr(modules, _sym)
+    def _load_modules_from_metamod(self, metamod, *, comment=None):
+        for _sym in metamod.__all__:
+            module_mod = getattr(metamod, _sym)
 
             if inspect.ismodule(module_mod):
                 for sym in dir(module_mod):
                     cls = getattr(module_mod, sym)
                     if inspect.isclass(cls) and issubclass(cls, module.Module):
-                        self.load_module(cls)
+                        self.load_module(cls, comment=comment)
+
+    def load_all_modules(self):
+        self.log.info("Loading modules")
+        self._load_modules_from_metamod(modules)
+        self._load_modules_from_metamod(custom_modules, comment="custom")
+        self.log.info("All modules loaded.")
 
     def unload_all_modules(self):
         self.log.info("Unloading modules...")
@@ -167,12 +175,17 @@ class Bot:
         for mod in list(self.modules.values()):
             self.unload_module(mod)
 
+        self.log.info("All modules unloaded.")
+
     async def reload_module_pkg(self):
         self.log.info("Reloading base module class...")
         await util.run_sync(lambda: importlib.reload(module))
 
         self.log.info("Reloading master module...")
         await util.run_sync(lambda: importlib.reload(modules))
+
+        self.log.info("Reloading custom master module...")
+        await util.run_sync(lambda: importlib.reload(custom_modules))
 
     def command_predicate(self, event):
         if event.raw_text.startswith(self.prefix):
