@@ -3,7 +3,6 @@ import string
 from datetime import timezone, timedelta
 
 import telethon as tg
-import nostril
 
 from .. import command, module, util
 
@@ -18,18 +17,6 @@ class AntibotModule(module.Module):
         tg.types.MessageEntityTextUrl,
         tg.types.MessageEntityEmail,
         tg.types.MessageEntityPhone,
-    ]
-
-    suspicious_first_names = [
-        "announcement",
-        "info",
-        "urgent",
-        "limited",
-        "holiday",
-        "verified",
-        "solidified",
-        "recommended",
-        "temporarily",
     ]
 
     async def on_load(self):
@@ -134,66 +121,13 @@ class AntibotModule(module.Module):
         # Allow this message
         return False
 
-    async def profile_check_nonsense(self, user):
-        # Users with unpronounceable ~12-character-long usernames that have the
-        # first character capitalized and lack a profile (avatar/bio) tend to
-        # be spambots
-        if user.username and 10 <= len(user.username) <= 12:
-            # Exonerate the user if the first character isn't capital A-Z or
-            # subsequent characters aren't lowercase a-z
-            if user.username[0] not in string.ascii_uppercase:
-                return False
-            if not all(c in string.ascii_lowercase for c in user.username[1:]):
-                return False
-
-            # Exonerate users with an avatar
-            if user.photo:
-                return False
-
-            # Exonerate users who have a bio set
-            full_user = await self.bot.client(tg.tl.functions.users.GetFullUserRequest(user))
-            if full_user.about:
-                return False
-
-            # Check whether the username is pronounceable
-            try:
-                if not nostril.nonsense(user.username):
-                    return False
-            except ValueError as e:
-                # Nostril failed to process the string; log a warning and
-                # exonerate the user
-                self.log.warn(f"Nostril's nonsense word checker failed to process name '{user.username}'", exc_info=e)
-                return True
-
-            # All conditions match; mark this user as suspicious
-            return True
-
-        # Allow this user
-        return False
-
-    def profile_check_crypto(self, user):
-        # Many cryptocurrency spammers have attention-grabbing names that no
-        # legitimate users would actually use as a name
-        if user.first_name.lower() in self.__class__.suspicious_first_names:
-            # Suspicious first name
-            return True
-
-        # Many cryptocurrency spammers also have Telegram invite links in their
-        # first or last names
-        if "t.me" in user.first_name or (user.last_name and "t.me" in user.last_name):
-            # Suspicious name
-            return True
-
-        # Allow this user
-        return False
+    def profile_check_invite(self, user):
+        # Some spammers have Telegram invite links in their first or last names
+        return "t.me" in user.first_name or (user.last_name and "t.me" in user.last_name)
 
     async def user_is_suspicious(self, user):
-        # 10-12 character nonsense names without profile info
-        if await self.profile_check_nonsense(user):
-            return True
-
-        # Cryptocurrency spammers with attention-grabbing names
-        if self.profile_check_crypto(user):
+        # Some spammers have invites in their names
+        if self.profile_check_invite(user):
             return True
 
         # No profile checks matched; exonerate this user
