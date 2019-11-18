@@ -3,7 +3,6 @@ import logging
 
 import colorlog
 import toml
-import uvloop
 
 from . import util
 from .bot import Bot
@@ -70,6 +69,16 @@ def main():
     loop.run_until_complete(bot.stop())
 
 
+def setup_loop():
+    # While uvloop is in our requirements.txt, it's not required by any means
+    # and doesn't work in Termux due to their patched libuv
+    try:
+        import uvloop
+        uvloop.install()
+    except ImportError:
+        log.warn("Unable to load uvloop; falling back to default asyncio event loop")
+
+
 if __name__ == "__main__":
-    uvloop.install()
+    setup_loop()
     main()
