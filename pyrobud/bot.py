@@ -56,7 +56,7 @@ class Bot:
 
         self.commands[name] = info
 
-        for alias in getattr(func, "aliases", []):
+        for alias in info.aliases:
             if alias in self.commands:
                 orig = self.commands[alias]
                 raise module.ExistingCommandError(orig, info, alias=True)
