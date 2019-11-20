@@ -3,6 +3,7 @@ FROM golang:1-alpine AS go-build
 RUN apk add --no-cache git
 RUN go get github.com/r00tman/corrupter
 
+
 # Build Python package and dependencies
 FROM python:3-alpine AS python-build
 RUN apk add --no-cache \
@@ -35,6 +36,7 @@ RUN pip install -r requirements.txt
 # Install bot package
 COPY . .
 RUN pip install .
+
 
 # Package everything
 FROM python:3-alpine AS final
