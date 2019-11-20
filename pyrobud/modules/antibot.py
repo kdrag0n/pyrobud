@@ -66,7 +66,7 @@ class AntibotModule(module.Module):
     def msg_type_suspicious(self, msg):
         return msg.contact or msg.geo or msg.game
 
-    def msg_data_is_suspicious(self, msg):
+    async def msg_data_is_suspicious(self, msg):
         incoming = not msg.out
         has_date = msg.date
         forwarded = msg.forward
@@ -76,6 +76,15 @@ class AntibotModule(module.Module):
         if incoming and has_date:
             # Lazily evalulate suspicious content as it is more expensive
             if forwarded:
+                # Spambots don't forward their own messages; they mass-forward
+                # messages from central coordinated channels for maximum efficiency
+                # This protects users who forward questions with links/images to
+                # various support chats asking for help (arguably, that's spammy,
+                # but it's not what we're defending against here)
+                sender = await msg.get_sender()
+                if msg.forward.from_id == sender.id or msg.forward.from_name == tg.utils.get_display_name(sender):
+                    return False
+
                 # Screen forwarded messages more aggressively
                 return msg.photo or self.msg_type_suspicious(msg) or self.msg_content_suspicious(msg)
             else:
@@ -86,7 +95,7 @@ class AntibotModule(module.Module):
 
     async def msg_is_suspicious(self, msg):
         # Check if the data in the message is suspicious
-        if not self.msg_data_is_suspicious(msg):
+        if not await self.msg_data_is_suspicious(msg):
             return False
 
         # Load message metadata entities
