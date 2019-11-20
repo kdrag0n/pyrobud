@@ -113,7 +113,11 @@ class AntibotModule(module.Module):
             return False
 
         # Load group-specific user information
-        ch_participant = await self.bot.client(tg.tl.functions.channels.GetParticipantRequest(chat, sender))
+        try:
+            ch_participant = await self.bot.client(tg.tl.functions.channels.GetParticipantRequest(chat, sender))
+        except tg.errors.UserNotParticipantError:
+            # Something else already banned the bot; we don't need to proceed
+            return False
         participant = ch_participant.participant
 
         # Exempt the group creator
