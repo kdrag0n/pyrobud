@@ -26,10 +26,22 @@ def setup_logging():
     root.addHandler(stream)
 
 
+def setup_loop():
+    # While uvloop is in our requirements.txt, it's not required by any means
+    # and doesn't work in Termux due to their patched libuv
+    try:
+        import uvloop
+
+        uvloop.install()
+    except ImportError:
+        log.warn("Unable to load uvloop; falling back to default asyncio event loop")
+
+
 def main():
     config_path = "config.toml"
 
     setup_logging()
+    setup_loop()
 
     log.info("Loading config")
     config = toml.load(config_path)
@@ -74,16 +86,5 @@ def main():
     loop.run_until_complete(bot.stop())
 
 
-def setup_loop():
-    # While uvloop is in our requirements.txt, it's not required by any means
-    # and doesn't work in Termux due to their patched libuv
-    try:
-        import uvloop
-        uvloop.install()
-    except ImportError:
-        log.warn("Unable to load uvloop; falling back to default asyncio event loop")
-
-
 if __name__ == "__main__":
-    setup_loop()
     main()
