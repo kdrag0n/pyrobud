@@ -7,8 +7,8 @@ PUBLIC_CLIENT_KEY = "https://75fe67fda0594284b2c3aea6b90a1ba7@sentry.io/1817585"
 
 
 def send_filter(event, hint):
-    if 'exc_info' in hint:
-        exc_type, exc_value, tb = hint['exc_info']
+    if "exc_info" in hint:
+        exc_type, exc_value, tb = hint["exc_info"]
 
         # User-initiated interrupts
         if isinstance(exc_value, KeyboardInterrupt):
@@ -27,6 +27,7 @@ def send_filter(event, hint):
                     return None
 
     return event
+
 
 def init():
     # Use Git commit if possible, otherwise fall back to the version number
