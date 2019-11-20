@@ -36,29 +36,40 @@ class ModerationModule(module.Module):
     async def cmd_admin(self, msg, comment):
         await self.cmd_everyone(msg, comment, tag="admin", filter=tg.tl.types.ChannelParticipantsAdmins)
 
-    @command.desc("Ban users from the current chat by ID")
+    @command.desc("Ban user(s) from the current chat by ID")
     async def cmd_ban(self, msg, *input_ids):
         try:
             # Parse user IDs without duplicates
             user_ids = list(dict.fromkeys(map(int, input_ids)))
         except ValueError:
-            return ""
+            return "__Encountered invalid ID while parsing arguments.__"
 
         if msg.is_reply:
             reply_msg = await msg.get_reply_message()
             user_ids.append(reply_msg.from_id)
 
         chat = await msg.get_chat()
-        lines = [f"Banned {len(user_ids)} users:"]
-        await msg.result(f"Banning {len(user_ids)} users...")
+        single_user = len(user_ids) == 1
+        if single_user:
+            lines = []
+        else:
+            lines = [f"Banned {len(user_ids)} users:"]
+            await msg.result(f"Banning {len(user_ids)} users...")
 
         for user_id in user_ids:
             user = await self.bot.client.get_entity(user_id)
-            lines.append(f"    \u2022 {util.tg.mention_user(user)} (`{user_id}`)")
+            if single_user:
+                lines.append(f"**Banned** {util.tg.mention_user(user)} (`{user_id}`)")
+            else:
+                lines.append(f"    \u2022 {util.tg.mention_user(user)} (`{user_id}`)")
 
             rights = tg.tl.types.ChatBannedRights(until_date=None, view_messages=True)
             ban_request = tg.tl.functions.channels.EditBannedRequest(chat, user, rights)
-            await self.bot.client(ban_request)
+
+            try:
+                await self.bot.client(ban_request)
+            except tg.errors.ChatAdminRequiredError:
+                return "__I need permission to ban users in this chat.__"
 
         return "\n".join(lines)
 
