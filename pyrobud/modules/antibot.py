@@ -76,12 +76,17 @@ class AntibotModule(module.Module):
         if incoming and has_date:
             # Lazily evalulate suspicious content as it is more expensive
             if forwarded:
+                # Messages forwarded from a linked channel by Telegram don't have a sender
+                # We can assume these messages are safe since only admins can link channels
+                sender = await msg.get_sender()
+                if sender is None:
+                    return False
+
                 # Spambots don't forward their own messages; they mass-forward
                 # messages from central coordinated channels for maximum efficiency
                 # This protects users who forward questions with links/images to
                 # various support chats asking for help (arguably, that's spammy,
                 # but it's not what we're defending against here)
-                sender = await msg.get_sender()
                 if msg.forward.from_id == sender.id or msg.forward.from_name == tg.utils.get_display_name(sender):
                     return False
 
