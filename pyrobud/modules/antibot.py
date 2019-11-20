@@ -17,6 +17,7 @@ class AntibotModule(module.Module):
         tg.types.MessageEntityTextUrl,
         tg.types.MessageEntityEmail,
         tg.types.MessageEntityPhone,
+        tg.types.MessageEntityCashtag,
     ]
 
     async def on_load(self):
