@@ -61,7 +61,12 @@ def main():
 
     log.info("Starting bot")
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(bot.start())
+
+    try:
+        loop.run_until_complete(bot.start())
+    except KeyboardInterrupt:
+        log.warn("Received interrupt while connecting; exiting")
+        return
 
     bot.client.run_until_disconnected()
 
