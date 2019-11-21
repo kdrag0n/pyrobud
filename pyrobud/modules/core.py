@@ -2,6 +2,8 @@ import inspect
 
 from .. import command, module, util
 
+OFFICIAL_SUPPORT_LINK = "https://t.me/pyrobud"
+
 
 class CoreModule(module.Module):
     name = "Core"
@@ -82,3 +84,7 @@ Takes arguments: {args_desc}"""
         await self.bot.db.put("prefix", new_prefix)
 
         return f"Prefix set to `{self.bot.prefix}`."
+
+    @command.desc("Get the link to the official bot support group")
+    async def cmd_support(self, msg):
+        return f"[Join the official bot support group for help.]({OFFICIAL_SUPPORT_LINK})"
