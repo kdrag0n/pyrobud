@@ -25,7 +25,7 @@ def get_repo():
 
     # Attempt to get a reference to the Git repository
     try:
-        _repo = git.Repo(os.path.dirname(sys.argv[0]), search_parent_directories=True)
+        _repo = git.Repo(os.path.dirname(sys.argv[0]), search_parent_directories=True, odbt=git.GitDB)
     # Silence a bogus pylint error
     # pylint: disable=no-member
     except git.exc.InvalidGitRepositoryError:
