@@ -9,6 +9,7 @@ PUBLIC_CLIENT_KEY = "https://75fe67fda0594284b2c3aea6b90a1ba7@sentry.io/1817585"
 
 def send_filter(event, hint):
     if "exc_info" in hint:
+        # pylint: disable=unused-variable
         exc_type, exc_value, tb = hint["exc_info"]
 
         # User-initiated interrupts
