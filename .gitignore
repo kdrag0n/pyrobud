@@ -121,3 +121,7 @@ stickers/
 
 # Data directory
 data/
+
+# PBR artifacts
+AUTHORS
+ChangeLog
