@@ -1,4 +1,5 @@
 import sentry_sdk
+import traceback
 
 from . import version, system
 from .. import __version__
@@ -23,7 +24,7 @@ def send_filter(event, hint):
             tb = traceback.extract_tb(exc_value.__traceback__)
             for frame in tb:
                 # Ignore custom module errors
-                if split_path(frame.filename)[-2] == "custom_modules":
+                if system.split_path(frame.filename)[-2] == "custom_modules":
                     return None
 
     return event
