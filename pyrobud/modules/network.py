@@ -47,7 +47,11 @@ class NetworkModule(module.Module):
         await msg.result("Uploading text to [Hastebin](https://hastebin.com/)...")
 
         async with self.bot.http_session.post("https://hastebin.com/documents", data=text) as resp:
-            resp_data = await resp.json()
+            try:
+                resp_data = await resp.json()
+            except aiohttp.ContentTypeError:
+                return "__Hastebin is currently experiencing issues. Try again later.__"
+
             return f'https://hastebin.com/{resp_data["key"]}'
 
     @command.desc("Paste message text to Dogbin")
@@ -59,7 +63,11 @@ class NetworkModule(module.Module):
         await msg.result("Uploading text to [Dogbin](https://del.dog/)...")
 
         async with self.bot.http_session.post("https://del.dog/documents", data=text) as resp:
-            resp_data = await resp.json()
+            try:
+                resp_data = await resp.json()
+            except aiohttp.ContentTypeError:
+                return "__Dogbin is currently experiencing issues. Try again later.__"
+
             return f'https://del.dog/{resp_data["key"]}'
 
     @command.desc("Upload given file to file.io")
