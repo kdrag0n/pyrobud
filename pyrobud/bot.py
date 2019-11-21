@@ -289,6 +289,9 @@ class Bot:
         except KeyError:
             return None
 
+        if not listeners:
+            return
+
         for l in listeners:
             task = self.loop.create_task(l.func(*args))
             tasks.add(task)
