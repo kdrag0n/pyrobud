@@ -157,11 +157,9 @@ class SystemModule(module.Module):
                 return f"__Remote__ `{remote_name}` __not found.__"
         else:
             # Get current branch's tracking remote
-            remote_ref = await util.run_sync(lambda: repo.active_branch.tracking_branch())
-            if remote_ref is None:
+            remote = await util.run_sync(util.git.get_current_remote)
+            if remote is None:
                 return f"__Current branch__ `{repo.active_branch.name}` __is not tracking a remote.__"
-
-            remote = await util.run_sync(lambda: repo.remote(remote_ref.remote_name))
 
         self.log.info(f"Pulling from Git remote '{remote.name}'")
         await util.run_sync(remote.pull)
