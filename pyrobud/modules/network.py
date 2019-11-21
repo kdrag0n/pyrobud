@@ -117,7 +117,7 @@ class NetworkModule(module.Module):
             return await resp.text()
 
     @command.desc("Update the embed for a link")
-    @command.alias("upd", "upde", "updl", "updatelink", "ul", "ulink")
+    @command.alias("upde", "updl", "updatelink", "ul", "ulink")
     async def cmd_update_link(self, msg, link):
         if not link and not msg.is_reply:
             return "__Provide or reply to a link to update it.__"

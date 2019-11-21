@@ -6,6 +6,12 @@ import speedtest
 
 from .. import command, module, util, listener
 
+have_git = True
+try:
+    import git
+except ImportError:
+    have_git = False
+
 
 class SystemModule(module.Module):
     name = "System"
@@ -136,3 +142,39 @@ class SystemModule(module.Module):
         if self.restart_pending:
             self.log.info("Starting new bot instance...\n")
             os.execv(sys.argv[0], sys.argv)
+
+    @command.desc("Update the bot from Git and restart")
+    @command.alias("up", "upd")
+    async def cmd_update(self, msg, remote_name):
+        if not have_git:
+            return "__The__ `git` __command is required for self-updating.__"
+
+        # Attempt to locate the Git repo
+        try:
+            repo = git.Repo(os.path.dirname(sys.argv[0]), search_parent_directories=True)
+        # Silence a bogus pylint error
+        # pylint: disable=no-member
+        except git.exc.InvalidGitRepositoryError:
+            # No Git repository
+            return "__Unable to locate Git repository data.__"
+
+        await msg.result("Pulling changes...")
+        if remote_name:
+            # Attempt to get reuqested remote
+            try:
+                remote = repo.remote(remote_name)
+            except ValueError:
+                return f"__Remote__ `{remote_name}` __not found.__"
+        else:
+            # Get current branch's tracking remote
+            remote_ref = repo.active_branch.tracking_branch()
+            if remote_ref is None:
+                return f"__Current branch__ `{repo.active_branch.name}` __is not tracking a remote.__"
+
+            remote = repo.remote(remote_ref.remote_name)
+
+        self.log.info(f"Pulling from Git remote '{remote.name}'")
+        await util.run_sync(remote.pull)
+
+        # Restart after updating
+        await self.cmd_restart(msg)
