@@ -6,7 +6,7 @@ Pyrobud is designed to complement the official clients, rather than replacing
 them as many other selfbots tend to lean towards. It is written in Python using
 the [Telethon](https://github.com/LonamiWebs/Telethon) library.
 
-A working installation of **Python 3.6+** is required to run Pyrobud.
+A working installation of **Python 3.6** or newer is required to run Pyrobud.
 
 ## Compatibility
 
