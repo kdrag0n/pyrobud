@@ -1,12 +1,18 @@
+import os
 import subprocess
+import sys
 
 import speedtest
 
-from .. import command, module, util
+from .. import command, module, util, listener
 
 
 class SystemModule(module.Module):
     name = "System"
+
+    async def on_load(self):
+        self.restart_pending = False
+        self.db = self.bot.get_db("system")
 
     async def run_process(self, command, **kwargs):
         def _run_process():
@@ -91,3 +97,42 @@ class SystemModule(module.Module):
         status += f"\nTime elapsed: {util.time.format_duration_us(delta)}"
 
         return status
+
+    @command.desc("Restart the bot")
+    @command.alias("re", "rst")
+    async def cmd_restart(self, msg):
+        await msg.result("Restarting bot...")
+
+        # Save time and status message so we can update it after restarting
+        await self.db.put("restart_status_chat_id", msg.chat_id)
+        await self.db.put("restart_status_message_id", msg.id)
+        await self.db.put("restart_time", util.time.usec())
+
+        # Initiate the restart
+        self.restart_pending = True
+        self.log.info("Preparing to restart...")
+        await self.bot.client.disconnect()
+
+    async def on_start(self, time_us):
+        # Update restart status message if applicable
+        rs_time = await self.db.get("restart_time")
+        if rs_time is not None:
+            # Fetch status message info
+            rs_chat_id = await self.db.get("restart_status_chat_id")
+            rs_message_id = await self.db.get("restart_status_message_id")
+
+            # Delete DB keys first in case message editing fails
+            await self.db.delete("restart_time")
+            await self.db.delete("restart_status_chat_id")
+            await self.db.delete("restart_status_message_id")
+
+            # Calculate and show duration
+            duration = util.time.format_duration_us(util.time.usec() - rs_time)
+            self.log.info(f"Bot restarted in {duration}")
+            await self.bot.client.edit_message(rs_chat_id, rs_message_id, f"Bot restarted in {duration}.")
+
+    async def on_stopped(self):
+        # Restart the bot if applicable
+        if self.restart_pending:
+            self.log.info("Starting new bot instance...\n")
+            os.execv(sys.argv[0], sys.argv)
