@@ -106,13 +106,18 @@ venv.bak/
 # Configuration files
 *.toml
 !config.example.toml
+
 # Telegram sessions
 *.session*
+
 # Stickers
 stickers/
+
 # Temporary atomic save artifacts
 *.tmp
+
 # LevelDB databases
 *.db/
+
 # Data directory
 data/
