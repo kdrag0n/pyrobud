@@ -12,6 +12,8 @@ class SystemModule(module.Module):
 
     async def on_load(self):
         self.restart_pending = False
+        self.update_restart_pending = False
+
         self.db = self.bot.get_db("system")
 
     async def run_process(self, command, **kwargs):
@@ -143,6 +145,9 @@ class SystemModule(module.Module):
         if not util.git.have_git:
             return "__The__ `git` __command is required for self-updating.__"
 
+        if self.update_restart_pending:
+            return await self.cmd_restart(msg)
+
         # Attempt to get the Git repo
         repo = await util.run_sync(lambda: util.git.get_repo())
         if not repo:
@@ -161,8 +166,18 @@ class SystemModule(module.Module):
             if remote is None:
                 return f"__Current branch__ `{repo.active_branch.name}` __is not tracking a remote.__"
 
+        # Save old commit for diffing
+        old_commit = await util.run_sync(repo.commit)
+
+        # Pull from remote
         self.log.info(f"Pulling from Git remote '{remote.name}'")
         await util.run_sync(remote.pull)
+
+        # Don't restart yet if requirements were updated
+        for change in old_commit.diff():
+            if change.a_path == "requirements.txt":
+                self.update_restart_pending = True
+                return "Successfully pulled updates. Dependencies in `requirements.txt` were changed, so please update dependencies __before__ restarting the bot by re-running the `update` or `restart` command."
 
         # Restart after updating
         await self.cmd_restart(msg)
