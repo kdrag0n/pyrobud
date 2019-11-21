@@ -6,12 +6,6 @@ import speedtest
 
 from .. import command, module, util, listener
 
-have_git = True
-try:
-    import git
-except ImportError:
-    have_git = False
-
 
 class SystemModule(module.Module):
     name = "System"
@@ -146,16 +140,12 @@ class SystemModule(module.Module):
     @command.desc("Update the bot from Git and restart")
     @command.alias("up", "upd")
     async def cmd_update(self, msg, remote_name):
-        if not have_git:
+        if not util.git.have_git:
             return "__The__ `git` __command is required for self-updating.__"
 
-        # Attempt to locate the Git repo
-        try:
-            repo = await util.run_sync(lambda: git.Repo(os.path.dirname(sys.argv[0]), search_parent_directories=True))
-        # Silence a bogus pylint error
-        # pylint: disable=no-member
-        except git.exc.InvalidGitRepositoryError:
-            # No Git repository
+        # Attempt to get the Git repo
+        repo = await util.run_sync(lambda: util.git.get_repo())
+        if not repo:
             return "__Unable to locate Git repository data.__"
 
         await msg.result("Pulling changes...")
