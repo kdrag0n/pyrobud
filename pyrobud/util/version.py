@@ -1,5 +1,7 @@
 import logging
+import os
 import pkg_resources
+import sys
 
 log = logging.getLogger(__name__)
 
@@ -14,7 +16,7 @@ def get_commit():
     if have_git:
         # Attempt to get the current Git commit
         try:
-            repo = git.Repo(search_parent_directories=True)
+            repo = git.Repo(os.path.dirname(sys.argv[0]), search_parent_directories=True)
             return repo.head.object.hexsha[:8]
         # Silence a bogus pylint error
         # pylint: disable=no-member
