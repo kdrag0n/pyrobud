@@ -151,7 +151,7 @@ class SystemModule(module.Module):
 
         # Attempt to locate the Git repo
         try:
-            repo = git.Repo(os.path.dirname(sys.argv[0]), search_parent_directories=True)
+            repo = await util.run_sync(lambda: git.Repo(os.path.dirname(sys.argv[0]), search_parent_directories=True))
         # Silence a bogus pylint error
         # pylint: disable=no-member
         except git.exc.InvalidGitRepositoryError:
@@ -162,16 +162,16 @@ class SystemModule(module.Module):
         if remote_name:
             # Attempt to get reuqested remote
             try:
-                remote = repo.remote(remote_name)
+                remote = await util.run_sync(lambda: repo.remote(remote_name))
             except ValueError:
                 return f"__Remote__ `{remote_name}` __not found.__"
         else:
             # Get current branch's tracking remote
-            remote_ref = repo.active_branch.tracking_branch()
+            remote_ref = await util.run_sync(lambda: repo.active_branch.tracking_branch())
             if remote_ref is None:
                 return f"__Current branch__ `{repo.active_branch.name}` __is not tracking a remote.__"
 
-            remote = repo.remote(remote_ref.remote_name)
+            remote = await util.run_sync(lambda: repo.remote(remote_ref.remote_name))
 
         self.log.info(f"Pulling from Git remote '{remote.name}'")
         await util.run_sync(remote.pull)
