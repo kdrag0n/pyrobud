@@ -278,6 +278,9 @@ class Bot:
         await self.http_session.close()
         await self._db.close()
 
+        self.log.info("Running post-stop hooks")
+        await self.dispatch_event("stopped")
+
     async def dispatch_event(self, event, *args):
         tasks = set()
 
