@@ -49,7 +49,7 @@ def main():
     # Initialize Sentry reporting here to exempt config syntax errors and query
     # the user's report_errors value, defaulting to enabled if not specified
     if config["bot"].get("report_errors", True):
-        log.info("Initializing error reporting")
+        log.info("Initializing Sentry error reporting")
         util.sentry.init()
 
     if "version" not in config or config["version"] < 2:
