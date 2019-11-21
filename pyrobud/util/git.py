@@ -34,3 +34,39 @@ def get_repo():
 
     _repo_initialized = True
     return _repo
+
+
+def get_current_remote():
+    repo = get_repo()
+    if not repo:
+        return None
+
+    remote_ref = repo.active_branch.tracking_branch()
+    if remote_ref is None:
+        return None
+
+    return repo.remote(remote_ref.remote_name)
+
+
+def is_official():
+    # Assume non-Git instances are official, e.g. when installed with pip
+    repo = get_repo()
+    if not repo:
+        return True
+
+    # Dirty working tree breaks official status
+    if repo.is_dirty():
+        return False
+
+    # Assume Git instances without a tracking remote are unofficial
+    remote = get_current_remote()
+    if not remote:
+        return False
+
+    # Unofficial remote repository name breaks official status
+    for url in remote.urls:
+        if "kdrag0n/pyrobud" not in url:
+            return False
+
+    # We're most likely running official code if the above checks passed
+    return True
