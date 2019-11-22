@@ -12,4 +12,3 @@ sentry-sdk
 speedtest-cli
 telethon
 toml
-uvloop
