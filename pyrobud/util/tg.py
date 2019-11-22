@@ -6,7 +6,7 @@ import telethon as tg
 def mention_user(user):
     if user.username:
         # Use username mention if possible
-        return f"@{user.username}"
+        name = f"@{user.username}"
     else:
         # Use the first and last name otherwise
         name = tg.utils.get_display_name(user)
@@ -14,7 +14,7 @@ def mention_user(user):
             # Deleted accounts have no name; behave like the official clients
             name = "Deleted Account"
 
-        return f"[{name}](tg://user?id={user.id})"
+    return f"[{name}](tg://user?id={user.id})"
 
 
 def filter_code_block(inp):
