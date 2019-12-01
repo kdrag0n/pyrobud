@@ -125,3 +125,7 @@ data/
 # PBR artifacts
 AUTHORS
 ChangeLog
+
+# Autoenv scripts
+.in
+.out
