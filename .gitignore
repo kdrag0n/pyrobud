@@ -129,3 +129,6 @@ ChangeLog
 # Autoenv scripts
 .in
 .out
+
+# Visual Studio Code workspace settings
+.vscode
