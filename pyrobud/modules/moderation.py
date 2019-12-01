@@ -57,7 +57,16 @@ class ModerationModule(module.Module):
             await msg.result(f"Banning {len(user_ids)} users...")
 
         for user_id in user_ids:
-            user = await self.bot.client.get_entity(user_id)
+            try:
+                user = await self.bot.client.get_entity(user_id)
+            except ValueError:
+                if single_user:
+                    lines.append(f"__Unable to find user__ `{user_id}`.")
+                else:
+                    lines.append(f"    \u2022 Unable to find user `{user_id}`")
+
+                continue
+
             if single_user:
                 lines.append(f"**Banned** {util.tg.mention_user(user)} (`{user_id}`)")
             else:
