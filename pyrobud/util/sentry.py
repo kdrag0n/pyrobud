@@ -1,4 +1,5 @@
 import logging
+import sqlite3
 import traceback
 
 import sentry_sdk
@@ -16,8 +17,8 @@ def send_filter(event, hint):
         # pylint: disable=unused-variable
         exc_type, exc_value, tb = hint["exc_info"]
 
-        # User-initiated interrupts and network errors
-        if isinstance(exc_value, (KeyboardInterrupt, ConnectionError)):
+        # User-initiated interrupts, network errors, and I/O errors
+        if isinstance(exc_value, (KeyboardInterrupt, ConnectionError, IOError, sqlite3.OperationalError)):
             return None
 
         exc_msg = str(exc_value)
