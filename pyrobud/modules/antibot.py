@@ -20,6 +20,10 @@ class AntibotModule(module.Module):
         "bitmex",
         "wealth",
         "mytoken",
+        "no scam",
+        "legit",
+        "trading",
+        "binary option",
     ]
 
     suspicious_entities = [
