@@ -397,7 +397,9 @@ class StickerModule(module.Module):
         command = ["corrupter", "-boffset", str(boffset), "-"]
         try:
             proc = await util.run_sync(
-                lambda: subprocess.run(command, input=png_bytes, capture_output=True, check=True, timeout=15)
+                lambda: subprocess.run(
+                    command, input=png_bytes, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True, timeout=15
+                )
             )
         except subprocess.TimeoutExpired:
             return "🕑 `corrupter` failed to finish within 15 seconds."
