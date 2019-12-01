@@ -27,7 +27,7 @@ def send_filter(event, hint):
             return None
 
         # Telegram connection errors
-        if exc_msg.startswith("Automatic reconnection failed"):
+        if exc_msg.startswith("Automatic reconnection failed") or exc_msg.startswith("Request was unsuccessful"):
             return None
 
         # Check involved files
