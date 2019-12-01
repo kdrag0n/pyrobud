@@ -2,6 +2,7 @@ import logging
 import sqlite3
 import traceback
 
+import ratelimit
 import sentry_sdk
 
 from . import version, system, git
@@ -12,7 +13,18 @@ PUBLIC_CLIENT_KEY = "https://75fe67fda0594284b2c3aea6b90a1ba7@sentry.io/1817585"
 log = logging.getLogger("sentry")
 
 
+# Dummy function for ratelimiting: 3 events/min
+@ratelimit.limits(calls=3, period=60)
+def _ratelimit():
+    pass
+
 def send_filter(event, hint):
+    # Discard event if ratelimit is exceeded
+    try:
+        _ratelimit()
+    except ratelimit.RateLimitException:
+        return None
+
     if "exc_info" in hint:
         # pylint: disable=unused-variable
         exc_type, exc_value, tb = hint["exc_info"]
