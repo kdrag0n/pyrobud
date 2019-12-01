@@ -162,7 +162,7 @@ class AntibotModule(module.Module):
 
     def profile_check_invite(self, user):
         # Some spammers have Telegram invite links in their first or last names
-        return "t.me/" in user.first_name or (user.last_name and "t.me/" in user.last_name)
+        return "t.me/" in tg.utils.get_display_name(user)
 
     async def user_is_suspicious(self, user):
         # Some spammers have invites in their names
