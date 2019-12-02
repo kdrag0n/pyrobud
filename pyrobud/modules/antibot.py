@@ -24,6 +24,7 @@ class AntibotModule(module.Module):
         "legit",
         "trading",
         "binary option",
+        "talk with you in private",
     ]
 
     suspicious_entities = [
