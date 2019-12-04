@@ -163,7 +163,13 @@ Commands issued:
 
                 # Wait for both the rate-limit and the bot's response
                 try:
-                    await asyncio.wait([reply_and_ack(), asyncio.sleep(0.25)])
+                    done, pending = await asyncio.wait((reply_and_ack(), asyncio.sleep(0.25)))
+
+                    # Raise all exceptions
+                    for future in done:
+                        exp = future.exception()
+                        if exp is not None:
+                            raise exp
                 except asyncio.TimeoutError:
                     after = datetime.now()
                     delta_seconds = int((after - before).total_seconds())
