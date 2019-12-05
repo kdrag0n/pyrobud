@@ -163,6 +163,7 @@ class Bot:
 
     def _load_modules_from_metamod(self, metamod, *, comment=None):
         for _sym in metamod.__all__:
+            if not hasattr(metamod, _sym): continue
             module_mod = getattr(metamod, _sym)
 
             if inspect.ismodule(module_mod):
