@@ -5,10 +5,11 @@ import pkgutil
 
 __all__ = list(module for _, module, _ in pkgutil.iter_modules([os.path.dirname(__file__)]))
 
-from . import *
-
-
 log = logging.getLogger("metamod_custom")
+try: from . import *
+except Exception as ex: log.error(ex)
+
+
 
 try:
     _reload_flag = _reload_flag
