@@ -68,6 +68,8 @@ Takes arguments: {args_desc}"""
         for mod, ln in sorted(lines.items()):
             sections.append(f"**{mod}**:\n    \u2022 " + "\n    \u2022 ".join(ln) + "\n")
 
+        sections.insert(0, f"**{len(self.bot.commands)}** commands from **{len(self.bot.modules)}** modules:\n")
+
         return "\n".join(sections)
 
     @command.desc("Get how long the bot has been up for")
