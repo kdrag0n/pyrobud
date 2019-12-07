@@ -131,7 +131,8 @@ class SystemModule(module.Module):
             # Calculate and show duration
             duration = util.time.format_duration_us(util.time.usec() - rs_time)
             self.log.info(f"Bot restarted in {duration}")
-            await self.bot.client.edit_message(rs_chat_id, rs_message_id, f"Bot restarted in {duration}.")
+            status_msg = await self.bot.client.get_messages(rs_chat_id, ids=rs_message_id)
+            await status_msg.result(f"Bot restarted in {duration}.")
 
     async def on_stopped(self):
         # Restart the bot if applicable
