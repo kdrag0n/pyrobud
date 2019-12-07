@@ -230,7 +230,7 @@ class Bot:
                 scope.user = {"username": self.user.username}
 
         # Hijack Message class to provide result function
-        async def result(msg, new_text, **kwargs):
+        async def result(msg, new_text, mode=None, **kwargs):
             tg_config = self.config["telegram"]
             api_id = str(tg_config["api_id"])
             api_hash = tg_config["api_hash"]
@@ -252,7 +252,21 @@ class Bot:
             if len(new_text) > 4096:
                 new_text = new_text[: 4096 - len(truncated_suffix)] + truncated_suffix
 
-            await msg.edit(text=new_text, **kwargs)
+            # Use selected response mode if not overridden by invoker
+            if mode is None:
+                mode = self.config["bot"]["response_mode"]
+
+            if mode == "edit":
+                await msg.edit(text=new_text, **kwargs)
+            elif mode == "reply":
+                if hasattr(msg, "_result_msg"):
+                    # Already replied, so just edit the existing reply to reduce spam
+                    await msg._result_msg.edit(text=new_text, **kwargs)
+                else:
+                    # Reply since we haven't done so yet
+                    msg._result_msg = await msg.reply(new_text, **kwargs)
+            else:
+                raise ValueError(f"Unknown response mode '{mode}'")
 
         tg.types.Message.result = result
 

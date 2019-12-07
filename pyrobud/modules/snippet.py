@@ -27,7 +27,7 @@ class SnippetsModule(module.Module):
 
             if txt != orig_txt:
                 await asyncio.sleep(1)
-                await msg.result(txt)
+                await msg.result(txt, mode="edit")
 
     @command.desc("Save a snippet (fetch: `/snippet/`)")
     @command.alias("snippet", "snp")

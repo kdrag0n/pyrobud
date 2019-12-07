@@ -38,3 +38,6 @@ report_username = false
 # helps improve the bot's stability for everyone by crowd-sourcing errors.
 # It is highly recommended to leave this alone unless you have good reason not to.
 sentry_dsn = ""
+# How the bot responds to commands.
+# Valid options: edit, reply
+response_mode = "reply"

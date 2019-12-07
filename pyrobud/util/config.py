@@ -146,3 +146,14 @@ def upgrade_v5(config, path):
 
     config["version"] = 5
     save(config, path)
+
+
+def upgrade_v6(config, path):
+    bot_config = config["bot"]
+
+    if "response_mode" not in bot_config:
+        log.info("Setting response mode to default 'edit'")
+        bot_config["response_mode"] = "edit"
+
+    config["version"] = 6
+    save(config, path)
