@@ -52,25 +52,7 @@ def main():
         log.info("Initializing Sentry error reporting")
         util.sentry.init()
 
-    if "version" not in config or config["version"] < 2:
-        log.info("Upgrading config to version 2")
-        util.config.upgrade_v2(config, config_path)
-
-    if config["version"] < 3:
-        log.info("Upgrading config to version 3")
-        util.config.upgrade_v3(config, config_path)
-
-    if config["version"] < 4:
-        log.info("Upgrading config to version 4")
-        util.config.upgrade_v4(config, config_path)
-
-    if config["version"] < 5:
-        log.info("Upgrading config to version 5")
-        util.config.upgrade_v5(config, config_path)
-
-    if config["version"] < 6:
-        log.info("Upgrading config to version 6")
-        util.config.upgrade_v6(config, config_path)
+    util.config.upgrade(config, config_path)
 
     log.info("Initializing bot")
     bot = Bot(config)

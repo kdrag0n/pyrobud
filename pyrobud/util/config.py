@@ -38,9 +38,6 @@ def upgrade_v2(config, path):
         if os.path.exists("anon.session-journal"):
             os.rename("anon.session-journal", "main.session-journal")
 
-    config["version"] = 2
-    save(config, path)
-
 
 def upgrade_v3(config, path):
     def migrate_antibot(config, db):
@@ -116,9 +113,6 @@ def upgrade_v3(config, path):
         migrate_stats(config, db)
         migrate_stickers(config, db)
 
-    config["version"] = 3
-    save(config, path)
-
 
 def upgrade_v4(config, path):
     bot_config = config["bot"]
@@ -129,9 +123,6 @@ def upgrade_v4(config, path):
         bot_config["report_errors"] = True
         bot_config["report_username"] = False
 
-    config["version"] = 4
-    save(config, path)
-
 
 def upgrade_v5(config, path):
     bot_config = config["bot"]
@@ -139,9 +130,6 @@ def upgrade_v5(config, path):
     if "sentry_dsn" not in bot_config:
         log.info("Adding default Sentry DSN to bot config section")
         bot_config["sentry_dsn"] = ""
-
-    config["version"] = 5
-    save(config, path)
 
 
 def upgrade_v6(config, path):
@@ -151,5 +139,34 @@ def upgrade_v6(config, path):
         log.info("Setting response mode to default 'edit'")
         bot_config["response_mode"] = "edit"
 
-    config["version"] = 6
-    save(config, path)
+
+# Old version -> function to perform migration to new version
+upgrade_funcs = [
+    upgrade_v2,  # 1 -> 2
+    upgrade_v3,  # 2 -> 3
+    upgrade_v4,  # 3 -> 4
+    upgrade_v5,  # 4 -> 5
+    upgrade_v6,  # 5 -> 6
+]
+
+# Master upgrade function
+def upgrade(config, path):
+    # Get current version
+    if "version" in config:
+        cur_version = config["version"]
+    else:
+        cur_version = 1
+
+    # Already at latest version; nothing to do
+    if cur_version == len(upgrade_funcs) - 1:
+        return
+
+    # Upgrade each version sequentially
+    for upgrader in upgrade_funcs[cur_version - 1 :]:
+        target_version = cur_version + 1
+        log.info(f"Upgrading config to version {target_version}")
+        upgrader(config, path)
+        config["version"] = target_version
+
+        # Save config ASAP to prevent an inconsistent state if the next upgrade fails
+        save(config, path)
