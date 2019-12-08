@@ -1,15 +1,24 @@
+# Core
 aiohttp
-async_generator
 colorlog
-cryptg
-gitpython
-hachoir
-msgpack
-pillow
-plyvel
-pycparser
-ratelimit
-sentry-sdk
-speedtest-cli
 telethon
 toml
+
+# Performance
+cryptg
+
+# Database
+async_generator
+msgpack
+plyvel
+
+# Error handling
+gitpython
+ratelimit
+sentry-sdk
+
+# Stickers module
+pillow
+
+# System module
+speedtest-cli
