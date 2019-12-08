@@ -118,4 +118,4 @@ class TextModule(module.Module):
         if not text:
             return "__Provide text to insert claps into.__"
 
-        return "👏".join(text.split())
+        return "\n".join("👏".join(line.split()) for line in text.split("\n"))
