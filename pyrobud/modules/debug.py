@@ -22,20 +22,49 @@ class DebugModule(module.Module):
         return "`1 + 1`: %.0f ns" % (el_us * 1000)
 
     @command.desc("Evaluate code")
-    @command.alias("ev")
+    @command.alias("ev", "exec")
     @command.error_level(logging.WARNING)
     async def cmd_eval(self, msg, raw_args):
-        def _eval():
-            nonlocal msg, raw_args, self
+        code = util.tg.filter_code_block(raw_args)
+        if not code:
+            return "__I need code to execute.__"
 
-            # pylint: disable=unused-variable
-            def send(text):
-                return self.bot.loop.create_task(msg.respond(text))
+        # Adapted from https://stackoverflow.com/a/53255739
+        async def _eval(code):
+            # Retrieve final expression's values
+            lines = code.split("\n")
+            if not lines[-1].startswith("return"):
+                # Detect whether last line is a statement or expression
+                try:
+                    _ = compile(lines[-1], "<stdin>", "eval")
+                    is_expr = True
+                except SyntaxError:
+                    is_expr = False
 
-            return eval(util.tg.filter_code_block(raw_args))
+                # If it is, prepend "return" to retrieve the value
+                if is_expr:
+                    lines[-1] = "return " + lines[-1]
+
+            # Indent code to make it syntactically valid when injected into the function
+            indented_code = "".join(f"\n    {line}" for line in lines)
+
+            # Make an async function with the code and `exec` it
+            exec(
+                f"""
+async def payload(self, msg, raw_args):
+    # Inject send helper
+    async def send(text):
+        return await msg.respond(text)
+
+    {indented_code}
+"""
+            )
+
+            # Get `payload` from local variables, call it and return the result
+            return await locals()["payload"](self, msg, raw_args)
 
         before = util.time.usec()
-        result = await util.run_sync(_eval)
+        result = await _eval(code)
         after = util.time.usec()
 
         el_us = after - before
@@ -44,21 +73,6 @@ class DebugModule(module.Module):
         return f"""```{str(result)}```
 
 Time: {el_str}"""
-
-    @command.desc("Evaluate code (statement)")
-    @command.error_level(logging.WARNING)
-    async def cmd_exec(self, msg, raw_args):
-        def _exec():
-            nonlocal msg, raw_args, self
-
-            # pylint: disable=unused-variable
-            def send(text):
-                return self.bot.loop.create_task(msg.respond(text))
-
-            exec(util.tg.filter_code_block(raw_args))
-
-        await util.run_sync(_exec)
-        return "Code evaulated."
 
     @command.desc("Get the code of a command")
     async def cmd_src(self, msg, cmd_name):
@@ -165,7 +179,7 @@ Time: {el_str}"""
                 if reply_msg.forward.from_id:
                     lines.append(f"Forwarded message author ID: `{reply_msg.forward.from_id}`")
 
-                if hasattr(reply_msg.forward.saved_from_peer, 'channel_id'):
+                if hasattr(reply_msg.forward.saved_from_peer, "channel_id"):
                     f_chat_id = reply_msg.forward.saved_from_peer.channel_id
                     lines.append(f"Forwarded message chat ID: `{f_chat_id}`")
 
