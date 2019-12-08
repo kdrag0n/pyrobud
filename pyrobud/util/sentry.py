@@ -18,6 +18,7 @@ log = logging.getLogger("sentry")
 def _ratelimit():
     pass
 
+
 def send_filter(event, hint):
     # Discard event if ratelimit is exceeded
     try:
@@ -26,11 +27,10 @@ def send_filter(event, hint):
         return None
 
     if "exc_info" in hint:
-        # pylint: disable=unused-variable
-        exc_type, exc_value, tb = hint["exc_info"]
+        exc_type, exc_value, = hint["exc_info"]
 
         # User-initiated interrupts, network errors, and I/O errors
-        if isinstance(exc_value, (KeyboardInterrupt, ConnectionError, IOError, sqlite3.OperationalError)):
+        if exc_type in (KeyboardInterrupt, ConnectionError, IOError, sqlite3.OperationalError):
             return None
 
         exc_msg = str(exc_value)
