@@ -111,6 +111,10 @@ class TextModule(module.Module):
 
     @command.desc("Replace the spaces in a string with clap emojis")
     async def cmd_clap(self, msg, text):
+        if not text and msg.is_reply:
+            reply_msg = await msg.get_reply_message()
+            text = reply_msg.text
+
         if not text:
             return "__Provide text to insert claps into.__"
 
