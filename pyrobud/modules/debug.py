@@ -12,18 +12,6 @@ from .. import command, module, util
 class DebugModule(module.Module):
     name = "Debug"
 
-    @command.desc("Time `1 + 1`")
-    async def cmd_time11(self, msg):
-        reps = 1000000
-
-        before = util.time.usec()
-        for _ in range(reps):
-            _ = 1 + 1
-        after = util.time.usec()
-
-        el_us = (after - before) / reps
-        return "`1 + 1`: %.0f ns" % (el_us * 1000)
-
     @command.desc("Evaluate code")
     @command.alias("ev", "exec")
     async def cmd_eval(self, msg, raw_args):
