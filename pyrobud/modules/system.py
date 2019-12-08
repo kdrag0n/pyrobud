@@ -100,6 +100,11 @@ class SystemModule(module.Module):
 
         return status
 
+    @command.desc("Stop the bot")
+    async def cmd_stop(self, msg):
+        await msg.result("Stopping bot...")
+        await self.bot.client.disconnect()
+
     @command.desc("Restart the bot")
     @command.alias("re", "rst")
     async def cmd_restart(self, msg):
