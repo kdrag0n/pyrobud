@@ -22,3 +22,6 @@ pillow
 
 # System module
 speedtest-cli
+
+# Debug module
+meval

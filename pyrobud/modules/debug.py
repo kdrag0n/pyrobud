@@ -3,6 +3,8 @@ import json
 import logging
 import re
 
+from meval import meval
+
 from .. import command, module, util
 
 
@@ -29,42 +31,12 @@ class DebugModule(module.Module):
         if not code:
             return "__I need code to execute.__"
 
-        # Adapted from https://stackoverflow.com/a/53255739
         async def _eval(code):
-            # Retrieve final expression's values
-            lines = code.split("\n")
-            if not lines[-1].startswith("return"):
-                # Remove awaits from last line for the expression check
-                lline = lines[-1].replace("await ", "")
+            # Send helper for convenience
+            async def send(text):
+                return await msg.respond(text)
 
-                # Determine whether last line is a statement or expression
-                try:
-                    _ = compile(lline, "<stdin>", "eval")
-                    is_expr = True
-                except SyntaxError:
-                    is_expr = False
-
-                # If it is, prepend "return" to retrieve the value
-                if is_expr:
-                    lines[-1] = "return " + lines[-1]
-
-            # Indent code to make it syntactically valid when injected into the function
-            indented_code = "".join(f"\n    {line}" for line in lines)
-
-            # Make an async function with the code and `exec` it
-            exec(
-                f"""
-async def payload(self, msg, raw_args):
-    # Inject send helper
-    async def send(text):
-        return await msg.respond(text)
-
-    {indented_code}
-"""
-            )
-
-            # Get `payload` from local variables, call it and return the result
-            return await locals()["payload"](self, msg, raw_args)
+            return await meval(code, globals(), send=send, self=self, msg=msg, raw_args=raw_args)
 
         before = util.time.usec()
         result = await _eval(code)
