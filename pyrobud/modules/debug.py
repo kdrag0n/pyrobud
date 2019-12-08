@@ -2,6 +2,7 @@ import inspect
 import json
 import logging
 import re
+import traceback
 
 from meval import meval
 
@@ -25,7 +26,6 @@ class DebugModule(module.Module):
 
     @command.desc("Evaluate code")
     @command.alias("ev", "exec")
-    @command.error_level(logging.WARNING)
     async def cmd_eval(self, msg, raw_args):
         code = util.tg.filter_code_block(raw_args)
         if not code:
@@ -36,16 +36,39 @@ class DebugModule(module.Module):
             async def send(text):
                 return await msg.respond(text)
 
-            return await meval(code, globals(), send=send, self=self, msg=msg, raw_args=raw_args)
+            try:
+                return ("", await meval(code, globals(), send=send, self=self, msg=msg, raw_args=raw_args))
+            except Exception as e:
+                # Find first traceback frame involving the snippet
+                first_snip_idx = -1
+                tb = traceback.extract_tb(e.__traceback__)
+                for i in range(len(tb)):
+                    frame = tb[i]
+                    if frame.filename == "<string>":
+                        first_snip_idx = i
+                        break
+
+                # Re-raise exception if it wasn't caused by the snippet
+                if first_snip_idx == -1:
+                    raise e
+
+                # Return formatted stripped traceback
+                stripped_tb = tb[first_snip_idx:]
+                formatted_tb = util.format_exception(e, tb=stripped_tb)
+                return ("⚠️ Error executing snippet\n\n", formatted_tb)
 
         before = util.time.usec()
-        result = await _eval(code)
+        prefix, result = await _eval(code)
         after = util.time.usec()
 
         el_us = after - before
         el_str = util.time.format_duration_us(el_us)
 
-        return f"""```{str(result)}```
+        return f"""{prefix}**In**:
+```{code}```
+
+**Out**:
+```{str(result)}```
 
 Time: {el_str}"""
 
