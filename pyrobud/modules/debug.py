@@ -34,9 +34,12 @@ class DebugModule(module.Module):
             # Retrieve final expression's values
             lines = code.split("\n")
             if not lines[-1].startswith("return"):
-                # Detect whether last line is a statement or expression
+                # Remove awaits from last line for the expression check
+                lline = lines[-1].replace("await ", "")
+
+                # Determine whether last line is a statement or expression
                 try:
-                    _ = compile(lines[-1], "<stdin>", "eval")
+                    _ = compile(lline, "<stdin>", "eval")
                     is_expr = True
                 except SyntaxError:
                     is_expr = False
