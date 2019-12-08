@@ -352,7 +352,7 @@ class Bot:
             try:
                 ret = await cmd_func(event, *args)
             except Exception as e:
-                cmd_info.module.log.log(cmd_info.error_level, "Error in command function", exc_info=e)
+                cmd_info.module.log.log(cmd_info.error_level, f"Error in command '{cmd_info.name}'", exc_info=e)
                 ret = f"⚠️ Error executing command:\n```{util.format_exception(e)}```"
 
             if ret is not None:
