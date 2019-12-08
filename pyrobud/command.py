@@ -20,19 +20,10 @@ def alias(*aliases):
     return alias_decorator
 
 
-def error_level(_level):
-    def level_decorator(func):
-        func.cmd_error_level = _level
-        return func
-
-    return level_decorator
-
-
 class Info:
     def __init__(self, name, module, func):
         self.name = name
         self.desc = getattr(func, "cmd_description", None)
         self.aliases = getattr(func, "cmd_aliases", [])
-        self.error_level = getattr(func, "cmd_error_level", logging.ERROR)
         self.module = module
         self.func = func
