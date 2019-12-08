@@ -22,8 +22,9 @@ def find_prefixed_funcs(obj, prefix):
     return results
 
 
-def format_exception(exp):
-    tb = traceback.extract_tb(exp.__traceback__)
+def format_exception(exp, tb=None):
+    if tb is None:
+        tb = traceback.extract_tb(exp.__traceback__)
 
     # Replace absolute paths with relative paths
     cwd = os.getcwd()
