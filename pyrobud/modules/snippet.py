@@ -20,37 +20,36 @@ class SnippetsModule(module.Module):
 
     async def on_message(self, msg):
         if msg.out and msg.text:
-            orig_txt = msg.text
-            txt = msg.text
+            orig_text = msg.text
+            text = msg.text
 
-            txt = await util.run_sync(lambda: re.sub(r"/([^ ]+?)/", self.snip_repl, orig_txt))
+            text = await util.run_sync(lambda: re.sub(r"/([^ ]+?)/", self.snip_repl, orig_text))
+            text = util.tg.truncate(text)
 
-            if txt != orig_txt:
+            if text != orig_text:
                 await asyncio.sleep(1)
-                await msg.result(txt, mode="edit")
+                await msg.edit(text=text, link_preview=False)
 
     @command.desc("Save a snippet (fetch: `/snippet/`)")
+    @command.usage("[snippet name] [text?, or reply]")
     @command.alias("snippet", "snp")
-    async def cmd_snip(self, msg, *args):
-        if not args:
-            return "__Specify a name for the snippet, then reply to a message or provide text.__"
-
-        if msg.is_reply:
-            reply_msg = await msg.get_reply_message()
+    async def cmd_snip(self, ctx: command.Context):
+        if ctx.msg.is_reply:
+            reply_msg = await ctx.msg.get_reply_message()
 
             content = reply_msg.text
             if not content:
-                if len(args) > 1:
-                    content = " ".join(args[1:])
+                if len(ctx.args) > 1:
+                    content = " ".join(ctx.args[1:])
                 else:
                     return "__Reply to a message with text or provide text after snippet name.__"
         else:
-            if len(args) > 1:
-                content = " ".join(args[1:])
+            if len(ctx.args) > 1:
+                content = " ".join(ctx.args[1:])
             else:
                 return "__Reply to a message with text or provide text after snippet name.__"
 
-        name = args[0]
+        name = ctx.args[0]
         if await self.db.has(name):
             return f"__Snippet '{name}' already exists!__"
 
@@ -59,7 +58,7 @@ class SnippetsModule(module.Module):
 
     @command.desc("Show all snippets")
     @command.alias("sl", "snl", "spl", "snips", "snippets")
-    async def cmd_sniplist(self, msg):
+    async def cmd_sniplist(self, ctx: command.Context):
         out = "Snippet list:"
 
         async for key, _ in self.db:
@@ -71,10 +70,10 @@ class SnippetsModule(module.Module):
         return out
 
     @command.desc("Delete a snippet")
+    @command.usage("[snippet name]")
     @command.alias("ds", "sd", "snd", "spd", "rms", "srm", "rs", "sr", "rmsnip", "delsnip")
-    async def cmd_snipdel(self, msg, name):
-        if not name:
-            return "__Provide the name of a snippet to delete.__"
+    async def cmd_snipdel(self, ctx: command.Context):
+        name = ctx.input
 
         if not await self.db.has(name):
             return "__That snippet doesn't exist.__"

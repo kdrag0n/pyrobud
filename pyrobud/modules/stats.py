@@ -58,9 +58,10 @@ class StatsModule(module.Module):
         return "{:.1f}".format(stat / up_day).rstrip("0").rstrip(".")
 
     @command.desc("Show chat stats (pass `reset` to reset stats)")
+    @command.usage('["reset" to reset stats?]', optional=True)
     @command.alias("stat")
-    async def cmd_stats(self, msg, args):
-        if args == "reset":
+    async def cmd_stats(self, ctx: command.Context):
+        if ctx.input == "reset":
             await self.db.clear()
             await self.on_load()
             await self.on_start(util.time.usec())

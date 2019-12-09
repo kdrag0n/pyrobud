@@ -239,18 +239,18 @@ class AntibotModule(module.Module):
             await self.take_action(action, user)
 
     @command.desc("Toggle the antibot auto-moderation feature in this group")
-    async def cmd_antibot(self, msg):
-        if not msg.is_group:
+    async def cmd_antibot(self, ctx: command.Context):
+        if not ctx.msg.is_group:
             return "__Antibot can only be used in groups.__"
 
-        if not msg.is_channel:
+        if not ctx.msg.is_channel:
             return "__Please convert this group to a supergroup in order to enable antibot.__"
 
-        state = not await self.group_db.get(f"{msg.chat_id}.enabled", False)
+        state = not await self.group_db.get(f"{ctx.msg.chat_id}.enabled", False)
 
         if state:
             # Check for required permissions
-            chat = await msg.get_chat()
+            chat = await ctx.msg.get_chat()
             ch_participant = await self.bot.client(tg.tl.functions.channels.GetParticipantRequest(chat, "me"))
             ptcp = ch_participant.participant
 
@@ -264,10 +264,10 @@ class AntibotModule(module.Module):
             else:
                 return "__I must be an admin with the **Delete Messages** and **Ban users** permissions for antibot to work.__"
 
-            await self.group_db.put(f"{msg.chat_id}.enabled", True)
-            await self.group_db.put(f"{msg.chat_id}.enable_time", util.time.sec())
+            await self.group_db.put(f"{ctx.msg.chat_id}.enabled", True)
+            await self.group_db.put(f"{ctx.msg.chat_id}.enable_time", util.time.sec())
         else:
-            await self.clear_group(msg.chat_id)
+            await self.clear_group(ctx.msg.chat_id)
 
         status = "enabled" if state else "disabled"
         return f"Antibot is now **{status}** in this group."

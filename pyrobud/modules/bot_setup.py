@@ -117,29 +117,36 @@ Please read the rules _before_ participating.
         return new_list
 
     @command.desc("Set up @MissRose_bot and derivatives")
-    async def cmd_bsetup(self, msg, input_cfg):
-        if not msg.is_group:
+    @command.usage("[config?]", optional=True)
+    async def cmd_bsetup(self, ctx: command.Context):
+        input_cfg = ctx.input
+
+        if not ctx.msg.is_group:
             return "__This feature can only be used in groups.__"
 
-        parse_results = self.parse_config(msg.chat_id, input_cfg)
+        parse_results = self.parse_config(ctx.msg.chat_id, input_cfg)
         if isinstance(parse_results, str):
             # A string return value means an error occurred, so propagate it
             return parse_results
 
         target, rule_str, button_str, parsed_cfg = parse_results
-        commands = self.get_commands(msg.chat_id, rule_str, button_str)
+        commands = self.get_commands(ctx.msg.chat_id, rule_str, button_str)
         formatted_cfg = toml.dumps(parsed_cfg)
+        if formatted_cfg:
+            settings_used = f"\n```{formatted_cfg}```"
+        else:
+            settings_used = " defaults\n"
 
         before = datetime.now()
 
         status_header = f"Setting up @{target} via PM connection..."
-        await msg.result(status_header)
+        await ctx.respond(status_header)
 
         try:
-            await self.promote_bot(msg.chat, target)
+            await self.promote_bot(ctx.msg.chat, target)
         except Exception as e:
             status_header += f"\n**WARNING**: Unable to promote @{target}: `{str(e)}`"
-            await msg.result(status_header)
+            await ctx.respond(status_header)
 
         async with self.bot.client.conversation(target) as conv:
 
@@ -159,10 +166,11 @@ Please read the rules _before_ participating.
 Commands issued:
 ```{cmd_log}```"""
 
-                await msg.result(status)
+                await ctx.respond(status)
 
                 # Wait for both the rate-limit and the bot's response
                 try:
+                    # pylint: disable=unused-variable
                     done, pending = await asyncio.wait((reply_and_ack(), asyncio.sleep(0.25)))
 
                     # Raise all exceptions
@@ -176,8 +184,7 @@ Commands issued:
 
                     return f"""Setup of @{target} failed after {delta_seconds} seconds.
 
-Settings used:
-```{formatted_cfg}```
+Settings used:{settings_used}
 Commands issued:
 ```{cmd_log}```
 
@@ -188,7 +195,6 @@ The bot failed to respond within 1 minute of issuing the last command. Perhaps t
 
         return f"""Setup of @{target} finished in {delta_seconds} seconds.
 
-Settings used:
-```{formatted_cfg}```
+Settings used:{settings_used}
 Commands issued:
 ```{cmd_log}```"""

@@ -6,21 +6,21 @@ class ManagerModule(module.Module):
 
     @command.desc("Reload all modules")
     @command.alias("ra", "reload", "r")
-    async def cmd_reloadall(self, msg):
+    async def cmd_reloadall(self, ctx: command.Context):
         before = util.time.usec()
 
         await self.bot.dispatch_event("stop")
 
-        await msg.result("Unloading all modules...")
+        await ctx.respond("Unloading all modules...")
         self.bot.unload_all_modules()
 
-        await msg.result("Reloading module classes...")
+        await ctx.respond("Reloading module classes...")
         await self.bot.reload_module_pkg()
 
-        await msg.result("Loading new modules...")
+        await ctx.respond("Loading new modules...")
         self.bot.load_all_modules()
 
-        await msg.result("Dispatching events...")
+        await ctx.respond("Dispatching events...")
         await self.bot.dispatch_event("load")
         await self.bot.dispatch_event("start", util.time.usec())
 

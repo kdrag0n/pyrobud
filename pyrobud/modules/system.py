@@ -25,16 +25,16 @@ class SystemModule(module.Module):
         return await util.run_sync(_run_process)
 
     @command.desc("Run a snippet in a shell")
+    @command.usage("[shell snippet]")
     @command.alias("sh")
-    async def cmd_shell(self, msg, parsed_snip):
-        if not parsed_snip:
-            return "__Provide a snippet to run in shell.__"
+    async def cmd_shell(self, ctx: command.Context):
+        snip = ctx.input
 
-        await msg.result("Running snippet...")
+        await ctx.respond("Running snippet...")
         before = util.time.usec()
 
         try:
-            proc = await self.run_process(parsed_snip, shell=True, timeout=120)
+            proc = await self.run_process(snip, shell=True, timeout=120)
         except subprocess.TimeoutExpired:
             return "🕑 Snippet failed to finish within 2 minutes."
 
@@ -55,8 +55,8 @@ class SystemModule(module.Module):
 
     @command.desc("Get information about the host system")
     @command.alias("si")
-    async def cmd_sysinfo(self, msg):
-        await msg.result("Collecting system information...")
+    async def cmd_sysinfo(self, ctx: command.Context):
+        await ctx.respond("Collecting system information...")
 
         try:
             proc = await self.run_process(["neofetch", "--stdout"], timeout=10)
@@ -72,25 +72,25 @@ class SystemModule(module.Module):
 
     @command.desc("Test Internet speed")
     @command.alias("stest", "st")
-    async def cmd_speedtest(self, msg):
+    async def cmd_speedtest(self, ctx: command.Context):
         before = util.time.usec()
 
         st = await util.run_sync(speedtest.Speedtest)
         status = "Selecting server..."
 
-        await msg.result(status)
+        await ctx.respond(status)
         server = await util.run_sync(st.get_best_server)
         status += f" {server['sponsor']} ({server['name']})\n"
         status += "Ping: %.2f ms\n" % server["latency"]
 
         status += "Performing download test..."
-        await msg.result(status)
+        await ctx.respond(status)
         dl_bits = await util.run_sync(st.download)
         dl_mbit = dl_bits / 1000 / 1000
         status += " %.2f Mbps\n" % dl_mbit
 
         status += "Performing upload test..."
-        await msg.result(status)
+        await ctx.respond(status)
         ul_bits = await util.run_sync(st.upload)
         ul_mbit = ul_bits / 1000 / 1000
         status += " %.2f Mbps\n" % ul_mbit
@@ -101,18 +101,18 @@ class SystemModule(module.Module):
         return status
 
     @command.desc("Stop the bot")
-    async def cmd_stop(self, msg):
-        await msg.result("Stopping bot...")
+    async def cmd_stop(self, ctx: command.Context):
+        await ctx.respond("Stopping bot...")
         await self.bot.client.disconnect()
 
     @command.desc("Restart the bot")
     @command.alias("re", "rst")
-    async def cmd_restart(self, msg):
-        await msg.result("Restarting bot...")
+    async def cmd_restart(self, ctx: command.Context):
+        await ctx.respond("Restarting bot...")
 
         # Save time and status message so we can update it after restarting
-        await self.db.put("restart_status_chat_id", msg.chat_id)
-        await self.db.put("restart_status_message_id", msg.id)
+        await self.db.put("restart_status_chat_id", ctx.msg.chat_id)
+        await self.db.put("restart_status_message_id", ctx.msg.id)
         await self.db.put("restart_time", util.time.usec())
 
         # Initiate the restart
@@ -137,7 +137,7 @@ class SystemModule(module.Module):
             duration = util.time.format_duration_us(util.time.usec() - rs_time)
             self.log.info(f"Bot restarted in {duration}")
             status_msg = await self.bot.client.get_messages(rs_chat_id, ids=rs_message_id)
-            await status_msg.result(f"Bot restarted in {duration}.")
+            await self.bot.respond(status_msg, f"Bot restarted in {duration}.")
 
     async def on_stopped(self):
         # Restart the bot if applicable
@@ -146,20 +146,23 @@ class SystemModule(module.Module):
             os.execv(sys.argv[0], sys.argv)
 
     @command.desc("Update the bot from Git and restart")
+    @command.usage("[remote name?]", optional=True)
     @command.alias("up", "upd")
-    async def cmd_update(self, msg, remote_name):
+    async def cmd_update(self, ctx: command.Context):
+        remote_name = ctx.input
+
         if not util.git.have_git:
             return "__The__ `git` __command is required for self-updating.__"
 
         if self.update_restart_pending:
-            return await self.cmd_restart(msg)
+            return await self.cmd_restart(ctx)
 
         # Attempt to get the Git repo
         repo = await util.run_sync(lambda: util.git.get_repo())
         if not repo:
             return "__Unable to locate Git repository data.__"
 
-        await msg.result("Pulling changes...")
+        await ctx.respond("Pulling changes...")
         if remote_name:
             # Attempt to get reuqested remote
             try:
@@ -186,4 +189,4 @@ class SystemModule(module.Module):
                 return "Successfully pulled updates. Dependencies in `requirements.txt` were changed, so please update dependencies __before__ restarting the bot by re-running the `update` or `restart` command."
 
         # Restart after updating
-        await self.cmd_restart(msg)
+        await self.cmd_restart(ctx)

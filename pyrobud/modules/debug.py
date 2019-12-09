@@ -13,19 +13,18 @@ class DebugModule(module.Module):
     name = "Debug"
 
     @command.desc("Evaluate code")
+    @command.usage("[code snippet]")
     @command.alias("ev", "exec")
-    async def cmd_eval(self, msg, raw_args):
-        code = util.tg.filter_code_block(raw_args)
-        if not code:
-            return "__I need code to execute.__"
+    async def cmd_eval(self, ctx: command.Context):
+        code = util.tg.filter_code_block(ctx.input)
 
         async def _eval(code):
-            # Send helper for convenience
-            async def send(text):
-                return await msg.respond(text)
+            # Message sending helper for convenience
+            async def send(*args, **kwargs):
+                return await ctx.msg.respond(*args, **kwargs)
 
             try:
-                return ("", await meval(code, globals(), send=send, self=self, msg=msg, raw_args=raw_args))
+                return ("", await meval(code, globals(), send=send, self=self, ctx=ctx))
             except Exception as e:
                 # Find first traceback frame involving the snippet
                 first_snip_idx = -1
@@ -61,9 +60,10 @@ class DebugModule(module.Module):
 Time: {el_str}"""
 
     @command.desc("Get the code of a command")
-    async def cmd_src(self, msg, cmd_name):
-        if cmd_name is None or len(cmd_name) < 1:
-            return "__Command name required to get source code.__"
+    @command.usage("[command name]")
+    async def cmd_src(self, ctx: command.Context):
+        cmd_name = ctx.input
+
         if cmd_name not in self.bot.commands:
             return f"__Command__ `{cmd_name}` __doesn't exist.__"
 
@@ -73,58 +73,38 @@ Time: {el_str}"""
 
     @command.desc("Get plain text of a message")
     @command.alias("text", "raw")
-    async def cmd_gtx(self, msg):
-        if not msg.is_reply:
+    async def cmd_gtx(self, ctx: command.Context):
+        if not ctx.msg.is_reply:
             return "__Reply to a message to get the text of.__"
 
-        reply_msg = await msg.get_reply_message()
-        await msg.result(reply_msg.text, parse_mode=None)
+        reply_msg = await ctx.msg.get_reply_message()
+        await ctx.respond(reply_msg.text, parse_mode=None)
 
     @command.desc("Send text")
-    async def cmd_echo(self, msg, text):
-        if not text:
-            return "__Provide text to send.__"
-
+    @command.usage("[text to send]")
+    async def cmd_echo(self, ctx: command.Context):
+        text = ctx.input
         return text
 
     @command.desc("Dump all the data of a message")
     @command.alias("md", "msginfo", "minfo")
-    async def cmd_mdump(self, msg):
-        if not msg.is_reply:
+    async def cmd_mdump(self, ctx: command.Context):
+        if not ctx.msg.is_reply:
             return "__Reply to a message to get its data.__"
 
-        reply_msg = await msg.get_reply_message()
+        reply_msg = await ctx.msg.get_reply_message()
         data = reply_msg.stringify()
 
         return f"```{data}```"
 
-    @command.desc("Send media by file ID")
-    @command.alias("file")
-    async def cmd_fileid(self, msg, file_id):
-        if not file_id and not msg.is_reply:
-            return "__Provide a file ID to send or reply to a message with media to get its ID.__"
-
-        if file_id:
-            reply_msg = await msg.get_reply_message() if msg.is_reply else None
-
-            await msg.result("Sending media...")
-            await msg.respond(reply_to=reply_msg, file=file_id)
-            await msg.delete()
-        else:
-            rep = await msg.get_reply_message()
-            if not rep.media:
-                return "__Provide a file ID to send or reply to a message with media to get its ID.__"
-
-            if msg.file:
-                return f"File ID: `{msg.file.id}`"
-
-            return "__No compatible media found.__"
-
-    @command.desc("Get all available information about the given entity (or `chat`)")
+    @command.desc("Get all available information about the given entity")
+    @command.usage('[entity ID/username/... or "chat" for the current chat?, or reply]', optional=True)
     @command.alias("einfo")
-    async def cmd_entity(self, msg, entity_str):
+    async def cmd_entity(self, ctx: command.Context):
+        entity_str = ctx.input
+
         if entity_str == "chat":
-            entity = await msg.get_chat()
+            entity = await ctx.msg.get_chat()
         elif entity_str:
             if entity_str.isdigit():
                 try:
@@ -136,8 +116,8 @@ Time: {el_str}"""
                 entity = await self.bot.client.get_entity(entity_str)
             except ValueError as e:
                 return f"Error getting entity `{entity_str}`: {e}"
-        elif msg.is_reply:
-            entity = await msg.get_reply_message()
+        elif ctx.msg.is_reply:
+            entity = await ctx.msg.get_reply_message()
         else:
             return "__No entity given via argument or reply.__"
 
@@ -145,16 +125,16 @@ Time: {el_str}"""
 
     @command.desc("Get all contextually relevant IDs")
     @command.alias("user", "info")
-    async def cmd_id(self, msg):
+    async def cmd_id(self, ctx: command.Context):
         lines = []
 
-        if msg.chat_id:
-            lines.append(f"Chat ID: `{msg.chat_id}`")
+        if ctx.msg.chat_id:
+            lines.append(f"Chat ID: `{ctx.msg.chat_id}`")
 
         lines.append(f"My user ID: `{self.bot.uid}`")
 
-        if msg.is_reply:
-            reply_msg = await msg.get_reply_message()
+        if ctx.msg.is_reply:
+            reply_msg = await ctx.msg.get_reply_message()
             sender = await reply_msg.get_sender()
             lines.append(f"Message ID: `{reply_msg.id}`")
 

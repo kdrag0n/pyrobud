@@ -3,6 +3,9 @@ import asyncio
 import telethon as tg
 
 
+TRUNCATION_SUFFIX = "... (truncated)"
+
+
 def mention_user(user):
     if user.username:
         # Use username mention if possible
@@ -26,22 +29,28 @@ def filter_code_block(inp):
     return inp
 
 
-async def msg_download_file(download_msg, status_msg, destination=bytes, file_type="file"):
+async def msg_download_file(ctx, download_msg, destination=bytes, file_type="file"):
     last_percent = -5
 
     def prog_func(current_bytes, total_bytes):
         nonlocal last_percent
 
-        if not status_msg:
+        if not ctx:
             return
 
-        # Only edit message if progress >= 5%
-        # This reduces Telegram rate-limit exhaustion
+        # Only edit message if progress >= 5% to mitigate API flooding
         percent = int((current_bytes / total_bytes) * 100)
         if abs(percent - last_percent) >= 5:
             loop = asyncio.get_event_loop()
-            loop.create_task(status_msg.result(f"Downloading {file_type}... {percent}% complete"))
+            loop.create_task(ctx.respond(f"Downloading {file_type}... {percent}% complete"))
 
         last_percent = percent
 
     return await download_msg.download_media(file=destination, progress_callback=prog_func)
+
+
+def truncate(text):
+    if len(text) > 4096:
+        return text[: 4096 - len(TRUNCATION_SUFFIX)] + TRUNCATION_SUFFIX
+    else:
+        return text

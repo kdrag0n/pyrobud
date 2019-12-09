@@ -134,8 +134,11 @@ class StickerModule(module.Module):
         return formats
 
     @command.desc("Kang a sticker into configured/provided pack")
-    async def cmd_kang(self, msg, pack_name):
-        if not msg.is_reply:
+    @command.usage("[sticker pack short name?]", optional=True)
+    async def cmd_kang(self, ctx: command.Context):
+        pack_name = ctx.input
+
+        if not ctx.msg.is_reply:
             return "__Reply to a sticker to kang it.__"
 
         saved_pack_name = await self.settings_db.get("kang_pack")
@@ -147,12 +150,12 @@ class StickerModule(module.Module):
         else:
             pack_name = saved_pack_name
 
-        reply_msg = await msg.get_reply_message()
+        reply_msg = await ctx.msg.get_reply_message()
 
         if not reply_msg.sticker:
             return "__That message isn't a sticker.__"
 
-        await msg.result("Kanging sticker...")
+        await ctx.respond("Kanging sticker...")
 
         sticker_bytes = await reply_msg.download_media(file=bytes)
         sticker_buf = io.BytesIO(sticker_bytes)
@@ -168,17 +171,17 @@ class StickerModule(module.Module):
             return result
 
     @command.desc("Save a sticker with a name (as a reference)")
-    async def cmd_save(self, msg, name):
-        if not msg.is_reply:
-            return "__Reply to a sticker to save it.__"
+    @command.usage("[new sticker name]")
+    async def cmd_save(self, ctx: command.Context):
+        name = ctx.input
 
-        if not name:
-            return "__Provide a name for the new sticker.__"
+        if not ctx.msg.is_reply:
+            return "__Reply to a sticker to save it.__"
 
         if await self.db.has(name):
             return "__There's already a sticker with that name.__"
 
-        reply_msg = await msg.get_reply_message()
+        reply_msg = await ctx.msg.get_reply_message()
 
         if not reply_msg.sticker:
             return "__That message isn't a sticker.__"
@@ -187,22 +190,22 @@ class StickerModule(module.Module):
         return f"Sticker saved as `{name}`."
 
     @command.desc("Save a sticker with a name (to disk)")
-    async def cmd_saved(self, msg, name):
-        if not msg.is_reply:
-            return "__Reply to a sticker to save it.__"
+    @command.usage("[new sticker name]")
+    async def cmd_saved(self, ctx: command.Context):
+        name = ctx.input
 
-        if not name:
-            return "__Provide a name for the new sticker.__"
+        if not ctx.msg.is_reply:
+            return "__Reply to a sticker to save it.__"
 
         if await self.db.has(name):
             return "__There's already a sticker with that name.__"
 
-        reply_msg = await msg.get_reply_message()
+        reply_msg = await ctx.msg.get_reply_message()
 
         if not reply_msg.sticker:
             return "__That message isn't a sticker.__"
 
-        path = await util.tg.msg_download_file(reply_msg, msg, destination=f"stickers/{name}.webp", file_type="sticker")
+        path = await util.tg.msg_download_file(ctx, reply_msg, destination=f"stickers/{name}.webp", file_type="sticker")
         if not path:
             return "__Error downloading sticker__"
 
@@ -210,7 +213,7 @@ class StickerModule(module.Module):
         return f"Sticker saved to disk as `{name}`."
 
     @command.desc("List saved stickers")
-    async def cmd_stickers(self, msg):
+    async def cmd_stickers(self, ctx: command.Context):
         out = ["**Stickers saved**:"]
 
         async for key, value in self.db:
@@ -223,7 +226,7 @@ class StickerModule(module.Module):
         return "\n    \u2022 ".join(out)
 
     @command.desc("List locally saved stickers")
-    async def cmd_stickersp(self, msg):
+    async def cmd_stickersp(self, ctx: command.Context):
         out = ["**Stickers saved**:"]
 
         async for key, value in self.db:
@@ -236,9 +239,9 @@ class StickerModule(module.Module):
         return "\n    \u2022 ".join(out)
 
     @command.desc("Delete a saved sticker")
-    async def cmd_sdel(self, msg, name):
-        if not name:
-            return "__Provide the name of a sticker to delete.__"
+    @command.usage("[sticker name]")
+    async def cmd_sdel(self, ctx: command.Context):
+        name = ctx.input
 
         if not await self.db.has(name):
             return "__That sticker doesn't exist.__"
@@ -247,67 +250,57 @@ class StickerModule(module.Module):
         return f"Sticker `{name}` deleted."
 
     @command.desc("Fetch a sticker by name")
-    async def cmd_s(self, msg, name):
-        if not name:
-            await msg.result("__Provide the name of the sticker to fetch.__")
-            return
+    @command.usage("[sticker name]")
+    async def cmd_s(self, ctx: command.Context):
+        name = ctx.input
 
         path = await self.db.get(name)
         if path is None:
-            await msg.result("__That sticker doesn't exist.__")
-            return
+            return "__That sticker doesn't exist.__"
 
-        await msg.result("Uploading sticker...")
-        await msg.respond(file=path, reply_to=msg.reply_to_msg_id)
-        await msg.delete()
+        await ctx.respond("Uploading sticker...")
+        await ctx.msg.respond(file=path, reply_to=ctx.msg.reply_to_msg_id)
+        await ctx.msg.delete()
 
     @command.desc("Fetch a sticker by name and send it as a photo")
+    @command.usage("[sticker name]")
     @command.alias("sphoto")
-    async def cmd_sp(self, msg, name):
-        if not name:
-            await msg.result("__Provide the name of the sticker to fetch.__")
-            return
+    async def cmd_sp(self, ctx: command.Context):
+        name = ctx.input
 
         webp_path = await self.db.get(name)
         if webp_path is None:
-            await msg.result("__That sticker doesn't exist.__")
-            return
+            return "__That sticker doesn't exist.__"
 
         if not webp_path.endswith(".webp"):
-            await msg.result("__That sticker cannot be sent as a photo.__")
-            return
+            return "__That sticker can't be sent as a photo.__"
 
-        await msg.result("Uploading sticker...")
+        await ctx.respond("Uploading sticker...")
         png_path = webp_path[: -len(".webp")] + ".png"
         if not os.path.isfile(png_path):
             await self.img_to_png(webp_path, dest=png_path)
 
-        await msg.respond(file=png_path, reply_to=msg.reply_to_msg_id)
-        await msg.delete()
+        await ctx.msg.respond(file=png_path, reply_to=ctx.msg.reply_to_msg_id)
+        await ctx.msg.delete()
 
     @command.desc("Create a sticker from an image and add it to the given pack")
-    async def cmd_sticker(self, msg, *args):
-        if not msg.is_reply and not msg.file:
+    @command.usage("[sticker pack name] [emoji to associate?]")
+    async def cmd_sticker(self, ctx: command.Context):
+        if not ctx.msg.is_reply and not ctx.msg.file:
             return "__Reply to or embed an image to sticker it.__"
 
-        if not args:
-            await msg.result(
-                "__Provide the name of the pack to add the sticker to, and optionally the emoji to associate with it.__"
-            )
-            return
-
-        if msg.file:
-            reply_msg = msg
+        if ctx.msg.file:
+            reply_msg = ctx.msg
         else:
-            reply_msg = await msg.get_reply_message()
+            reply_msg = await ctx.msg.get_reply_message()
 
         if not reply_msg.file:
             return "__That message doesn't contain an image.__"
 
-        pack_name = args[0]
-        emoji = args[1] if len(args) > 1 else "❓"
+        pack_name = ctx.args[0]
+        emoji = ctx.args[1] if len(ctx.args) > 1 else "❓"
 
-        await msg.result("Creating sticker...")
+        await ctx.respond("Creating sticker...")
 
         sticker_bytes = await reply_msg.download_media(file=bytes)
         sticker_buf = io.BytesIO(sticker_bytes)
@@ -321,34 +314,34 @@ class StickerModule(module.Module):
         status, result = await self.add_sticker(png_buf, pack_name, emoji=emoji)
         if status == "success":
             self.bot.dispatch_event_nowait("stat_event", "stickers_created")
-            await msg.result(f"[Sticker created]({result}). Preview:")
+            await ctx.respond(f"[Sticker created]({result}). Preview:")
 
             webp_buf.seek(0)
             webp_buf.name = "sticker.webp"
-            await msg.respond(file=webp_buf)
+            await ctx.msg.respond(file=webp_buf)
         else:
             return result
 
     @command.desc("Create a sticker from an image and save it to disk under the given name")
-    async def cmd_qstick(self, msg, name):
-        if not msg.is_reply and not msg.file:
-            return "__Reply to an image to sticker it.__"
+    @command.usage("[new sticker name]")
+    async def cmd_qstick(self, ctx: command.Context):
+        name = ctx.input
 
-        if not name:
-            return "__Provide a name for the new sticker.__"
+        if not ctx.msg.is_reply and not ctx.msg.file:
+            return "__Reply to an image to sticker it.__"
 
         if await self.db.has(name):
             return "__There's already a sticker with that name.__"
 
-        if msg.file:
-            reply_msg = msg
+        if ctx.msg.file:
+            reply_msg = ctx.msg
         else:
-            reply_msg = await msg.get_reply_message()
+            reply_msg = await ctx.msg.get_reply_message()
 
         if not reply_msg.file:
             return "__That message isn't an image.__"
 
-        await msg.result("Creating sticker...")
+        await ctx.respond("Creating sticker...")
 
         sticker_bytes = await reply_msg.download_media(file=bytes)
         sticker_buf = io.BytesIO(sticker_bytes)
@@ -361,26 +354,27 @@ class StickerModule(module.Module):
         return f"Sticker saved to disk as `{name}`."
 
     @command.desc("Glitch an image")
-    async def cmd_glitch(self, msg, boffset_str):
-        if not msg.is_reply and not msg.file:
+    @command.usage("[block offset strength?]", optional=True)
+    async def cmd_glitch(self, ctx: command.Context):
+        if not ctx.msg.is_reply and not ctx.msg.file:
             return "__Reply to an image to glitch it.__"
 
         boffset = 8
-        if boffset_str:
+        if ctx.input:
             try:
-                boffset = int(boffset_str)
+                boffset = int(ctx.input)
             except ValueError:
                 return "__Invalid distorted block offset strength.__"
 
-        if msg.file:
-            reply_msg = msg
+        if ctx.msg.file:
+            reply_msg = ctx.msg
         else:
-            reply_msg = await msg.get_reply_message()
+            reply_msg = await ctx.msg.get_reply_message()
 
         if not reply_msg.file:
             return "__That message isn't an image.__"
 
-        await msg.result("Glitching image...")
+        await ctx.respond("Glitching image...")
 
         orig_bytes = await reply_msg.download_media(file=bytes)
 
@@ -409,5 +403,5 @@ class StickerModule(module.Module):
             return "❌ The `corrupter` [program](https://github.com/r00tman/corrupter) must be installed on the host system."
 
         glitched_bytes = proc.stdout
-        await msg.respond(file=glitched_bytes, reply_to=msg.reply_to_msg_id)
-        await msg.delete()
+        await ctx.msg.respond(file=glitched_bytes, reply_to=ctx.msg.reply_to_msg_id)
+        await ctx.msg.delete()

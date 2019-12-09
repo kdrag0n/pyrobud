@@ -1,5 +1,3 @@
-import inspect
-
 from .. import command, module, util
 
 OFFICIAL_SUPPORT_LINK = "https://t.me/pyrobud"
@@ -9,7 +7,10 @@ class CoreModule(module.Module):
     name = "Core"
 
     @command.desc("List the commands")
-    async def cmd_help(self, msg, filt):
+    @command.usage("[filter: command or module name?]", optional=True)
+    async def cmd_help(self, ctx: command.Context):
+        filt = ctx.input
+
         lines = {}
 
         # Handle command filters
@@ -20,24 +21,23 @@ class CoreModule(module.Module):
                 # Generate aliases section
                 aliases = f"`{'`, `'.join(cmd.aliases)}`" if cmd.aliases else "none"
 
-                # Generate arguments section
-                cmd_func = cmd.func
-                cmd_spec = inspect.getfullargspec(cmd_func)
-                cmd_args = cmd_spec.args
-
-                if len(cmd_args) == 3:
-                    args_desc = "Yes, one string"
-                elif cmd_spec.varargs and not cmd_spec.kwonlyargs:
-                    args_desc = "Yes, whitespace-separated segments"
+                # Generate parameters section
+                if cmd.usage is None:
+                    args_desc = "none"
                 else:
-                    args_desc = "No"
+                    args_desc = cmd.usage
+
+                    if cmd.usage_optional:
+                        args_desc += " (optional)"
+                    if cmd.usage_reply:
+                        args_desc += " (also accepts replies)"
 
                 # Show info card
                 return f"""`{cmd.name}`: **{cmd.desc if cmd.desc else '__No description provided.__'}**
 
 Module: {cmd.module.name}
 Aliases: {aliases}
-Takes arguments: {args_desc}"""
+Expected parameters: {args_desc}"""
             else:
                 return "__That filter didn't match any commands or modules.__"
 
@@ -71,12 +71,15 @@ Takes arguments: {args_desc}"""
         return "\n".join(sections)
 
     @command.desc("Get how long the bot has been up for")
-    async def cmd_uptime(self, msg):
+    async def cmd_uptime(self, ctx: command.Context):
         delta_us = util.time.usec() - self.bot.start_time_us
         return f"Uptime: {util.time.format_duration_us(delta_us)}"
 
     @command.desc("Get or change the bot prefix")
-    async def cmd_prefix(self, msg, new_prefix):
+    @command.usage("[new prefix?]", optional=True)
+    async def cmd_prefix(self, ctx: command.Context):
+        new_prefix = ctx.input
+
         if not new_prefix:
             return f"The prefix is `{self.bot.prefix}`."
 
@@ -86,5 +89,5 @@ Takes arguments: {args_desc}"""
         return f"Prefix set to `{self.bot.prefix}`."
 
     @command.desc("Get the link to the official bot support group")
-    async def cmd_support(self, msg):
+    async def cmd_support(self, ctx: command.Context):
         return f"[Join the official bot support group for help.]({OFFICIAL_SUPPORT_LINK})"

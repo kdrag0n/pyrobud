@@ -229,47 +229,6 @@ class Bot:
             with sentry_sdk.configure_scope() as scope:
                 scope.user = {"username": self.user.username}
 
-        # Hijack Message class to provide result function
-        async def result(msg, new_text, mode=None, **kwargs):
-            tg_config = self.config["telegram"]
-            api_id = str(tg_config["api_id"])
-            api_hash = tg_config["api_hash"]
-
-            # Redact sensitive information
-            if api_id in new_text:
-                new_text = new_text.replace(api_id, "[REDACTED]")
-            if api_hash in new_text:
-                new_text = new_text.replace(api_hash, "[REDACTED]")
-            if self.user.phone in new_text:
-                new_text = new_text.replace(self.user.phone, "[REDACTED]")
-
-            # Default to disabling link previews in responses
-            if "link_preview" not in kwargs:
-                kwargs["link_preview"] = False
-
-            # Truncate messages longer than Telegram's 4096-character length limit
-            truncated_suffix = "... (truncated)"
-            if len(new_text) > 4096:
-                new_text = new_text[: 4096 - len(truncated_suffix)] + truncated_suffix
-
-            # Use selected response mode if not overridden by invoker
-            if mode is None:
-                mode = self.config["bot"]["response_mode"]
-
-            if mode == "edit":
-                await msg.edit(text=new_text, **kwargs)
-            elif mode == "reply":
-                if hasattr(msg, "_result_msg"):
-                    # Already replied, so just edit the existing reply to reduce spam
-                    await msg._result_msg.edit(text=new_text, **kwargs)
-                else:
-                    # Reply since we haven't done so yet
-                    msg._result_msg = await msg.reply(new_text, **kwargs)
-            else:
-                raise ValueError(f"Unknown response mode '{mode}'")
-
-        tg.types.Message.result = result
-
         # Record start time and dispatch start event
         self.start_time_us = util.time.usec()
         await self.dispatch_event("start", self.start_time_us)
@@ -325,52 +284,84 @@ class Bot:
     async def on_chat_action(self, event):
         await self.dispatch_event("chat_action", event)
 
-    async def on_command(self, event):
+    async def on_command(self, msg):
         try:
+            # Attempt to get command info
             try:
-                cmd_info = self.commands[event.segments[0]]
+                cmd = self.commands[msg.segments[0]]
             except KeyError:
                 return
 
-            cmd_func = cmd_info.func
-            cmd_spec = inspect.getfullargspec(cmd_func)
-            cmd_args = cmd_spec.args
+            # Construct invocation context
+            ctx = command.Context(self, msg, msg.segments, len(self.prefix) + len(msg.segments[0]) + 1)
 
-            args = []
-            if len(cmd_args) == 3:
-                txt = event.text
+            # Ensure specified argument needs are met
+            if cmd.usage is not None and not cmd.usage_optional and not ctx.input:
+                err_base = f"⚠️ Missing parameters: {cmd.usage}"
 
-                # Contrary to typical terms, text = raw text (i.e. with Markdown formatting)
-                # and raw_text = parsed text (i.e. plain text without formatting symbols)
-                if cmd_args[2].startswith("parsed_"):
-                    txt = event.raw_text
+                if cmd.usage_reply:
+                    if msg.is_reply:
+                        reply_msg = await msg.get_reply_message()
+                        if reply_msg.text:
+                            ctx.input = reply_msg.text
+                            ctx.parsed_input = reply_msg.raw_text
+                        else:
+                            await ctx.respond(f"{err_base}\n__The message you replied to doesn't contain text.__")
+                            return
+                    else:
+                        await ctx.respond(f"{err_base} (replying is also supported)")
+                        return
+                else:
+                    await ctx.respond(err_base)
+                    return
 
-                args = [txt[len(self.prefix) + len(event.segments[0]) + 1 :]]
-            elif cmd_spec.varargs and not cmd_spec.kwonlyargs:
-                args = event.segments[1:]
-
+            # Invoke command function
             try:
-                ret = await cmd_func(event, *args)
+                ret = await cmd.func(ctx)
+
+                # Response shortcut
+                if ret is not None:
+                    await ctx.respond(ret)
             except Exception as e:
-                cmd_info.module.log.error(f"Error in command '{cmd_info.name}'", exc_info=e)
-                ret = f"⚠️ Error executing command:\n```{util.format_exception(e)}```"
-
-            if ret is not None:
-                try:
-                    await event.result(ret)
-                except Exception as e:
-                    cmd_info.module.log.error(
-                        "Error updating message with data returned by command '%s'", cmd_info.name, exc_info=e,
-                    )
-                    ret = f"⚠️ Error updating message:\n```{util.format_exception(e)}```"
-
-                    await event.result(ret)
-
-            await self.dispatch_event("command", event, cmd_info, args)
+                cmd.module.log.error(f"Error in command '{cmd.name}'", exc_info=e)
+                await ctx.respond(f"⚠️ Error executing command:\n```{util.format_exception(e)}```")
         except Exception as e:
-            try:
-                await event.result(f"⚠️ Error in command handler:\n```{util.format_exception(e)}```")
-            except Exception:
-                raise
+            cmd.module.log.error("Error in command handler", exc_info=e)
+            await self.respond(msg, f"⚠️ Error in command handler:\n```{util.format_exception(e)}```")
 
-            raise
+    # Flexible response function with filtering, truncation, redaction, etc.
+    async def respond(self, msg, text, *, mode=None, response=None, **kwargs):
+        tg_config = self.config["telegram"]
+        api_id = str(tg_config["api_id"])
+        api_hash = tg_config["api_hash"]
+
+        # Redact sensitive information
+        if api_id in text:
+            text = text.replace(api_id, "[REDACTED]")
+        if api_hash in text:
+            text = text.replace(api_hash, "[REDACTED]")
+        if self.user.phone in text:
+            text = text.replace(self.user.phone, "[REDACTED]")
+
+        # Default to disabling link previews in responses
+        if "link_preview" not in kwargs:
+            kwargs["link_preview"] = False
+
+        # Truncate messages longer than Telegram's 4096-character length limit
+        text = util.tg.truncate(text)
+
+        # Use selected response mode if not overridden by invoker
+        if mode is None:
+            mode = self.config["bot"]["response_mode"]
+
+        if mode == "edit":
+            return await msg.edit(text=text, **kwargs)
+        elif mode == "reply":
+            if response is not None:
+                # Already replied, so just edit the existing reply to reduce spam
+                return await response.edit(text=text, **kwargs)
+            else:
+                # Reply since we haven't done so yet
+                return await msg.reply(text, **kwargs)
+        else:
+            raise ValueError(f"Unknown response mode '{mode}'")

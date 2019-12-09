@@ -9,28 +9,22 @@ class TextModule(module.Module):
     name = "Text"
 
     @command.desc("Unicode character from hex codepoint")
+    @command.usage("[hexadecimal Unicode codepoint]")
     @command.alias("cp", "chr", "uc", "c")
-    async def cmd_uni(self, msg, codepoint):
-        if not codepoint:
-            return "__Hex codepoint required.__"
-
+    async def cmd_uni(self, ctx: command.Context):
+        codepoint = ctx.input
         return chr(int(codepoint, 16))
 
     @command.desc("Get a character equivalent to a zero-width space that works on Telegram")
     @command.alias("empty")
-    async def cmd_zwsp(self, msg):
+    async def cmd_zwsp(self, ctx: command.Context):
         return "\U000e0020"
 
     @command.desc("Apply a sarcasm/mocking filter to the given text")
+    @command.usage("[text to filter]", reply=True)
     @command.alias("sar", "sarc", "scm", "mock")
-    async def cmd_sarcasm(self, msg, text):
-        if not text:
-            if msg.is_reply:
-                reply_msg = await msg.get_reply_message()
-                text = reply_msg.text
-            else:
-                return "__Reply to a message with text or provide text to filter.__"
-
+    async def cmd_sarcasm(self, ctx: command.Context):
+        text = ctx.input
         chars = list(text)
         for idx, ch in enumerate(chars):
             if random.choice((True, False)):
@@ -41,28 +35,28 @@ class TextModule(module.Module):
         return "".join(chars)
 
     @command.desc("Apply strike-through formatting to the given text")
+    @command.usage("[text to format]", reply=True)
     @command.alias("str", "strikethrough")
-    async def cmd_strike(self, msg, text):
-        if not text:
-            return "__Text required.__"
-
+    async def cmd_strike(self, ctx: command.Context):
+        text = ctx.input
         return "\u0336".join(text) + "\u0336"
 
-    @command.desc("Generate fake Google Play-style codes (optional arguments: count, length)")
+    @command.desc("Generate fake Google Play-style codes")
+    @command.usage("[number of codes to generate?] [length of each code?]", optional=True)
     @command.alias("genkey")
-    async def cmd_gencode(self, msg, *args):
+    async def cmd_gencode(self, ctx: command.Context):
         count = 10
         length = 23
 
-        if args:
+        if ctx.args:
             try:
-                count = int(args[0])
+                count = int(ctx.args[0])
             except ValueError:
                 return "__Invalid number provided for count.__"
 
-        if len(args) >= 2:
+        if len(ctx.args) >= 2:
             try:
-                length = int(args[1])
+                length = int(ctx.args[1])
             except ValueError:
                 return "__Invalid number provided for length.__"
 
@@ -76,14 +70,10 @@ class TextModule(module.Module):
         return f"```{codes_str}```"
 
     @command.desc("Dissect a string into named Unicode codepoints")
+    @command.usage("[text to dissect]", reply=True)
     @command.alias("cinfo", "chinfo", "ci")
-    async def cmd_charinfo(self, msg, text):
-        if not text and msg.is_reply:
-            reply_msg = await msg.get_reply_message()
-            text = reply_msg.text
-
-        if not text:
-            return "__Provide text or reply to a message with text to dissect.__"
+    async def cmd_charinfo(self, ctx: command.Context):
+        text = ctx.input
 
         chars = []
         for char in text:
@@ -110,12 +100,7 @@ class TextModule(module.Module):
         return "\n".join(chars)
 
     @command.desc("Replace the spaces in a string with clap emojis")
-    async def cmd_clap(self, msg, text):
-        if not text and msg.is_reply:
-            reply_msg = await msg.get_reply_message()
-            text = reply_msg.text
-
-        if not text:
-            return "__Provide text to insert claps into.__"
-
+    @command.usage("[text to filter]", reply=True)
+    async def cmd_clap(self, ctx: command.Context):
+        text = ctx.input
         return "\n".join("👏".join(line.split()) for line in text.split("\n"))

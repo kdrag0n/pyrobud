@@ -9,9 +9,12 @@ class ModerationModule(module.Module):
     name = "Moderation"
 
     @command.desc("Mention everyone in this group (**DO NOT ABUSE**)")
+    @command.usage("[comment?]", optional=True)
     @command.alias("evo", "@everyone")
-    async def cmd_everyone(self, msg, comment, *, tag="\U000e0020everyone", filter=None):
-        if not msg.is_group:
+    async def cmd_everyone(self, ctx: command.Context, *, tag="\U000e0020everyone", filter=None):
+        comment = ctx.input
+
+        if not ctx.msg.is_group:
             return "__This command can only be used in groups.__"
 
         mention_text = f"@{tag}"
@@ -20,7 +23,7 @@ class ModerationModule(module.Module):
 
         mention_slots = 4096 - len(mention_text)
 
-        chat = await msg.get_chat()
+        chat = await ctx.msg.get_chat()
         async for user in self.bot.client.iter_participants(chat, filter=filter):
             mention_text += f"[\u200b](tg://user?id={user.id})"
 
@@ -28,33 +31,40 @@ class ModerationModule(module.Module):
             if mention_slots == 0:
                 break
 
-        await msg.respond(mention_text, reply_to=msg.reply_to_msg_id)
-        await msg.delete()
+        await ctx.msg.respond(mention_text, reply_to=ctx.msg.reply_to_msg_id)
+        await ctx.msg.delete()
 
     @command.desc("Mention all admins in a group (**DO NOT ABUSE**)")
+    @command.usage("[comment?]", optional=True)
     @command.alias("adm", "@admin")
-    async def cmd_admin(self, msg, comment):
-        await self.cmd_everyone(msg, comment, tag="admin", filter=tg.tl.types.ChannelParticipantsAdmins)
+    async def cmd_admin(self, ctx: command.Context):
+        await self.cmd_everyone(ctx, tag="admin", filter=tg.tl.types.ChannelParticipantsAdmins)
 
-    @command.desc("Ban user(s) from the current chat by ID")
-    async def cmd_ban(self, msg, *input_ids):
+    @command.desc("Ban user(s) from the current chat by ID or reply")
+    @command.usage("[ID(s) of the user(s) to ban?, or reply to user's message]", optional=True)
+    async def cmd_ban(self, ctx: command.Context):
+        input_ids = ctx.args
+
         try:
             # Parse user IDs without duplicates
             user_ids = list(dict.fromkeys(map(int, input_ids)))
         except ValueError:
             return "__Encountered invalid ID while parsing arguments.__"
 
-        if msg.is_reply:
-            reply_msg = await msg.get_reply_message()
+        if ctx.msg.is_reply:
+            reply_msg = await ctx.msg.get_reply_message()
             user_ids.append(reply_msg.from_id)
 
-        chat = await msg.get_chat()
+        if not user_ids:
+            return "__Provide a list of user IDs to ban, or reply to a user's message to ban them.__"
+
+        chat = await ctx.msg.get_chat()
         single_user = len(user_ids) == 1
         if single_user:
             lines = []
         else:
             lines = [f"Banned {len(user_ids)} users:"]
-            await msg.result(f"Banning {len(user_ids)} users...")
+            await ctx.respond(f"Banning {len(user_ids)} users...")
 
         for user_id in user_ids:
             try:
@@ -83,21 +93,20 @@ class ModerationModule(module.Module):
         return "\n".join(lines)
 
     @command.desc("Prune deleted members in this group or the specified group")
-    async def cmd_prune(self, msg, chat):
-        incl_chat_name = bool(chat)
+    @command.usage("[target chat ID/username/...?]", optional=True)
+    async def cmd_prune(self, ctx: command.Context):
+        chat = ctx.input
+
         if chat:
             chat = await self.bot.client.get_entity(chat)
-        else:
-            chat = await msg.get_chat()
-
-        if incl_chat_name:
             _chat_name = f" from **{chat.title}**"
             _chat_name2 = f" in **{chat.title}**"
         else:
+            chat = await ctx.msg.get_chat()
             _chat_name = ""
             _chat_name2 = ""
 
-        await msg.result(f"Fetching members{_chat_name}...")
+        await ctx.respond(f"Fetching members{_chat_name}...")
         all_members = await self.bot.client.get_participants(chat)
 
         last_time = datetime.now()
@@ -106,7 +115,7 @@ class ModerationModule(module.Module):
         idx = 0
 
         status_text = f"Pruning deleted members{_chat_name}..."
-        await msg.result(status_text)
+        await ctx.respond(status_text)
 
         for user in all_members:
             if user.deleted:
@@ -120,7 +129,7 @@ class ModerationModule(module.Module):
             now = datetime.now()
             delta = now - last_time
             if delta.total_seconds() >= 0.25:
-                await msg.result(
+                await ctx.respond(
                     f"{status_text} {percent_done}% done ({idx + 1} of {total_count} processed; {pruned_count} banned)"
                 )
 
@@ -128,6 +137,6 @@ class ModerationModule(module.Module):
             idx += 1
 
         percent_pruned = int(pruned_count / total_count * 100)
-        await msg.result(
+        await ctx.respond(
             f"Pruned {pruned_count} deleted users{_chat_name2} — {percent_pruned}% of the original member count."
         )
