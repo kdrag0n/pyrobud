@@ -31,8 +31,7 @@ class ModerationModule(module.Module):
             if mention_slots == 0:
                 break
 
-        await ctx.msg.respond(mention_text, reply_to=ctx.msg.reply_to_msg_id)
-        await ctx.msg.delete()
+        await ctx.respond(mention_text, mode="repost")
 
     @command.desc("Mention all admins in a group (**DO NOT ABUSE**)")
     @command.usage("[comment?]", optional=True)

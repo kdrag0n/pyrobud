@@ -265,8 +265,7 @@ class StickerModule(module.Module):
             return "__That sticker doesn't exist.__"
 
         await ctx.respond("Uploading sticker...")
-        await ctx.msg.respond(file=path, reply_to=ctx.msg.reply_to_msg_id)
-        await ctx.msg.delete()
+        await ctx.respond(file=path, mode="repost")
 
     @command.desc("Fetch a sticker by name and send it as a photo")
     @command.usage("[sticker name]")
@@ -286,8 +285,7 @@ class StickerModule(module.Module):
         if not os.path.isfile(png_path):
             await self.img_to_png(webp_path, dest=png_path)
 
-        await ctx.msg.respond(file=png_path, reply_to=ctx.msg.reply_to_msg_id)
-        await ctx.msg.delete()
+        await ctx.respond(file=png_path, mode="repost")
 
     @command.desc("Create a sticker from an image and add it to the given pack")
     @command.usage("[sticker pack name] [emoji to associate?]")
@@ -409,5 +407,4 @@ class StickerModule(module.Module):
             return "❌ The `corrupter` [program](https://github.com/r00tman/corrupter) must be installed on the host system."
 
         glitched_bytes = proc.stdout
-        await ctx.msg.respond(file=glitched_bytes, reply_to=ctx.msg.reply_to_msg_id)
-        await ctx.msg.delete()
+        await ctx.respond(file=glitched_bytes, mode="repost")
