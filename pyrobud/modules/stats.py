@@ -10,9 +10,26 @@ class StatsModule(module.Module):
     async def on_load(self):
         self.db = self.bot.get_db("stats")
 
+        # Log migration message if applicable
+        if await self.db.has("stop_time_usec") or await self.db.has("uptime"):
+            self.log.info("Migrating stats timekeeping format")
+
+        # Perform last stop_time_usec increment to prepare for migration
+        last_time = await self.db.get("stop_time_usec")
+        if last_time is not None:
+            await self.db.inc("uptime", util.time.usec() - last_time)
+            await self.db.delete("stop_time_usec")
+
+        # Migrate old stop_time_usec + uptime timekeeping format to new start_time_usec
+        uptime = await self.db.get("uptime")
+        if uptime is not None:
+            await self.db.put("start_time_usec", util.time.usec() - uptime)
+            await self.db.delete("uptime")
+
     async def on_start(self, time_us):
-        self.last_time = await self.db.get("stop_time_usec", util.time.usec())
-        await self.db.delete("stop_time_usec")
+        # Initialize start_time_usec for new instances
+        if not await self.db.has("start_time_usec"):
+            await self.db.put("start_time_usec", util.time.usec())
 
     async def on_message(self, msg):
         stat = "sent" if msg.out else "received"
@@ -31,17 +48,6 @@ class StatsModule(module.Module):
 
     async def on_stat_event(self, key):
         await self.db.inc(key)
-        await self.update_uptime()
-
-    async def update_uptime(self):
-        now = util.time.usec()
-        delta_us = now - self.last_time
-        await self.db.inc("uptime", delta_us)
-        self.last_time = now
-
-    async def on_stop(self):
-        await self.update_uptime()
-        await self.db.put("stop_time_usec", self.last_time)
 
     def calc_pct(self, num1, num2):
         if not num2:
@@ -67,9 +73,9 @@ class StatsModule(module.Module):
             await self.on_start(util.time.usec())
             return "__All stats have been reset.__"
 
-        await self.update_uptime()
+        start_time = await self.db.get("start_time_usec")
+        uptime = util.time.usec() - start_time
 
-        uptime = await self.db.get("uptime", 0)
         sent = await self.db.get("sent", 0)
         sent_stickers = await self.db.get("sent_stickers", 0)
         sent_edits = await self.db.get("sent_edits", 0)
