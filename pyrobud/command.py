@@ -74,4 +74,5 @@ class Context:
 
     # Convenience alias for Bot.respond()
     async def respond(self, text, *, mode=None, **kwargs):
-        return await self.bot.respond(self.msg, text, mode=mode, response=self.response, **kwargs)
+        self.response = await self.bot.respond(self.msg, text, mode=mode, response=self.response, **kwargs)
+        return self.response
