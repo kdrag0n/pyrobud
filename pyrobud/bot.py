@@ -330,25 +330,26 @@ class Bot:
             await self.respond(msg, f"⚠️ Error in command handler:\n```{util.format_exception(e)}```")
 
     # Flexible response function with filtering, truncation, redaction, etc.
-    async def respond(self, msg, text, *, mode=None, response=None, **kwargs):
-        tg_config = self.config["telegram"]
-        api_id = str(tg_config["api_id"])
-        api_hash = tg_config["api_hash"]
+    async def respond(self, msg, text=None, *, mode=None, response=None, **kwargs):
+        if text is not None:
+            tg_config = self.config["telegram"]
+            api_id = str(tg_config["api_id"])
+            api_hash = tg_config["api_hash"]
 
-        # Redact sensitive information
-        if api_id in text:
-            text = text.replace(api_id, "[REDACTED]")
-        if api_hash in text:
-            text = text.replace(api_hash, "[REDACTED]")
-        if self.user.phone in text:
-            text = text.replace(self.user.phone, "[REDACTED]")
+            # Redact sensitive information
+            if api_id in text:
+                text = text.replace(api_id, "[REDACTED]")
+            if api_hash in text:
+                text = text.replace(api_hash, "[REDACTED]")
+            if self.user.phone in text:
+                text = text.replace(self.user.phone, "[REDACTED]")
+
+            # Truncate messages longer than Telegram's 4096-character length limit
+            text = util.tg.truncate(text)
 
         # Default to disabling link previews in responses
         if "link_preview" not in kwargs:
             kwargs["link_preview"] = False
-
-        # Truncate messages longer than Telegram's 4096-character length limit
-        text = util.tg.truncate(text)
 
         # Use selected response mode if not overridden by invoker
         if mode is None:
@@ -363,5 +364,14 @@ class Bot:
             else:
                 # Reply since we haven't done so yet
                 return await msg.reply(text, **kwargs)
+        elif mode == "repost":
+            if response is not None:
+                # Already reposted, so just edit the existing reply to reduce spam
+                return await response.edit(text=text, **kwargs)
+            else:
+                # Repost since we haven't done so yet
+                response = await msg.respond(text, reply_to=msg.reply_to_msg_id, **kwargs)
+                await msg.delete()
+                return response
         else:
             raise ValueError(f"Unknown response mode '{mode}'")
