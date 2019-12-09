@@ -39,5 +39,5 @@ report_username = false
 # It is highly recommended to leave this alone unless you have good reason not to.
 sentry_dsn = ""
 # How the bot responds to commands.
-# Valid options: edit, reply
+# Valid options: edit, reply, repost
 response_mode = "reply"
