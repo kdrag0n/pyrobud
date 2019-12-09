@@ -29,6 +29,8 @@ class TextModule(module.Module):
         for idx, ch in enumerate(chars):
             if random.choice((True, False)):
                 ch = ch.upper()
+            else:
+                ch = ch.lower()
 
             chars[idx] = ch
 
