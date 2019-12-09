@@ -11,6 +11,11 @@ from .. import command, module, util
 
 PNG_MAGIC = b"\x89\x50\x4e\x47\x0d\x0a\x1a\x0a"
 
+# Sticker bot's error strings
+TOO_MANY_STICKERS_ERROR = "A pack can't have more than 120 stickers at the moment."
+INVALID_FORMAT_ERROR = "Sorry, the file type is invalid."
+IMAGE_TOO_BIG_ERROR = "Sorry, the file is too big."
+
 
 class LengthMismatchError(Exception):
     pass
@@ -26,10 +31,6 @@ class StickerModule(module.Module):
     async def add_sticker(self, sticker_data, pack_name, emoji="❓"):
         # User to send messages to
         target = "Stickers"
-
-        # The sticker bot's error strings
-        too_many_stickers_error = "A pack can't have more than 120 stickers at the moment."
-        invalid_format_error = "Sorry, the file type is invalid."
 
         commands = [
             ("text", "/cancel"),
@@ -69,22 +70,27 @@ class StickerModule(module.Module):
                         await asyncio.wait({wait_task, ratelimit_task})
 
                         response = wait_task.result()
-                        if too_many_stickers_error in response.raw_text:
+                        if TOO_MANY_STICKERS_ERROR in response.raw_text:
                             return (
-                                "error",
+                                False,
                                 f"Sticker creation failed because there are too many stickers in the [{pack_name}](https://t.me/addstickers/{pack_name}) pack — Telegram's limit is 120. Delete some unwanted stickers or create a new pack.",
                             )
-                        elif invalid_format_error in response.raw_text:
+                        elif INVALID_FORMAT_ERROR in response.raw_text:
                             return (
-                                "error",
-                                f"Sticker creation failed because Telegram rejected the uploaded image file for deviating from their expected format. This is usually indicative of a MIME type issue in this bot.",
+                                False,
+                                "Sticker creation failed because Telegram rejected the uploaded image file for deviating from their expected format. This is usually indicative of a MIME type issue in this bot.",
+                            )
+                        elif IMAGE_TOO_BIG_ERROR in response.raw_text:
+                            return (
+                                False,
+                                "Sticker creation failed because the original image converted into WEBP format was above Telegram's 512 KiB size limit.",
                             )
                     except asyncio.TimeoutError:
                         after = datetime.now()
                         delta_seconds = int((after - before).total_seconds())
 
                         return (
-                            "error",
+                            False,
                             f"Sticker creation failed after {delta_seconds} seconds because [the bot](https://t.me/{target}) failed to respond within 1 minute of issuing the last command.",
                         )
 
@@ -94,7 +100,7 @@ class StickerModule(module.Module):
                 if not success:
                     await conv.send_message("/cancel")
 
-        return ("success", f"https://t.me/addstickers/{pack_name}")
+        return (True, f"https://t.me/addstickers/{pack_name}")
 
     async def img_to_png(self, src, dest=None):
         if not dest:
@@ -164,7 +170,7 @@ class StickerModule(module.Module):
         sticker_buf.seek(0)
         sticker_buf.name = "sticker.png"
         status, result = await self.add_sticker(sticker_buf, pack_name, emoji=reply_msg.file.emoji)
-        if status == "success":
+        if status:
             self.bot.dispatch_event_nowait("stat_event", "stickers_created")
             return f"[Sticker kanged]({result})."
         else:
@@ -312,7 +318,7 @@ class StickerModule(module.Module):
         png_buf.seek(0)
         png_buf.name = "sticker.png"
         status, result = await self.add_sticker(png_buf, pack_name, emoji=emoji)
-        if status == "success":
+        if status:
             self.bot.dispatch_event_nowait("stat_event", "stickers_created")
             await ctx.respond(f"[Sticker created]({result}). Preview:")
 
