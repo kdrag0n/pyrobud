@@ -22,8 +22,8 @@ class TextModule(module.Module):
 
     @command.desc("Apply a sarcasm/mocking filter to the given text")
     @command.usage("[text to filter]", reply=True)
-    @command.alias("sar", "sarc", "scm", "mock")
-    async def cmd_sarcasm(self, ctx: command.Context):
+    @command.alias("sarcasm", "sar", "sarc", "scm")
+    async def cmd_mock(self, ctx: command.Context):
         text = ctx.input
         chars = list(text)
         for idx, ch in enumerate(chars):
