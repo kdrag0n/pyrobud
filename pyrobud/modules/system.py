@@ -108,11 +108,11 @@ class SystemModule(module.Module):
     @command.desc("Restart the bot")
     @command.alias("re", "rst")
     async def cmd_restart(self, ctx: command.Context):
-        await ctx.respond("Restarting bot...")
+        resp_msg = await ctx.respond("Restarting bot...")
 
         # Save time and status message so we can update it after restarting
-        await self.db.put("restart_status_chat_id", ctx.msg.chat_id)
-        await self.db.put("restart_status_message_id", ctx.msg.id)
+        await self.db.put("restart_status_chat_id", resp_msg.chat_id)
+        await self.db.put("restart_status_message_id", resp_msg.id)
         await self.db.put("restart_time", util.time.usec())
 
         # Initiate the restart
