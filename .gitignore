@@ -132,3 +132,6 @@ ChangeLog
 
 # Visual Studio Code workspace settings
 .vscode
+
+# PyCharm project
+.idea/
