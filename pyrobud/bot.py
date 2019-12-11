@@ -4,31 +4,38 @@ import importlib
 import inspect
 import logging
 import os
-import sys
-import traceback
+from typing import Dict, List, Optional, Type, Union, Any
+from types import ModuleType
 
 import aiohttp
 import telethon as tg
-import toml
 import plyvel
 import sentry_sdk
 
-from . import command, module, modules, custom_modules, util
-
-
-class Listener:
-    def __init__(self, event, func, module, priority):
-        self.event = event
-        self.func = func
-        self.module = module
-        self.priority = priority
-
-    def __lt__(self, other):
-        return self.priority < other.priority
+from . import command, module, util
+from .listener import Listener, ListenerFunc
 
 
 class Bot:
-    def __init__(self, config):
+    # Initialized during instantiation
+    commands: Dict[str, command.Command]
+    modules: Dict[str, module.Module]
+    listeners: Dict[str, List[Listener]]
+    config: util.config.Config
+    log: logging.Logger
+    http_session: aiohttp.ClientSession
+    _db: util.db.AsyncDB
+    db: util.db.AsyncDB
+    client: tg.TelegramClient
+
+    # Initialized during startup
+    loop: asyncio.AbstractEventLoop
+    prefix: str
+    user: tg.types.User
+    uid: int
+    start_time_us: int
+
+    def __init__(self, config: util.config.Config):
         # Initialize module dicts
         self.commands = {}
         self.modules = {}
@@ -46,29 +53,29 @@ class Bot:
         self.db = self.get_db("bot")
 
         # Initialize Telegram client
-        tg_config = config["telegram"]
+        tg_config: Dict[str, Union[int, str]] = config["telegram"]
         self.client = tg.TelegramClient(tg_config["session_name"], tg_config["api_id"], tg_config["api_hash"])
 
-    def get_db(self, prefix):
+    def get_db(self, prefix: str) -> util.db.AsyncDB:
         return self._db.prefixed_db(prefix + ".")
 
-    def register_command(self, mod, name, func):
-        info = command.Info(name, mod, func)
+    def register_command(self, mod: module.Module, name: str, func: command.CommandFunc) -> None:
+        cmd = command.Command(name, mod, func)
 
         if name in self.commands:
             orig = self.commands[name]
-            raise module.ExistingCommandError(orig, info)
+            raise module.ExistingCommandError(orig, cmd)
 
-        self.commands[name] = info
+        self.commands[name] = cmd
 
-        for alias in info.aliases:
+        for alias in cmd.aliases:
             if alias in self.commands:
                 orig = self.commands[alias]
-                raise module.ExistingCommandError(orig, info, alias=True)
+                raise module.ExistingCommandError(orig, cmd, alias=True)
 
-            self.commands[alias] = info
+            self.commands[alias] = cmd
 
-    def unregister_command(self, cmd):
+    def unregister_command(self, cmd: command.Command) -> None:
         del self.commands[cmd.name]
 
         for alias in cmd.aliases:
@@ -77,15 +84,18 @@ class Bot:
             except KeyError:
                 continue
 
-    def register_commands(self, mod):
+    def register_commands(self, mod: module.Module) -> None:
         for name, func in util.find_prefixed_funcs(mod, "cmd_"):
+            done = False
+
             try:
                 self.register_command(mod, name, func)
-            except:
-                self.unregister_commands(mod)
-                raise
+                done = True
+            finally:
+                if not done:
+                    self.unregister_commands(mod)
 
-    def unregister_commands(self, mod):
+    def unregister_commands(self, mod: module.Module) -> None:
         # Can't unregister while iterating, so collect commands to unregister afterwards
         to_unreg = []
 
@@ -101,7 +111,7 @@ class Bot:
         for cmd in to_unreg:
             self.unregister_command(cmd)
 
-    def register_listener(self, mod, event, func, priority=100):
+    def register_listener(self, mod: module.Module, event: str, func: ListenerFunc, priority: int = 100) -> None:
         listener = Listener(event, func, mod, priority)
 
         if event in self.listeners:
@@ -109,18 +119,20 @@ class Bot:
         else:
             self.listeners[event] = [listener]
 
-    def unregister_listener(self, listener):
+    def unregister_listener(self, listener: Listener) -> None:
         self.listeners[listener.event].remove(listener)
 
-    def register_listeners(self, mod):
+    def register_listeners(self, mod: module.Module) -> None:
         for event, func in util.find_prefixed_funcs(mod, "on_"):
+            done = True
             try:
-                self.register_listener(mod, event, func, priority=getattr(func, "listener_priority", 100))
-            except:
-                self.unregister_listeners(mod)
-                raise
+                self.register_listener(mod, event, func, priority=getattr(func, "_listener_priority", 100))
+                done = True
+            finally:
+                if not done:
+                    self.unregister_listeners(mod)
 
-    def unregister_listeners(self, mod):
+    def unregister_listeners(self, mod: module.Module) -> None:
         # Can't unregister while iterating, so collect listeners to unregister afterwards
         to_unreg = []
 
@@ -133,7 +145,7 @@ class Bot:
         for listener in to_unreg:
             self.unregister_listener(listener)
 
-    def load_module(self, cls, *, comment=None):
+    def load_module(self, cls: Type[module.Module], *, comment: Optional[str] = None) -> None:
         _comment = comment + " " if comment else ""
         self.log.info(
             f"Loading {_comment}module '{cls.name}' ({cls.__name__}) from '{os.path.relpath(inspect.getfile(cls))}'"
@@ -149,7 +161,7 @@ class Bot:
         self.register_commands(mod)
         self.modules[cls.name] = mod
 
-    def unload_module(self, mod):
+    def unload_module(self, mod: module.Module) -> None:
         _comment = mod.comment + " " if mod.comment else ""
 
         cls = mod.__class__
@@ -161,9 +173,9 @@ class Bot:
         self.unregister_commands(mod)
         del self.modules[cls.name]
 
-    def _load_modules_from_metamod(self, metamod, *, comment=None):
-        for _sym in metamod.__all__:
-            module_mod = getattr(metamod, _sym)
+    def _load_modules_from_metamod(self, metamod: ModuleType, *, comment: str = None) -> None:
+        for _sym in getattr(metamod, "__all__", ()):
+            module_mod: ModuleType = getattr(metamod, _sym)
 
             if inspect.ismodule(module_mod):
                 for sym in dir(module_mod):
@@ -171,13 +183,15 @@ class Bot:
                     if inspect.isclass(cls) and issubclass(cls, module.Module):
                         self.load_module(cls, comment=comment)
 
-    def load_all_modules(self):
+    def load_all_modules(self) -> None:
+        from . import modules, custom_modules
+
         self.log.info("Loading modules")
         self._load_modules_from_metamod(modules)
         self._load_modules_from_metamod(custom_modules, comment="custom")
         self.log.info("All modules loaded.")
 
-    def unload_all_modules(self):
+    def unload_all_modules(self) -> None:
         self.log.info("Unloading modules...")
 
         # Can't modify while iterating, so collect a list first
@@ -186,7 +200,9 @@ class Bot:
 
         self.log.info("All modules unloaded.")
 
-    async def reload_module_pkg(self):
+    async def reload_module_pkg(self) -> None:
+        from . import modules, custom_modules
+
         self.log.info("Reloading base module class...")
         await util.run_sync(lambda: importlib.reload(module))
 
@@ -196,7 +212,7 @@ class Bot:
         self.log.info("Reloading custom master module...")
         await util.run_sync(lambda: importlib.reload(custom_modules))
 
-    def command_predicate(self, event):
+    def command_predicate(self, event: tg.events.NewMessage.Event) -> bool:
         if event.raw_text.startswith(self.prefix):
             parts = event.raw_text.split()
             parts[0] = parts[0][len(self.prefix) :]
@@ -206,7 +222,7 @@ class Bot:
 
         return False
 
-    async def start(self):
+    async def start(self) -> None:
         # Get and store current event loop, since this is the first coroutine
         self.loop = asyncio.get_event_loop()
 
@@ -227,17 +243,19 @@ class Bot:
         # Set Sentry username if enabled
         if self.config["bot"]["report_username"]:
             with sentry_sdk.configure_scope() as scope:
-                scope.user = {"username": self.user.username}
+                scope.set_user({"username": self.user.username})
 
         # Record start time and dispatch start event
         self.start_time_us = util.time.usec()
         await self.dispatch_event("start", self.start_time_us)
 
         # Register handlers
-        self.client.add_event_handler(self.on_message, tg.events.NewMessage)
-        self.client.add_event_handler(self.on_message_edit, tg.events.MessageEdited)
-        self.client.add_event_handler(self.on_command, tg.events.NewMessage(outgoing=True, func=self.command_predicate))
-        self.client.add_event_handler(self.on_chat_action, tg.events.ChatAction)
+        self.client.add_event_handler(self.on_message, tg.events.NewMessage())
+        self.client.add_event_handler(self.on_message_edit, tg.events.MessageEdited())
+        self.client.add_event_handler(
+            self.on_command, tg.events.NewMessage(outgoing=True, func=self.command_predicate),
+        )
+        self.client.add_event_handler(self.on_chat_action, tg.events.ChatAction())
 
         self.log.info("Bot is ready")
 
@@ -246,7 +264,7 @@ class Bot:
         await self.client.catch_up()
         self.log.info("Finished catching up")
 
-    async def stop(self):
+    async def stop(self) -> None:
         await self.dispatch_event("stop")
         await self.http_session.close()
         await self._db.close()
@@ -254,7 +272,7 @@ class Bot:
         self.log.info("Running post-stop hooks")
         await self.dispatch_event("stopped")
 
-    async def dispatch_event(self, event, *args):
+    async def dispatch_event(self, event: str, *args: Any, **kwargs: Any) -> None:
         tasks = set()
 
         try:
@@ -265,26 +283,28 @@ class Bot:
         if not listeners:
             return
 
-        for l in listeners:
-            task = self.loop.create_task(l.func(*args))
+        for lst in listeners:
+            task = self.loop.create_task(lst.func(*args, **kwargs))
             tasks.add(task)
 
         self.log.debug(f"Dispatching event '{event}' with data {args}")
-        return await asyncio.wait(tasks)
+        await asyncio.wait(tasks)
 
-    def dispatch_event_nowait(self, *args, **kwargs):
-        return self.loop.create_task(self.dispatch_event(*args, **kwargs))
+    def dispatch_event_nowait(self, event: str, *args: Any, **kwargs: Any) -> None:
+        self.loop.create_task(self.dispatch_event(event, *args, **kwargs))
 
-    async def on_message(self, event):
+    async def on_message(self, event: tg.events.NewMessage.Event) -> None:
         await self.dispatch_event("message", event)
 
-    async def on_message_edit(self, event):
+    async def on_message_edit(self, event: tg.events.MessageEdited.Event) -> None:
         await self.dispatch_event("message_edit", event)
 
-    async def on_chat_action(self, event):
+    async def on_chat_action(self, event: tg.events.ChatAction.Event) -> None:
         await self.dispatch_event("chat_action", event)
 
-    async def on_command(self, msg):
+    async def on_command(self, msg: tg.events.NewMessage.Event) -> None:
+        cmd = None
+
         try:
             # Attempt to get command info
             try:
@@ -293,7 +313,7 @@ class Bot:
                 return
 
             # Construct invocation context
-            ctx = command.Context(self, msg, msg.segments, len(self.prefix) + len(msg.segments[0]) + 1)
+            ctx = command.Context(self, msg.message, msg.segments, len(self.prefix) + len(msg.segments[0]) + 1,)
 
             # Ensure specified argument needs are met
             if cmd.usage is not None and not cmd.usage_optional and not ctx.input:
@@ -325,14 +345,26 @@ class Bot:
             except Exception as e:
                 cmd.module.log.error(f"Error in command '{cmd.name}'", exc_info=e)
                 await ctx.respond(f"⚠️ Error executing command:\n```{util.format_exception(e)}```")
+
+            await self.dispatch_event("command", cmd, msg)
         except Exception as e:
-            cmd.module.log.error("Error in command handler", exc_info=e)
+            if cmd is not None:
+                cmd.module.log.error("Error in command handler", exc_info=e)
+
             await self.respond(msg, f"⚠️ Error in command handler:\n```{util.format_exception(e)}```")
 
     # Flexible response function with filtering, truncation, redaction, etc.
-    async def respond(self, msg, text=None, *, mode=None, response=None, **kwargs):
+    async def respond(
+        self,
+        msg: tg.types.Message,
+        text: Optional[str] = None,
+        *,
+        mode: Optional[str] = None,
+        response: Optional[tg.types.Message] = None,
+        **kwargs: Any,
+    ) -> tg.types.Message:
         if text is not None:
-            tg_config = self.config["telegram"]
+            tg_config: Dict[str, str] = self.config["telegram"]
             api_id = str(tg_config["api_id"])
             api_hash = tg_config["api_hash"]
 

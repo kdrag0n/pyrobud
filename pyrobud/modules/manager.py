@@ -6,7 +6,7 @@ class ManagerModule(module.Module):
 
     @command.desc("Reload all modules")
     @command.alias("ra", "reload", "r")
-    async def cmd_reloadall(self, ctx: command.Context):
+    async def cmd_reloadall(self, ctx: command.Context) -> str:
         before = util.time.usec()
 
         await self.bot.dispatch_event("stop")

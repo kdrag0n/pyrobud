@@ -1,13 +1,13 @@
 import os
 import traceback
+from typing import Any, List, Tuple, Callable, Optional
 
-from . import async_helpers, config, db, sentry, tg, time, version, system, git
-
+from . import async_helpers, config, db, sentry, tg, time, version, system, git, image
 
 run_sync = async_helpers.run_sync
 
 
-def find_prefixed_funcs(obj, prefix):
+def find_prefixed_funcs(obj: Any, prefix: str) -> List[Tuple[str, Callable]]:
     results = []
 
     for sym in dir(obj):
@@ -22,7 +22,7 @@ def find_prefixed_funcs(obj, prefix):
     return results
 
 
-def format_exception(exp, tb=None):
+def format_exception(exp: BaseException, tb: Optional[List[traceback.FrameSummary]] = None) -> str:
     if tb is None:
         tb = traceback.extract_tb(exp.__traceback__)
 

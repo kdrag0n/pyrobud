@@ -1,17 +1,20 @@
 import asyncio
-import time
 from datetime import datetime
+from typing import Tuple, Dict, Union, List, Mapping, Iterable
 
 import telethon as tg
 import toml
 
 from .. import command, module, util
 
+Config = Mapping[str, Union[str, Mapping[str, str], Iterable[str]]]
+
 
 class BotSetupModule(module.Module):
     name = "Bot Setup"
 
-    def parse_config(self, chat_id, input_cfg):
+    @staticmethod
+    def parse_config(chat_id: int, input_cfg: str) -> Union[str, Tuple[str, str, str, Config]]:
         target = "MissRose_bot"
         rules = [
             "Rules:",
@@ -47,7 +50,7 @@ GitHub = "https://github.com/"```
 
         button_map = {"Rules": f"https://t.me/{target}?start=rules_{chat_id}"}
 
-        cfg = {}
+        cfg: Config = {}
         if input_cfg:
             try:
                 cfg = toml.loads(input_cfg)
@@ -70,9 +73,10 @@ GitHub = "https://github.com/"```
         button_links = [f"[{name}](buttonurl://{dest})" for name, dest in button_map.items()]
         button_str = "\n".join(button_links)
 
-        return (target, rule_str, button_str, cfg)
+        return target, rule_str, button_str, cfg
 
-    def get_commands(self, chat_id, rule_str, button_str):
+    @staticmethod
+    def get_commands(chat_id: int, rule_str: str, button_str: str) -> List[str]:
         first = "{first}"
 
         return [
@@ -96,13 +100,14 @@ Please read the rules _before_ participating.
             "/disconnect",
         ]
 
-    async def promote_bot(self, chat, username):
+    async def promote_bot(self, chat: Union[tg.types.InputPeerChat, tg.types.InputPeerChannel], username: str) -> None:
         rights = tg.tl.types.ChatAdminRights(delete_messages=True, ban_users=True, invite_users=True, pin_messages=True)
 
         request = tg.tl.functions.channels.EditAdminRequest(chat, username, rights, "bot")
         await self.bot.client(request)
 
-    def truncate_cmd_list(self, commands):
+    @staticmethod
+    def truncate_cmd_list(commands: List[str]) -> List[str]:
         new_list = []
 
         for cmd in commands:
@@ -118,7 +123,7 @@ Please read the rules _before_ participating.
 
     @command.desc("Set up @MissRose_bot and derivatives")
     @command.usage("[config?]", optional=True)
-    async def cmd_bsetup(self, ctx: command.Context):
+    async def cmd_bsetup(self, ctx: command.Context) -> str:
         input_cfg = ctx.input
 
         if not ctx.msg.is_group:
@@ -142,8 +147,9 @@ Please read the rules _before_ participating.
         status_header = f"Setting up @{target} via PM connection..."
         await ctx.respond(status_header)
 
+        input_chat = await ctx.msg.get_input_chat()
         try:
-            await self.promote_bot(ctx.msg.chat, target)
+            await self.promote_bot(input_chat, target)
         except Exception as e:
             status_header += f"\n**WARNING**: Unable to promote @{target}: `{str(e)}`"
             await ctx.respond(status_header)
@@ -153,7 +159,7 @@ Please read the rules _before_ participating.
             async def reply_and_ack():
                 # Wait for a reply
                 await conv.get_reply()
-                # Ack the reply to suppress its notiication
+                # Ack the reply to suppress its notification
                 await conv.mark_read()
 
             for idx, cmd in enumerate(commands):

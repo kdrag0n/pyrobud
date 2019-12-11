@@ -1,19 +1,20 @@
 import time
+from typing import Union
 
 
-def usec():
+def usec() -> int:
     return int(time.time() * 1000000)
 
 
-def msec():
+def msec() -> int:
     return int(usec() / 1000)
 
 
-def sec():
+def sec() -> int:
     return int(time.time())
 
 
-def format_duration_us(t_us):
+def format_duration_us(t_us: Union[int, float]) -> str:
     t_us = int(t_us)
 
     t_ms = t_us / 1000

@@ -1,8 +1,9 @@
 import asyncio
+from typing import Callable, TypeVar
+
+Result = TypeVar("Result")
 
 
-async def run_sync(func):
+async def run_sync(func: Callable[[], Result]) -> Result:
     loop = asyncio.get_event_loop()
-    future = loop.run_in_executor(None, func)
-    await future
-    return future.result()
+    return await loop.run_in_executor(None, func)

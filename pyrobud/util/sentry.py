@@ -1,12 +1,16 @@
 import logging
 import sqlite3
 import traceback
+from typing import Dict, Any, Optional, Type
 
 import ratelimit
 import sentry_sdk
 
 from . import version, system, git
 from .. import __version__
+
+Event = Dict[str, Any]
+EventHint = Dict[str, Any]
 
 PUBLIC_CLIENT_KEY = "https://75fe67fda0594284b2c3aea6b90a1ba7@sentry.io/1817585"
 
@@ -15,11 +19,11 @@ log = logging.getLogger("sentry")
 
 # Dummy function for ratelimiting: 3 events/min
 @ratelimit.limits(calls=3, period=60)
-def _ratelimit():
+def _ratelimit() -> None:
     pass
 
 
-def send_filter(event, hint):
+def send_filter(event: Event, hint: EventHint) -> Optional[Event]:
     # Discard event if ratelimit is exceeded
     try:
         _ratelimit()
@@ -27,10 +31,12 @@ def send_filter(event, hint):
         return None
 
     if "exc_info" in hint:
+        exc_type: Type[BaseException]
+        exc_value: BaseException
         exc_type, exc_value, = hint["exc_info"]
 
         # User-initiated interrupts, network errors, and I/O errors
-        if exc_type in (KeyboardInterrupt, ConnectionError, IOError, sqlite3.OperationalError):
+        if exc_type in (KeyboardInterrupt, ConnectionError, IOError, sqlite3.OperationalError,):
             return None
 
         exc_msg = str(exc_value)
@@ -54,7 +60,7 @@ def send_filter(event, hint):
     return event
 
 
-def init():
+def init() -> None:
     # Use Git commit if possible, otherwise fall back to the version number
     release = version.get_commit()
     if release is None:
@@ -62,7 +68,7 @@ def init():
 
     # Skip Sentry initialization if official status has been lost
     if not git.is_official():
-        log.warn("Skipping Sentry initialization due to unofficial status")
+        log.warning("Skipping Sentry initialization due to unofficial status")
         return
 
     # Initialize the Sentry SDK using the public client key

@@ -1,3 +1,5 @@
+from typing import Dict, List
+
 from .. import command, module, util
 
 OFFICIAL_SUPPORT_LINK = "https://t.me/pyrobud"
@@ -8,10 +10,9 @@ class CoreModule(module.Module):
 
     @command.desc("List the commands")
     @command.usage("[filter: command or module name?]", optional=True)
-    async def cmd_help(self, ctx: command.Context):
+    async def cmd_help(self, ctx: command.Context) -> str:
         filt = ctx.input
-
-        lines = {}
+        lines: Dict[str, List[str]] = {}
 
         # Handle command filters
         if filt and filt not in self.bot.modules:
@@ -71,13 +72,13 @@ Expected parameters: {args_desc}"""
         return "\n".join(sections)
 
     @command.desc("Get how long the bot has been up for")
-    async def cmd_uptime(self, ctx: command.Context):
+    async def cmd_uptime(self, ctx: command.Context) -> str:
         delta_us = util.time.usec() - self.bot.start_time_us
         return f"Uptime: {util.time.format_duration_us(delta_us)}"
 
     @command.desc("Get or change the bot prefix")
     @command.usage("[new prefix?]", optional=True)
-    async def cmd_prefix(self, ctx: command.Context):
+    async def cmd_prefix(self, ctx: command.Context) -> str:
         new_prefix = ctx.input
 
         if not new_prefix:
@@ -89,5 +90,5 @@ Expected parameters: {args_desc}"""
         return f"Prefix set to `{self.bot.prefix}`."
 
     @command.desc("Get the link to the official bot support group")
-    async def cmd_support(self, ctx: command.Context):
+    async def cmd_support(self, ctx: command.Context) -> str:
         return f"[Join the official bot support group for help.]({OFFICIAL_SUPPORT_LINK})"

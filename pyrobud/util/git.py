@@ -1,17 +1,19 @@
 import os
 import sys
+from typing import Optional
 
-have_git = True
 try:
     import git
+
+    have_git = True
 except ImportError:
     have_git = False
 
 _repo_initialized = False
-_repo = None
+_repo: Optional[git.Repo] = None
 
 
-def get_repo():
+def get_repo() -> git.Repo:
     global _repo_initialized
     global _repo
 
@@ -36,7 +38,7 @@ def get_repo():
     return _repo
 
 
-def get_current_remote():
+def get_current_remote() -> Optional[git.Remote]:
     repo = get_repo()
     if not repo:
         return None
@@ -48,7 +50,7 @@ def get_current_remote():
     return repo.remote(remote_ref.remote_name)
 
 
-def is_official():
+def is_official() -> bool:
     # Assume non-Git instances are official, e.g. when installed with pip
     repo = get_repo()
     if not repo:

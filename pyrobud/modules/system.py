@@ -1,6 +1,7 @@
 import os
 import subprocess
 import sys
+from typing import Optional
 
 import speedtest
 
@@ -9,6 +10,9 @@ from .. import command, module, util, listener
 
 class SystemModule(module.Module):
     name = "System"
+    restart_pending: bool
+    update_restart_pending: bool
+    db: util.db.AsyncDB
 
     async def on_load(self):
         self.restart_pending = False
@@ -16,25 +20,17 @@ class SystemModule(module.Module):
 
         self.db = self.bot.get_db("system")
 
-    async def run_process(self, command, **kwargs):
-        def _run_process():
-            return subprocess.run(
-                command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, **kwargs
-            )
-
-        return await util.run_sync(_run_process)
-
     @command.desc("Run a snippet in a shell")
     @command.usage("[shell snippet]")
     @command.alias("sh")
-    async def cmd_shell(self, ctx: command.Context):
+    async def cmd_shell(self, ctx: command.Context) -> str:
         snip = ctx.input
 
         await ctx.respond("Running snippet...")
         before = util.time.usec()
 
         try:
-            proc = await self.run_process(snip, shell=True, timeout=120)
+            proc = await util.system.run_command(snip, shell=True, timeout=120)
         except subprocess.TimeoutExpired:
             return "🕑 Snippet failed to finish within 2 minutes."
 
@@ -50,20 +46,19 @@ class SystemModule(module.Module):
             cmd_out += "\n"
 
         err = f"⚠️ Return code: {proc.returncode}" if proc.returncode != 0 else ""
-
         return f"```{cmd_out}```{err}{el_str}"
 
     @command.desc("Get information about the host system")
     @command.alias("si")
-    async def cmd_sysinfo(self, ctx: command.Context):
+    async def cmd_sysinfo(self, ctx: command.Context) -> str:
         await ctx.respond("Collecting system information...")
 
         try:
-            proc = await self.run_process(["neofetch", "--stdout"], timeout=10)
+            proc = await util.system.run_command(["neofetch", "--stdout"], timeout=10)
         except subprocess.TimeoutExpired:
             return "🕑 `neofetch` failed to finish within 10 seconds."
         except FileNotFoundError:
-            return "❌ The `neofetch` [program](https://github.com/dylanaraps/neofetch) must be installed on the host system."
+            return "❌ [neofetch](https://github.com/dylanaraps/neofetch) must be installed on the host system."
 
         err = f"⚠️ Return code: {proc.returncode}" if proc.returncode != 0 else ""
         sysinfo = "\n".join(proc.stdout.strip().split("\n")[2:]) if proc.returncode == 0 else proc.stdout.strip()
@@ -72,7 +67,7 @@ class SystemModule(module.Module):
 
     @command.desc("Test Internet speed")
     @command.alias("stest", "st")
-    async def cmd_speedtest(self, ctx: command.Context):
+    async def cmd_speedtest(self, ctx: command.Context) -> str:
         before = util.time.usec()
 
         st = await util.run_sync(speedtest.Speedtest)
@@ -101,13 +96,13 @@ class SystemModule(module.Module):
         return status
 
     @command.desc("Stop the bot")
-    async def cmd_stop(self, ctx: command.Context):
+    async def cmd_stop(self, ctx: command.Context) -> None:
         await ctx.respond("Stopping bot...")
         await self.bot.client.disconnect()
 
     @command.desc("Restart the bot")
     @command.alias("re", "rst")
-    async def cmd_restart(self, ctx: command.Context):
+    async def cmd_restart(self, ctx: command.Context) -> None:
         resp_msg = await ctx.respond("Restarting bot...")
 
         # Save time and status message so we can update it after restarting
@@ -120,18 +115,22 @@ class SystemModule(module.Module):
         self.log.info("Preparing to restart...")
         await self.bot.client.disconnect()
 
-    async def on_start(self, time_us):
+    async def on_start(self, time_us: int) -> None:
         # Update restart status message if applicable
-        rs_time = await self.db.get("restart_time")
+        rs_time: Optional[int] = await self.db.get("restart_time")
         if rs_time is not None:
             # Fetch status message info
-            rs_chat_id = await self.db.get("restart_status_chat_id")
-            rs_message_id = await self.db.get("restart_status_message_id")
+            rs_chat_id: Optional[int] = await self.db.get("restart_status_chat_id")
+            rs_message_id: Optional[int] = await self.db.get("restart_status_message_id")
 
             # Delete DB keys first in case message editing fails
             await self.db.delete("restart_time")
             await self.db.delete("restart_status_chat_id")
             await self.db.delete("restart_status_message_id")
+
+            # Bail out if we're missing values
+            if rs_chat_id is None or rs_message_id is None:
+                return
 
             # Calculate and show duration
             duration = util.time.format_duration_us(util.time.usec() - rs_time)
@@ -139,7 +138,7 @@ class SystemModule(module.Module):
             status_msg = await self.bot.client.get_messages(rs_chat_id, ids=rs_message_id)
             await self.bot.respond(status_msg, f"Bot restarted in {duration}.")
 
-    async def on_stopped(self):
+    async def on_stopped(self) -> None:
         # Restart the bot if applicable
         if self.restart_pending:
             self.log.info("Starting new bot instance...\n")
@@ -148,7 +147,7 @@ class SystemModule(module.Module):
     @command.desc("Update the bot from Git and restart")
     @command.usage("[remote name?]", optional=True)
     @command.alias("up", "upd")
-    async def cmd_update(self, ctx: command.Context):
+    async def cmd_update(self, ctx: command.Context) -> Optional[str]:
         remote_name = ctx.input
 
         if not util.git.have_git:
@@ -164,7 +163,7 @@ class SystemModule(module.Module):
 
         await ctx.respond("Pulling changes...")
         if remote_name:
-            # Attempt to get reuqested remote
+            # Attempt to get requested remote
             try:
                 remote = await util.run_sync(lambda: repo.remote(remote_name))
             except ValueError:
@@ -190,3 +189,4 @@ class SystemModule(module.Module):
 
         # Restart after updating
         await self.cmd_restart(ctx)
+        return None

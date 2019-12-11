@@ -1,5 +1,6 @@
 import logging
 import os
+from typing import Any, Union, List, MutableMapping
 
 import plyvel
 import toml
@@ -7,11 +8,15 @@ import toml
 from .db import AsyncDB
 from .time import sec as now_sec
 
+Config = MutableMapping[str, Any]
+BotConfig = MutableMapping[str, Union[str, bool]]
+
 log = logging.getLogger("migrate")
 
 
-def save(config, path):
+def save(config: Config, path: str) -> None:
     tmp_path = path + ".tmp"
+    done = False
 
     try:
         with open(tmp_path, "w+") as f:
@@ -20,13 +25,14 @@ def save(config, path):
             os.fsync(f.fileno())
 
         os.rename(tmp_path, path)
-    except:
-        os.remove(tmp_path)
-        raise
+        done = True
+    finally:
+        if not done:
+            os.remove(tmp_path)
 
 
-def upgrade_v2(config, path):
-    tg_config = config["telegram"]
+def upgrade_v2(config: Config, path: str) -> None:
+    tg_config: MutableMapping[str, str] = config["telegram"]
 
     if "session_name" not in tg_config:
         log.info("Adding default session name 'main' to Telegram config section")
@@ -39,24 +45,25 @@ def upgrade_v2(config, path):
             os.rename("anon.session-journal", "main.session-journal")
 
 
-def upgrade_v3(config, path):
-    def migrate_antibot(config, db):
+def upgrade_v3(config: Config, path: str) -> None:
+    def migrate_antibot() -> None:
         if "antibot" in config:
             log.info("Migrating antibot settings to database")
-            mcfg = config["antibot"]
+            mcfg: MutableMapping[str, Union[int, List[int]]] = config["antibot"]
             mdb = db.prefixed_db("antibot.")
 
             if mcfg["threshold_time"] != 30:
                 mdb.put_sync("threshold_time", mcfg["threshold_time"])
 
-            group_db = mdb.prefixed_db("groups.")
-            for gid in mcfg["group_ids"]:
-                group_db.put_sync(f"{gid}.enabled", True)
-                group_db.put_sync(f"{gid}.enable_time", now_sec())
+            if isinstance(mcfg["group_ids"], List):
+                group_db = mdb.prefixed_db("groups.")
+                for gid in mcfg["group_ids"]:
+                    group_db.put_sync(f"{gid}.enabled", True)
+                    group_db.put_sync(f"{gid}.enable_time", now_sec())
 
             del config["antibot"]
 
-    def migrate_snippets(config, db):
+    def migrate_snippets() -> None:
         if "snippets" in config:
             log.info("Migrating snippets to database")
             mdb = db.prefixed_db("snippets.")
@@ -66,7 +73,7 @@ def upgrade_v3(config, path):
 
             del config["snippets"]
 
-    def migrate_stats(config, db):
+    def migrate_stats() -> None:
         if "stats" in config:
             log.info("Migrating stats to database")
             mdb = db.prefixed_db("stats.")
@@ -76,7 +83,7 @@ def upgrade_v3(config, path):
 
             del config["stats"]
 
-    def migrate_stickers(config, db):
+    def migrate_stickers() -> None:
         if "stickers" in config:
             log.info("Migrating stickers to database")
             mdb = db.prefixed_db("stickers.")
@@ -96,7 +103,7 @@ def upgrade_v3(config, path):
 
             del config["user"]
 
-    bot_config = config["bot"]
+    bot_config: BotConfig = config["bot"]
 
     if "default_prefix" not in bot_config:
         log.info("Renaming 'prefix' key to 'default_prefix' in bot config section")
@@ -108,14 +115,14 @@ def upgrade_v3(config, path):
         bot_config["db_path"] = "main.db"
 
     with AsyncDB(plyvel.DB(config["bot"]["db_path"], create_if_missing=True)) as db:
-        migrate_antibot(config, db)
-        migrate_snippets(config, db)
-        migrate_stats(config, db)
-        migrate_stickers(config, db)
+        migrate_antibot()
+        migrate_snippets()
+        migrate_stats()
+        migrate_stickers()
 
 
-def upgrade_v4(config, path):
-    bot_config = config["bot"]
+def upgrade_v4(config: Config, _: str) -> None:
+    bot_config: BotConfig = config["bot"]
 
     if "report_errors" not in bot_config:
         log.info("Enabling error reporting by default without usernames")
@@ -124,16 +131,16 @@ def upgrade_v4(config, path):
         bot_config["report_username"] = False
 
 
-def upgrade_v5(config, path):
-    bot_config = config["bot"]
+def upgrade_v5(config: Config, _: str) -> None:
+    bot_config: BotConfig = config["bot"]
 
     if "sentry_dsn" not in bot_config:
         log.info("Adding default Sentry DSN to bot config section")
         bot_config["sentry_dsn"] = ""
 
 
-def upgrade_v6(config, path):
-    bot_config = config["bot"]
+def upgrade_v6(config: Config, _: str) -> None:
+    bot_config: BotConfig = config["bot"]
 
     if "response_mode" not in bot_config:
         log.info("Setting response mode to default 'edit'")
@@ -149,9 +156,11 @@ upgrade_funcs = [
     upgrade_v6,  # 5 -> 6
 ]
 
+
 # Master upgrade function
-def upgrade(config, path):
+def upgrade(config: Config, path: str) -> None:
     # Get current version
+    cur_version: int
     if "version" in config:
         cur_version = config["version"]
     else:

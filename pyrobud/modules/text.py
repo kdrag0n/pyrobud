@@ -11,19 +11,19 @@ class TextModule(module.Module):
     @command.desc("Unicode character from hex codepoint")
     @command.usage("[hexadecimal Unicode codepoint]")
     @command.alias("cp", "chr", "uc", "c")
-    async def cmd_uni(self, ctx: command.Context):
+    async def cmd_uni(self, ctx: command.Context) -> str:
         codepoint = ctx.input
         return chr(int(codepoint, 16))
 
     @command.desc("Get a character equivalent to a zero-width space that works on Telegram")
     @command.alias("empty")
-    async def cmd_zwsp(self, ctx: command.Context):
+    async def cmd_zwsp(self, ctx: command.Context) -> str:
         return "\U000e0020"
 
     @command.desc("Apply a sarcasm/mocking filter to the given text")
     @command.usage("[text to filter]", reply=True)
     @command.alias("sarcasm", "sar", "sarc", "scm")
-    async def cmd_mock(self, ctx: command.Context):
+    async def cmd_mock(self, ctx: command.Context) -> str:
         text = ctx.input
         chars = list(text)
         for idx, ch in enumerate(chars):
@@ -39,14 +39,14 @@ class TextModule(module.Module):
     @command.desc("Apply strike-through formatting to the given text")
     @command.usage("[text to format]", reply=True)
     @command.alias("str", "strikethrough")
-    async def cmd_strike(self, ctx: command.Context):
+    async def cmd_strike(self, ctx: command.Context) -> str:
         text = ctx.input
         return "\u0336".join(text) + "\u0336"
 
     @command.desc("Generate fake Google Play-style codes")
     @command.usage("[number of codes to generate?] [length of each code?]", optional=True)
-    @command.alias("genkey")
-    async def cmd_gencode(self, ctx: command.Context):
+    @command.alias("genkey", "gencodes", "genkeys")
+    async def cmd_gencode(self, ctx: command.Context) -> str:
         count = 10
         length = 23
 
@@ -74,7 +74,7 @@ class TextModule(module.Module):
     @command.desc("Dissect a string into named Unicode codepoints")
     @command.usage("[text to dissect]", reply=True)
     @command.alias("cinfo", "chinfo", "ci")
-    async def cmd_charinfo(self, ctx: command.Context):
+    async def cmd_charinfo(self, ctx: command.Context) -> str:
         text = ctx.input
 
         chars = []
@@ -84,7 +84,7 @@ class TextModule(module.Module):
 
             # Attempt to get the codepoint's name
             try:
-                name = unicodedata.name(char)
+                name: str = unicodedata.name(char)
             except ValueError:
                 # Control characters don't have names, so insert a placeholder
                 # and prevent the character from being rendered to avoid breaking
@@ -101,8 +101,8 @@ class TextModule(module.Module):
 
         return "\n".join(chars)
 
-    @command.desc("Replace the spaces in a string with clap emojis")
+    @command.desc("Replace the spaces in a string with clap emoji")
     @command.usage("[text to filter]", reply=True)
-    async def cmd_clap(self, ctx: command.Context):
+    async def cmd_clap(self, ctx: command.Context) -> str:
         text = ctx.input
         return "\n".join("👏".join(line.split()) for line in text.split("\n"))
