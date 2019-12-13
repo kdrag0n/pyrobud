@@ -356,13 +356,13 @@ class Bot:
     # Flexible response function with filtering, truncation, redaction, etc.
     async def respond(
         self,
-        msg: tg.types.Message,
+        msg: tg.custom.Message,
         text: Optional[str] = None,
         *,
         mode: Optional[str] = None,
-        response: Optional[tg.types.Message] = None,
+        response: Optional[tg.custom.Message] = None,
         **kwargs: Any,
-    ) -> tg.types.Message:
+    ) -> tg.custom.Message:
         if text is not None:
             tg_config: Dict[str, str] = self.config["telegram"]
             api_id = str(tg_config["api_id"])

@@ -20,7 +20,7 @@ class DebugModule(module.Module):
 
         async def _eval() -> Tuple[str, str]:
             # Message sending helper for convenience
-            async def send(*args: Any, **kwargs: Any) -> tg.types.Message:
+            async def send(*args: Any, **kwargs: Any) -> tg.custom.Message:
                 return await ctx.msg.respond(*args, **kwargs)
 
             try:

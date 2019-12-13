@@ -61,17 +61,17 @@ class Command:
 # Command invocation context
 class Context:
     bot: "Bot"
-    msg: tg.types.Message
+    msg: tg.custom.Message
     segments: List[str]
     cmd_len: int
     invoker: str
 
-    response: Optional[tg.types.Message]
+    response: Optional[tg.custom.Message]
     input: str
     parsed_input: str
     args: List[str]
 
-    def __init__(self, bot: "Bot", msg: tg.types.Message, segments: List[str], cmd_len: int) -> None:
+    def __init__(self, bot: "Bot", msg: tg.custom.Message, segments: List[str], cmd_len: int) -> None:
         self.bot = bot
         self.msg = msg
         self.segments = segments
@@ -100,6 +100,6 @@ class Context:
     # Convenience alias for Bot.respond()
     async def respond(
         self, text: Optional[str] = None, *, mode: Optional[str] = None, **kwargs: Any
-    ) -> tg.types.Message:
+    ) -> tg.custom.Message:
         self.response = await self.bot.respond(self.msg, text, mode=mode, response=self.response, **kwargs)
         return self.response

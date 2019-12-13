@@ -32,7 +32,7 @@ def filter_code_block(inp: str) -> str:
 
 
 async def download_file(
-    ctx: command.Context, msg: tg.types.Message, dest: tg.hints.FileLike = bytes, file_type: str = "file"
+    ctx: command.Context, msg: tg.custom.Message, dest: tg.hints.FileLike = bytes, file_type: str = "file"
 ) -> Union[str, bytes, None]:
     last_percent = -5
 

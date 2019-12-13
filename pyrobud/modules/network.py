@@ -111,7 +111,7 @@ class NetworkModule(module.Module):
             reply_msg = await ctx.msg.get_reply_message()
 
             for entity, text in reply_msg.get_entities_text():
-                if isinstance(entity, (tg.types.MessageEntityUrl, tg.types.MessageEntityTextUrl)):
+                if isinstance(entity, (tg.custom.MessageEntityUrl, tg.custom.MessageEntityTextUrl)):
                     link = text
 
         if not link:

@@ -36,11 +36,11 @@ class AntibotModule(module.Module):
     ]
 
     suspicious_entities = [
-        tg.types.MessageEntityUrl,
-        tg.types.MessageEntityTextUrl,
-        tg.types.MessageEntityEmail,
-        tg.types.MessageEntityPhone,
-        tg.types.MessageEntityCashtag,
+        tg.custom.MessageEntityUrl,
+        tg.custom.MessageEntityTextUrl,
+        tg.custom.MessageEntityEmail,
+        tg.custom.MessageEntityPhone,
+        tg.custom.MessageEntityCashtag,
     ]
 
     async def on_load(self) -> None:
@@ -59,7 +59,7 @@ class AntibotModule(module.Module):
 
             await self.db.delete("first_msg_start_time")
 
-    def msg_has_suspicious_entity(self, msg: tg.types.Message) -> bool:
+    def msg_has_suspicious_entity(self, msg: tg.custom.Message) -> bool:
         if not msg.entities:
             return False
 
@@ -70,7 +70,7 @@ class AntibotModule(module.Module):
 
         return False
 
-    def msg_has_suspicious_keyword(self, msg: tg.types.Message) -> bool:
+    def msg_has_suspicious_keyword(self, msg: tg.custom.Message) -> bool:
         if not msg.raw_text:
             return False
 
@@ -82,15 +82,15 @@ class AntibotModule(module.Module):
 
         return False
 
-    def msg_content_suspicious(self, msg: tg.types.Message) -> bool:
+    def msg_content_suspicious(self, msg: tg.custom.Message) -> bool:
         # Consolidate message content checks
         return self.msg_has_suspicious_entity(msg) or self.msg_has_suspicious_keyword(msg)
 
     @staticmethod
-    def msg_type_suspicious(msg: tg.types.Message) -> bool:
+    def msg_type_suspicious(msg: tg.custom.Message) -> bool:
         return msg.contact or msg.geo or msg.game
 
-    async def msg_data_is_suspicious(self, msg: tg.types.Message) -> bool:
+    async def msg_data_is_suspicious(self, msg: tg.custom.Message) -> bool:
         incoming = not msg.out
         has_date = msg.date
         forwarded = msg.forward
@@ -122,7 +122,7 @@ class AntibotModule(module.Module):
 
         return False
 
-    async def msg_is_suspicious(self, msg: tg.types.Message) -> bool:
+    async def msg_is_suspicious(self, msg: tg.custom.Message) -> bool:
         # Check if the data in the message is suspicious
         if not await self.msg_data_is_suspicious(msg):
             return False
