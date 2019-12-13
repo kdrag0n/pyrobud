@@ -2,8 +2,6 @@ from typing import Any, Callable, List, Optional, TYPE_CHECKING, Coroutine, Unio
 
 import telethon as tg
 
-from . import module
-
 if TYPE_CHECKING:
     from .bot import Bot
 
@@ -46,10 +44,10 @@ class Command:
     usage_optional: bool
     usage_reply: bool
     aliases: List[str]
-    module: module.Module
+    module: Any
     func: CommandFunc
 
-    def __init__(self, name: str, mod: module.Module, func: CommandFunc) -> None:
+    def __init__(self, name: str, mod: Any, func: CommandFunc) -> None:
         self.name = name
         self.desc = getattr(func, "_cmd_description", None)
         self.usage = getattr(func, "_cmd_usage", None)
