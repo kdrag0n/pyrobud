@@ -373,21 +373,28 @@ class Bot:
         text: Optional[str] = None,
         *,
         mode: Optional[str] = None,
+        redact: Optional[bool] = None,
         response: Optional[tg.custom.Message] = None,
         **kwargs: Any,
     ) -> tg.custom.Message:
-        if text is not None:
-            tg_config: Mapping[str, str] = self.config["telegram"]
-            api_id = str(tg_config["api_id"])
-            api_hash = tg_config["api_hash"]
+        # Read redaction setting from config
+        if redact is None:
+            redact = self.config["bot"]["redact_responses"]
 
-            # Redact sensitive information (if known)
-            if api_id in text:
-                text = text.replace(api_id, "[REDACTED]")
-            if api_hash in text:
-                text = text.replace(api_hash, "[REDACTED]")
-            if self.user.phone is not None and self.user.phone in text:
-                text = text.replace(self.user.phone, "[REDACTED]")
+        # Filter text
+        if text is not None:
+            # Redact sensitive information if enabled and known
+            if redact:
+                tg_config: Mapping[str, str] = self.config["telegram"]
+                api_id = str(tg_config["api_id"])
+                api_hash = tg_config["api_hash"]
+
+                if api_id in text:
+                    text = text.replace(api_id, "[REDACTED]")
+                if api_hash in text:
+                    text = text.replace(api_hash, "[REDACTED]")
+                if self.user.phone is not None and self.user.phone in text:
+                    text = text.replace(self.user.phone, "[REDACTED]")
 
             # Truncate messages longer than Telegram's 4096-character length limit
             text = util.tg.truncate(text)

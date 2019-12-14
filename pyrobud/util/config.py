@@ -152,6 +152,14 @@ def upgrade_v6(config: Config, _: str) -> None:
         bot_config["response_mode"] = "edit"
 
 
+def upgrade_v7(config: Config, _: str) -> None:
+    bot_config: BotConfig = config["bot"]
+
+    if "redact_responses" not in bot_config:
+        log.info("Enabling response redaction by default")
+        bot_config["redact_responses"] = True
+
+
 # Old version -> function to perform migration to new version
 upgrade_funcs = [
     upgrade_v2,  # 1 -> 2
@@ -159,6 +167,7 @@ upgrade_funcs = [
     upgrade_v4,  # 3 -> 4
     upgrade_v5,  # 4 -> 5
     upgrade_v6,  # 5 -> 6
+    upgrade_v7,  # 6 -> 7
 ]
 
 

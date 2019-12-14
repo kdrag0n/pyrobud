@@ -99,7 +99,9 @@ class Context:
 
     # Convenience alias for Bot.respond()
     async def respond(
-        self, text: Optional[str] = None, *, mode: Optional[str] = None, **kwargs: Any
+        self, text: Optional[str] = None, *, mode: Optional[str] = None, redact: Optional[bool] = None, **kwargs: Any
     ) -> tg.custom.Message:
-        self.response = await self.bot.respond(self.msg, text, mode=mode, response=self.response, **kwargs)
+        self.response = await self.bot.respond(
+            self.msg, text, mode=mode, redact=redact, response=self.response, **kwargs
+        )
         return self.response
