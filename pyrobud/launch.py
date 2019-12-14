@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-import toml
+import tomlkit
 
 from . import util
 from .bot import Bot
@@ -26,7 +26,9 @@ def main() -> None:
     setup_loop()
 
     log.info("Loading config")
-    config: util.config.Config = toml.load(config_path)
+    with open(config_path, "r") as f:
+        config_data = f.read()
+    config: util.config.Config = tomlkit.loads(config_data)
 
     # Initialize Sentry reporting here to exempt config syntax errors and query
     # the user's report_errors value, defaulting to enabled if not specified

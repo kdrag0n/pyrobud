@@ -3,7 +3,8 @@ import os
 from typing import Any, Union, List, MutableMapping, Sequence
 
 import plyvel
-import toml
+import tomlkit
+import tomlkit.toml_document
 
 from .db import AsyncDB
 from .time import sec as now_sec
@@ -15,12 +16,16 @@ log = logging.getLogger("migrate")
 
 
 def save(config: Config, path: str) -> None:
+    if not isinstance(config, tomlkit.toml_document.TOMLDocument):
+        raise TypeError("Only tomlkit saving is supported for now")
+
     tmp_path = path + ".tmp"
     done = False
+    config_data = tomlkit.dumps(config)
 
     try:
         with open(tmp_path, "w+") as f:
-            toml.dump(config, f)
+            f.write(config_data)
             f.flush()
             os.fsync(f.fileno())
 

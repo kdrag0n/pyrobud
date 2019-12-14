@@ -1,20 +1,19 @@
 import asyncio
 from datetime import datetime
-from typing import Tuple, Union, Mapping, Iterable, Sequence, ClassVar
+from typing import Tuple, Union, Sequence, ClassVar
 
 import telethon as tg
-import toml
+import tomlkit
+from tomlkit.toml_document import TOMLDocument
 
 from .. import command, module, util
-
-Config = Mapping[str, Union[str, Mapping[str, str], Iterable[str]]]
 
 
 class BotSetupModule(module.Module):
     name: ClassVar[str] = "Bot Setup"
 
     @staticmethod
-    def parse_config(chat_id: int, input_cfg: str) -> Union[str, Tuple[str, str, str, Config]]:
+    def parse_config(chat_id: int, input_cfg: str) -> Union[str, Tuple[str, str, str, TOMLDocument]]:
         target = "MissRose_bot"
         rules = [
             "Rules:",
@@ -50,10 +49,10 @@ GitHub = "https://github.com/"```
 
         button_map = {"Rules": f"https://t.me/{target}?start=rules_{chat_id}"}
 
-        cfg: Config = {}
+        cfg: TOMLDocument
         if input_cfg:
             try:
-                cfg = toml.loads(input_cfg)
+                cfg = tomlkit.loads(input_cfg)
             except Exception as e:
                 return cfg_err.format(str(e))
 
@@ -68,6 +67,8 @@ GitHub = "https://github.com/"```
 
             if "buttons" in cfg:
                 button_map.update(cfg["buttons"])
+        else:
+            cfg = tomlkit.document()
 
         rule_str = "\n    • ".join(rules)
         button_links = [f"[{name}](buttonurl://{dest})" for name, dest in button_map.items()]
@@ -136,7 +137,7 @@ Please read the rules _before_ participating.
 
         target, rule_str, button_str, parsed_cfg = parse_results
         commands = self.get_commands(ctx.msg.chat_id, rule_str, button_str)
-        formatted_cfg = toml.dumps(parsed_cfg)
+        formatted_cfg = tomlkit.dumps(parsed_cfg)
         if formatted_cfg:
             settings_used = f"\n```{formatted_cfg}```"
         else:
