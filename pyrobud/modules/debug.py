@@ -105,14 +105,16 @@ Time: {el_str}"""
     async def cmd_entity(self, ctx: command.Context) -> str:
         entity_ref: tg.hints.EntitiesLike = ctx.input
 
-        if entity_ref == "chat":
+        if ctx.input == "chat":
             entity = await ctx.msg.get_chat()
-        elif entity_ref:
-            if entity_ref.isdigit():
+        elif ctx.input:
+            if ctx.input.isdigit():
                 try:
-                    entity_ref = int(entity_ref)
+                    entity_ref = int(ctx.input)
                 except ValueError:
                     return f"Unable to parse `{entity_ref}` as ID!"
+            else:
+                entity_ref = ctx.input
 
             try:
                 entity = await self.bot.client.get_entity(entity_ref)
