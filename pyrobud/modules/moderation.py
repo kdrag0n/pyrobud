@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, ClassVar
 
 import telethon as tg
 
@@ -7,7 +7,7 @@ from .. import command, module, util
 
 
 class ModerationModule(module.Module):
-    name = "Moderation"
+    name: ClassVar[str] = "Moderation"
 
     @command.desc("Mention everyone in this group (**DO NOT ABUSE**)")
     @command.usage("[comment?]", optional=True)

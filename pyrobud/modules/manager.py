@@ -1,8 +1,10 @@
+from typing import ClassVar
+
 from .. import command, module, util
 
 
 class ManagerModule(module.Module):
-    name = "Manager"
+    name: ClassVar[str] = "Manager"
 
     @command.desc("Reload all modules")
     @command.alias("ra", "reload", "r")

@@ -1,5 +1,5 @@
 import logging
-from typing import Type, Optional, TYPE_CHECKING
+from typing import Type, Optional, ClassVar, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .bot import Bot
@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
 
 class Module:
-    name = "Unnamed"
+    name: ClassVar[str] = "Unnamed"
     bot: "Bot"
     log: logging.Logger
     comment: Optional[str]

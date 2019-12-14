@@ -1,7 +1,7 @@
 import inspect
 import re
 import traceback
-from typing import Tuple, Optional, Any
+from typing import Tuple, Optional, Any, ClassVar
 
 import telethon as tg
 from meval import meval
@@ -10,7 +10,7 @@ from .. import command, module, util
 
 
 class DebugModule(module.Module):
-    name = "Debug"
+    name: ClassVar[str] = "Debug"
 
     @command.desc("Evaluate code")
     @command.usage("[code snippet]")

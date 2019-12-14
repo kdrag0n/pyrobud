@@ -1,6 +1,6 @@
 import asyncio
 import urllib.parse
-from typing import Optional, Tuple
+from typing import Optional, ClassVar
 
 import aiohttp
 import telethon as tg
@@ -9,7 +9,7 @@ from .. import command, module, util
 
 
 class NetworkModule(module.Module):
-    name = "Network"
+    name: ClassVar[str] = "Network"
 
     @command.desc("Pong")
     async def cmd_ping(self, ctx: command.Context):

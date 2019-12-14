@@ -1,6 +1,6 @@
 import re
 import asyncio
-from typing import Match, Optional
+from typing import Match, Optional, ClassVar
 
 import telethon as tg
 
@@ -8,7 +8,7 @@ from .. import command, module, util
 
 
 class SnippetsModule(module.Module):
-    name = "Snippet"
+    name: ClassVar[str] = "Snippet"
     db: util.db.AsyncDB
 
     async def on_load(self) -> None:

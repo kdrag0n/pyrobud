@@ -1,5 +1,5 @@
 import telethon as tg
-from typing import Optional
+from typing import Optional, ClassVar
 
 from .. import command, module, util
 
@@ -25,7 +25,7 @@ def calc_pd(stat: int, uptime: int) -> str:
 
 
 class StatsModule(module.Module):
-    name = "Stats"
+    name: ClassVar[str] = "Stats"
     db: util.db.AsyncDB
 
     async def on_load(self) -> None:

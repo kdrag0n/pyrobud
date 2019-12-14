@@ -1,12 +1,13 @@
 import random
 import string
 import unicodedata
+from typing import ClassVar
 
 from .. import command, module
 
 
 class TextModule(module.Module):
-    name = "Text"
+    name: ClassVar[str] = "Text"
 
     @command.desc("Unicode character from hex codepoint")
     @command.usage("[hexadecimal Unicode codepoint]")

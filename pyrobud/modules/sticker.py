@@ -3,7 +3,7 @@ import io
 import os
 import subprocess
 from datetime import datetime
-from typing import Tuple, Optional, Set
+from typing import Tuple, Optional, Set, ClassVar
 
 import telethon as tg
 
@@ -35,7 +35,7 @@ class LengthMismatchError(Exception):
 
 
 class StickerModule(module.Module):
-    name = "Sticker"
+    name: ClassVar[str] = "Sticker"
     db: util.db.AsyncDB
     settings_db: util.db.AsyncDB
 

@@ -1,15 +1,15 @@
 import os
 import subprocess
 import sys
-from typing import Optional
+from typing import Optional, ClassVar
 
 import speedtest
 
-from .. import command, module, util, listener
+from .. import command, module, util
 
 
 class SystemModule(module.Module):
-    name = "System"
+    name: ClassVar[str] = "System"
     restart_pending: bool
     update_restart_pending: bool
     db: util.db.AsyncDB

@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, ClassVar
 
 from .. import command, module, util
 
@@ -6,7 +6,7 @@ OFFICIAL_SUPPORT_LINK = "https://t.me/pyrobud"
 
 
 class CoreModule(module.Module):
-    name = "Core"
+    name: ClassVar[str] = "Core"
 
     @command.desc("List the commands")
     @command.usage("[filter: command or module name?]", optional=True)

@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime
-from typing import Tuple, Union, Mapping, Iterable, Sequence
+from typing import Tuple, Union, Mapping, Iterable, Sequence, ClassVar
 
 import telethon as tg
 import toml
@@ -11,7 +11,7 @@ Config = Mapping[str, Union[str, Mapping[str, str], Iterable[str]]]
 
 
 class BotSetupModule(module.Module):
-    name = "Bot Setup"
+    name: ClassVar[str] = "Bot Setup"
 
     @staticmethod
     def parse_config(chat_id: int, input_cfg: str) -> Union[str, Tuple[str, str, str, Config]]:

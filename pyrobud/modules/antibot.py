@@ -1,6 +1,6 @@
 import asyncio
 from datetime import timezone, timedelta
-from typing import Union
+from typing import Union, ClassVar
 
 import telethon as tg
 
@@ -10,7 +10,7 @@ MessageEvent = Union[tg.events.NewMessage.Event, tg.events.ChatAction.Event]
 
 
 class AntibotModule(module.Module):
-    name = "Antibot"
+    name: ClassVar[str] = "Antibot"
     db: util.db.AsyncDB
     group_db: util.db.AsyncDB
     user_db: util.db.AsyncDB
