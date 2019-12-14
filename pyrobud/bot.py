@@ -4,7 +4,7 @@ import importlib
 import inspect
 import logging
 import os
-from typing import Dict, List, Optional, Type, Union, Any
+from typing import Mapping, MutableSequence, Optional, Type, Union, Any, MutableMapping
 from types import ModuleType
 
 import aiohttp
@@ -18,9 +18,9 @@ from .listener import Listener, ListenerFunc
 
 class Bot:
     # Initialized during instantiation
-    commands: Dict[str, command.Command]
-    modules: Dict[str, module.Module]
-    listeners: Dict[str, List[Listener]]
+    commands: MutableMapping[str, command.Command]
+    modules: MutableMapping[str, module.Module]
+    listeners: MutableMapping[str, MutableSequence[Listener]]
     config: util.config.Config
     log: logging.Logger
     http_session: aiohttp.ClientSession
@@ -53,7 +53,7 @@ class Bot:
         self.db = self.get_db("bot")
 
         # Initialize Telegram client
-        tg_config: Dict[str, Union[int, str]] = config["telegram"]
+        tg_config: Mapping[str, Union[int, str]] = config["telegram"]
         self.client = tg.TelegramClient(tg_config["session_name"], tg_config["api_id"], tg_config["api_hash"])
 
     def get_db(self, prefix: str) -> util.db.AsyncDB:
@@ -364,7 +364,7 @@ class Bot:
         **kwargs: Any,
     ) -> tg.custom.Message:
         if text is not None:
-            tg_config: Dict[str, str] = self.config["telegram"]
+            tg_config: Mapping[str, str] = self.config["telegram"]
             api_id = str(tg_config["api_id"])
             api_hash = tg_config["api_hash"]
 

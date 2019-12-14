@@ -7,7 +7,7 @@ from .async_helpers import run_sync
 ProcessCmdline = Union[bytes, str, Sequence[Union[bytes, str]]]
 
 
-def split_path(path: str) -> List[str]:
+def split_path(path: str) -> Sequence[str]:
     return str(os.path.normpath(path)).lstrip(os.path.sep).split(os.path.sep)
 
 

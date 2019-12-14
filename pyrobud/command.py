@@ -1,4 +1,4 @@
-from typing import Any, Callable, List, Optional, TYPE_CHECKING, Coroutine, Union
+from typing import Any, Callable, List, Optional, TYPE_CHECKING, Coroutine, Union, Sequence
 
 import telethon as tg
 
@@ -43,7 +43,7 @@ class Command:
     usage: str
     usage_optional: bool
     usage_reply: bool
-    aliases: List[str]
+    aliases: Sequence[str]
     module: Any
     func: CommandFunc
 
@@ -62,16 +62,16 @@ class Command:
 class Context:
     bot: "Bot"
     msg: tg.custom.Message
-    segments: List[str]
+    segments: Sequence[str]
     cmd_len: int
     invoker: str
 
     response: Optional[tg.custom.Message]
     input: str
     parsed_input: str
-    args: List[str]
+    args: Sequence[str]
 
-    def __init__(self, bot: "Bot", msg: tg.custom.Message, segments: List[str], cmd_len: int) -> None:
+    def __init__(self, bot: "Bot", msg: tg.custom.Message, segments: Sequence[str], cmd_len: int) -> None:
         self.bot = bot
         self.msg = msg
         self.segments = segments
@@ -93,7 +93,7 @@ class Context:
             raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
 
     # Argument segments
-    def _get_args(self) -> List[str]:
+    def _get_args(self) -> Sequence[str]:
         self.args = self.segments[1:]
         return self.args
 

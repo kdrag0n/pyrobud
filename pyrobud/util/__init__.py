@@ -1,13 +1,13 @@
 import os
 import traceback
-from typing import Any, List, Tuple, Callable, Optional
+from typing import Any, List, Tuple, Callable, Optional, Sequence
 
 from . import async_helpers, config, db, sentry, tg, time, version, system, git, image
 
 run_sync = async_helpers.run_sync
 
 
-def find_prefixed_funcs(obj: Any, prefix: str) -> List[Tuple[str, Callable]]:
+def find_prefixed_funcs(obj: Any, prefix: str) -> Sequence[Tuple[str, Callable]]:
     results = []
 
     for sym in dir(obj):

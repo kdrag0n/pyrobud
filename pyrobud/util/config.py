@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Any, Union, List, MutableMapping
+from typing import Any, Union, List, MutableMapping, Sequence
 
 import plyvel
 import toml
@@ -49,7 +49,7 @@ def upgrade_v3(config: Config, path: str) -> None:
     def migrate_antibot() -> None:
         if "antibot" in config:
             log.info("Migrating antibot settings to database")
-            mcfg: MutableMapping[str, Union[int, List[int]]] = config["antibot"]
+            mcfg: MutableMapping[str, Union[int, Sequence[int]]] = config["antibot"]
             mdb = db.prefixed_db("antibot.")
 
             if mcfg["threshold_time"] != 30:

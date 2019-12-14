@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime
-from typing import Tuple, Dict, Union, List, Mapping, Iterable
+from typing import Tuple, Union, Mapping, Iterable, Sequence
 
 import telethon as tg
 import toml
@@ -76,7 +76,7 @@ GitHub = "https://github.com/"```
         return target, rule_str, button_str, cfg
 
     @staticmethod
-    def get_commands(chat_id: int, rule_str: str, button_str: str) -> List[str]:
+    def get_commands(chat_id: int, rule_str: str, button_str: str) -> Sequence[str]:
         first = "{first}"
 
         return [
@@ -107,7 +107,7 @@ Please read the rules _before_ participating.
         await self.bot.client(request)
 
     @staticmethod
-    def truncate_cmd_list(commands: List[str]) -> List[str]:
+    def truncate_cmd_list(commands: Sequence[str]) -> Sequence[str]:
         new_list = []
 
         for cmd in commands:
