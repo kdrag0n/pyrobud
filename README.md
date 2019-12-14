@@ -29,7 +29,7 @@ your own if you insist on running the bot that way.
 ### Using Docker
 
 Simply run `docker run --rm -v "$PWD/data:/data" kdrag0n/pyrobud` to run the
-latest `master` version with the data directory set to `data` in the current
+latest stable version with the data directory set to `data` in the current
 working directory. Feel free to customize the data directory as you wish, as
 long as you create `config.toml` in your chosen data directory using the
 instructions below. The data section of the Docker command should always look
