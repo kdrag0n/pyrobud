@@ -65,10 +65,4 @@ def is_official() -> bool:
     if not remote:
         return False
 
-    # Unofficial remote repository name breaks official status
-    for url in remote.urls:
-        if "kdrag0n/pyrobud" not in url:
-            return False
-
-    # We're most likely running official code if the above checks passed
-    return True
+    return all("kdrag0n/pyrobud" in url for url in remote.urls)
