@@ -9,21 +9,21 @@ from .bot import Bot
 log = logging.getLogger("launch")
 
 
-def setup_loop() -> None:
-    # While uvloop is in our requirements.txt, it's not required by any means
-    # and doesn't work in Termux due to their patched libuv
-    try:
-        import uvloop
+def setup_asyncio(config: util.config.Config) -> None:
+    asyncio_config: util.config.AsyncIOConfig = config["asyncio"]
 
-        uvloop.install()
-    except ImportError:
-        log.warning("Unable to load uvloop; falling back to default asyncio event loop")
+    # Initialize uvloop if enabled, available, and working
+    if asyncio_config["use_uvloop"]:
+        try:
+            import uvloop
+
+            uvloop.install()
+        except ImportError:
+            log.warning("Unable to load uvloop; falling back to default asyncio event loop")
 
 
 def main() -> None:
     config_path = "config.toml"
-
-    setup_loop()
 
     log.info("Loading config")
     with open(config_path, "r") as f:
@@ -38,6 +38,7 @@ def main() -> None:
 
     util.config.upgrade(config, config_path)
 
+    setup_asyncio(config)
     log.info("Initializing bot")
     bot = Bot(config)
 

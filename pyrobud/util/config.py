@@ -11,6 +11,7 @@ from .time import sec as now_sec
 
 Config = MutableMapping[str, Any]
 BotConfig = MutableMapping[str, Union[str, bool]]
+AsyncIOConfig = MutableMapping[str, bool]
 
 log = logging.getLogger("migrate")
 
@@ -160,6 +161,17 @@ def upgrade_v7(config: Config, _: str) -> None:
         bot_config["redact_responses"] = True
 
 
+def upgrade_v8(config: Config, _: str) -> None:
+    if "asyncio" not in config:
+        config["asyncio"] = {}
+
+    asyncio_config: AsyncIOConfig = config["asyncio"]
+
+    if "use_uvloop" not in asyncio_config:
+        log.info("Enabling uvloop usage by default")
+        asyncio_config["use_uvloop"] = True
+
+
 # Old version -> function to perform migration to new version
 upgrade_funcs = [
     upgrade_v2,  # 1 -> 2
@@ -168,6 +180,7 @@ upgrade_funcs = [
     upgrade_v5,  # 4 -> 5
     upgrade_v6,  # 5 -> 6
     upgrade_v7,  # 6 -> 7
+    upgrade_v8,  # 7 -> 8
 ]
 
 

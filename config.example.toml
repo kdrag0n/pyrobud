@@ -1,6 +1,6 @@
 # Config schema version. DO NOT TOUCH!
 # The config upgrader/migrator system will update this automatically as necessary.
-version = 7
+version = 8
 
 [telegram]
 # Client API ID used for authentication, obtained from https://my.telegram.org/apps
@@ -45,3 +45,9 @@ response_mode = "reply"
 # "Sensitive information" is defined as the Telegram API ID and hash as well as the
 # account's phone number.
 redact_responses = true
+
+[asyncio]
+# Whether to use the uvloop event loop replacement if installed.
+# uvloop is generally faster, but might not be desired for debugging or other reasons.
+# This option has no effect if uvloop is not installed.
+use_uvloop = true
