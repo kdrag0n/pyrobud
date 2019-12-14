@@ -190,7 +190,7 @@ def upgrade(config: Config, path: str) -> None:
     cur_version: int = config["version"] if "version" in config else 1
 
     # Already at latest version; nothing to do
-    if cur_version == len(upgrade_funcs) - 1:
+    if cur_version == len(upgrade_funcs) + 1:
         return
 
     # Upgrade each version sequentially
@@ -198,6 +198,7 @@ def upgrade(config: Config, path: str) -> None:
         target_version = cur_version + 1
         log.info(f"Upgrading config to version {target_version}")
         upgrader(config, path)
+        cur_version = target_version
         config["version"] = target_version
 
         # Save config ASAP to prevent an inconsistent state if the next upgrade fails
