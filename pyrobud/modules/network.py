@@ -104,7 +104,7 @@ class NetworkModule(module.Module):
     async def cmd_update_link(self, ctx: command.Context) -> Optional[str]:
         link = ctx.input
 
-        if not link and not ctx.msg.is_reply:
+        if not (link or ctx.msg.is_reply):
             return "__Provide or reply to a link to update it.__"
 
         if not link:

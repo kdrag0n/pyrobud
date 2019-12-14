@@ -160,11 +160,7 @@ upgrade_funcs = [
 # Master upgrade function
 def upgrade(config: Config, path: str) -> None:
     # Get current version
-    cur_version: int
-    if "version" in config:
-        cur_version = config["version"]
-    else:
-        cur_version = 1
+    cur_version: int = config["version"] if "version" in config else 1
 
     # Already at latest version; nothing to do
     if cur_version == len(upgrade_funcs) - 1:

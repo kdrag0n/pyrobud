@@ -27,11 +27,7 @@ class TextModule(module.Module):
         text = ctx.input
         chars = list(text)
         for idx, ch in enumerate(chars):
-            if random.choice((True, False)):
-                ch = ch.upper()
-            else:
-                ch = ch.lower()
-
+            ch = ch.upper() if random.choice((True, False)) else ch.lower()
             chars[idx] = ch
 
         return "".join(chars)

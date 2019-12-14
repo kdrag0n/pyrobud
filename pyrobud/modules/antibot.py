@@ -64,11 +64,7 @@ class AntibotModule(module.Module):
             return False
 
         # Messages containing certain entities are more likely to be spam
-        for entity in msg.entities:
-            if entity.__class__ in self.__class__.suspicious_entities:
-                return True
-
-        return False
+        return any(type(entity) in self.__class__.suspicious_entities for entity in msg.entities)
 
     def msg_has_suspicious_keyword(self, msg: tg.custom.Message) -> bool:
         if not msg.raw_text:
@@ -76,11 +72,7 @@ class AntibotModule(module.Module):
 
         # Many spam messages mention certain keywords, such as cryptocurrency exchanges
         l_text = msg.raw_text.lower()
-        for kw in self.__class__.suspicious_keywords:
-            if kw in l_text:
-                return True
-
-        return False
+        return any(kw in l_text for kw in self.__class__.suspicious_keywords)
 
     def msg_content_suspicious(self, msg: tg.custom.Message) -> bool:
         # Consolidate message content checks
@@ -172,11 +164,7 @@ class AntibotModule(module.Module):
 
     async def user_is_suspicious(self, user: tg.types.User) -> bool:
         # Some spammers have invites in their names
-        if self.profile_check_invite(user):
-            return True
-
-        # No profile checks matched; exonerate this user
-        return False
+        return self.profile_check_invite(user)
 
     async def take_action(self, event: MessageEvent, user: tg.types.User) -> None:
         # Wait a bit for welcome bots to react
@@ -234,7 +222,7 @@ class AntibotModule(module.Module):
             return
 
         # Only filter new users
-        if not action.user_added and not action.user_joined:
+        if not (action.user_added or action.user_joined):
             return
 
         # Only act in groups where this is enabled
@@ -268,7 +256,7 @@ class AntibotModule(module.Module):
                 pass
             elif isinstance(ptcp, tg.types.ChannelParticipantAdmin):
                 # Check for the required admin permissions
-                if not ptcp.admin_rights.delete_messages or not ptcp.admin_rights.ban_users:
+                if not (ptcp.admin_rights.delete_messages and ptcp.admin_rights.ban_users):
                     return "__Antibot requires the **Delete Messages** and **Ban users** permissions.__"
             else:
                 return "__I must be an admin with the **Delete Messages** and **Ban users** permissions for antibot to work.__"

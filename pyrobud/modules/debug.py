@@ -85,8 +85,7 @@ Time: {el_str}"""
     @command.desc("Send text")
     @command.usage("[text to send]")
     async def cmd_echo(self, ctx: command.Context) -> str:
-        text = ctx.input
-        return text
+        return ctx.input
 
     @command.desc("Dump all the data of a message")
     @command.alias("md", "msginfo", "minfo")

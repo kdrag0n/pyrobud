@@ -257,14 +257,10 @@ class StickerModule(module.Module):
     @command.desc("Create a sticker from an image and add it to the given pack")
     @command.usage("[sticker pack name] [emoji to associate?]")
     async def cmd_sticker(self, ctx: command.Context) -> Optional[str]:
-        if not ctx.msg.is_reply and not ctx.msg.file:
+        if not (ctx.msg.is_reply or ctx.msg.file):
             return "__Reply to or embed an image to sticker it.__"
 
-        if ctx.msg.file:
-            reply_msg = ctx.msg
-        else:
-            reply_msg = await ctx.msg.get_reply_message()
-
+        reply_msg = ctx.msg if ctx.msg.file else await ctx.msg.get_reply_message()
         if not reply_msg.file:
             return "__That message doesn't contain an image.__"
 
@@ -299,17 +295,13 @@ class StickerModule(module.Module):
     async def cmd_qstick(self, ctx: command.Context) -> str:
         name = ctx.input
 
-        if not ctx.msg.is_reply and not ctx.msg.file:
+        if not (ctx.msg.is_reply or ctx.msg.file):
             return "__Reply to an image to sticker it.__"
 
         if await self.db.has(name):
             return "__There's already a sticker with that name.__"
 
-        if ctx.msg.file:
-            reply_msg = ctx.msg
-        else:
-            reply_msg = await ctx.msg.get_reply_message()
-
+        reply_msg = ctx.msg if ctx.msg.file else await ctx.msg.get_reply_message()
         if not reply_msg.file:
             return "__That message isn't an image.__"
 
@@ -328,7 +320,7 @@ class StickerModule(module.Module):
     @command.desc("Glitch an image")
     @command.usage("[block offset strength?]", optional=True)
     async def cmd_glitch(self, ctx: command.Context) -> Optional[str]:
-        if not ctx.msg.is_reply and not ctx.msg.file:
+        if not (ctx.msg.is_reply or ctx.msg.file):
             return "__Reply to an image to glitch it.__"
 
         offset = 8
@@ -338,11 +330,7 @@ class StickerModule(module.Module):
             except ValueError:
                 return "__Invalid distorted block offset strength.__"
 
-        if ctx.msg.file:
-            reply_msg = ctx.msg
-        else:
-            reply_msg = await ctx.msg.get_reply_message()
-
+        reply_msg = ctx.msg if ctx.msg.file else await ctx.msg.get_reply_message()
         if not reply_msg.file:
             return "__That message isn't an image.__"
 
