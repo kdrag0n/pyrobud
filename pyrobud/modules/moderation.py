@@ -85,6 +85,11 @@ class ModerationModule(module.Module):
 
                 continue
 
+            if not isinstance(user, tg.types.User):
+                ent_type = type(user).__name__.lower()
+                lines.append(f"Skipped {ent_type} object (`{user_id}`)")
+                continue
+
             if single_user:
                 lines.append(f"**Banned** {util.tg.mention_user(user)} (`{user_id}`)")
             else:
@@ -103,10 +108,11 @@ class ModerationModule(module.Module):
     @command.desc("Prune deleted members in this group or the specified group")
     @command.usage("[target chat ID/username/...?]", optional=True)
     async def cmd_prune(self, ctx: command.Context) -> str:
-        chat = ctx.input
+        if ctx.input:
+            chat = await self.bot.client.get_entity(ctx.input)
+            if isinstance(chat, tg.types.User):
+                return f"`{ctx.input}` __references a user, not a chat.__"
 
-        if chat:
-            chat = await self.bot.client.get_entity(chat)
             _chat_name = f" from **{chat.title}**"
             _chat_name2 = f" in **{chat.title}**"
         else:
@@ -127,10 +133,14 @@ class ModerationModule(module.Module):
 
         for user in all_members:
             if user.deleted:
-                rights = tg.tl.types.ChatBannedRights(until_date=None, view_messages=True)
-                ban_request = tg.tl.functions.channels.EditBannedRequest(chat, user, rights)
-                await self.bot.client(ban_request)
+                ban_request: tg.tl.TLRequest
+                if isinstance(chat, tg.types.Chat):
+                    ban_request = tg.tl.functions.messages.DeleteChatUserRequest(chat.id, user)
+                else:
+                    rights = tg.tl.types.ChatBannedRights(until_date=None, view_messages=True)
+                    ban_request = tg.tl.functions.channels.EditBannedRequest(chat, user, rights)
 
+                await self.bot.client(ban_request)
                 pruned_count += 1
 
             percent_done = int((idx + 1) / total_count * 100)

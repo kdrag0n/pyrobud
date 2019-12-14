@@ -36,11 +36,11 @@ class AntibotModule(module.Module):
     ]
 
     suspicious_entities = [
-        tg.custom.MessageEntityUrl,
-        tg.custom.MessageEntityTextUrl,
-        tg.custom.MessageEntityEmail,
-        tg.custom.MessageEntityPhone,
-        tg.custom.MessageEntityCashtag,
+        tg.tl.types.MessageEntityUrl,
+        tg.tl.types.MessageEntityTextUrl,
+        tg.tl.types.MessageEntityEmail,
+        tg.tl.types.MessageEntityPhone,
+        tg.tl.types.MessageEntityCashtag,
     ]
 
     async def on_load(self) -> None:
@@ -260,7 +260,7 @@ class AntibotModule(module.Module):
         if state:
             # Check for required permissions
             chat = await ctx.msg.get_chat()
-            ch_participant = await self.bot.client(tg.tl.functions.channels.GetParticipantRequest(chat, "me"))
+            ch_participant = await self.bot.client(tg.tl.functions.channels.GetParticipantRequest(chat, self.bot.user))
             ptcp = ch_participant.participant
 
             if isinstance(ptcp, tg.types.ChannelParticipantCreator):

@@ -1,5 +1,5 @@
 import asyncio
-from typing import Union, Optional, Tuple
+from typing import Union, Optional, Tuple, Type
 
 import telethon as tg
 
@@ -32,7 +32,10 @@ def filter_code_block(inp: str) -> str:
 
 
 async def download_file(
-    ctx: command.Context, msg: tg.custom.Message, dest: tg.hints.FileLike = bytes, file_type: str = "file"
+    ctx: command.Context,
+    msg: tg.custom.Message,
+    dest: Union[tg.hints.FileLike, Type[bytes]] = bytes,
+    file_type: str = "file",
 ) -> Union[str, bytes, None]:
     last_percent = -5
 

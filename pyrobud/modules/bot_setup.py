@@ -100,7 +100,7 @@ Please read the rules _before_ participating.
             "/disconnect",
         ]
 
-    async def promote_bot(self, chat: Union[tg.types.InputPeerChat, tg.types.InputPeerChannel], username: str) -> None:
+    async def promote_bot(self, chat: tg.types.InputPeerChannel, username: str) -> None:
         rights = tg.tl.types.ChatAdminRights(delete_messages=True, ban_users=True, invite_users=True, pin_messages=True)
 
         request = tg.tl.functions.channels.EditAdminRequest(chat, username, rights, "bot")
@@ -148,11 +148,12 @@ Please read the rules _before_ participating.
         await ctx.respond(status_header)
 
         input_chat = await ctx.msg.get_input_chat()
-        try:
-            await self.promote_bot(input_chat, target)
-        except Exception as e:
-            status_header += f"\n**WARNING**: Unable to promote @{target}: `{str(e)}`"
-            await ctx.respond(status_header)
+        if isinstance(input_chat, tg.types.InputPeerChannel):
+            try:
+                await self.promote_bot(input_chat, target)
+            except Exception as e:
+                status_header += f"\n**WARNING**: Unable to promote @{target}: `{str(e)}`"
+                await ctx.respond(status_header)
 
         async with self.bot.client.conversation(target) as conv:
 

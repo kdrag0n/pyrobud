@@ -53,8 +53,24 @@ class Bot:
         self.db = self.get_db("bot")
 
         # Initialize Telegram client
-        tg_config: Mapping[str, Union[int, str]] = config["telegram"]
-        self.client = tg.TelegramClient(tg_config["session_name"], tg_config["api_id"], tg_config["api_hash"])
+        self.init_client()
+
+    def init_client(self) -> None:
+        tg_config: Mapping[str, Union[int, str]] = self.config["telegram"]
+
+        session_name = tg_config["session_name"]
+        if not isinstance(session_name, str):
+            raise TypeError("Session name must be a str")
+
+        api_id = tg_config["api_id"]
+        if not isinstance(api_id, int):
+            raise TypeError("API ID must be an int")
+
+        api_hash = tg_config["api_hash"]
+        if not isinstance(api_hash, str):
+            raise TypeError("API hash must be a str")
+
+        self.client = tg.TelegramClient(session_name, api_id, api_hash)
 
     def get_db(self, prefix: str) -> util.db.AsyncDB:
         return self._db.prefixed_db(prefix + ".")
@@ -237,8 +253,11 @@ class Bot:
         await self.client.start()
 
         # Get info
-        self.user = await self.client.get_me()
-        self.uid = self.user.id
+        user = await self.client.get_me()
+        if not isinstance(user, tg.types.User):
+            raise TypeError("Missing full self user information")
+        self.user = user
+        self.uid = user.id
 
         # Set Sentry username if enabled
         if self.config["bot"]["report_username"]:
@@ -351,7 +370,7 @@ class Bot:
             if cmd is not None:
                 cmd.module.log.error("Error in command handler", exc_info=e)
 
-            await self.respond(msg, f"⚠️ Error in command handler:\n```{util.format_exception(e)}```")
+            await self.respond(msg.message, f"⚠️ Error in command handler:\n```{util.format_exception(e)}```")
 
     # Flexible response function with filtering, truncation, redaction, etc.
     async def respond(
@@ -368,12 +387,12 @@ class Bot:
             api_id = str(tg_config["api_id"])
             api_hash = tg_config["api_hash"]
 
-            # Redact sensitive information
+            # Redact sensitive information (if known)
             if api_id in text:
                 text = text.replace(api_id, "[REDACTED]")
             if api_hash in text:
                 text = text.replace(api_hash, "[REDACTED]")
-            if self.user.phone in text:
+            if self.user.phone is not None and self.user.phone in text:
                 text = text.replace(self.user.phone, "[REDACTED]")
 
             # Truncate messages longer than Telegram's 4096-character length limit
