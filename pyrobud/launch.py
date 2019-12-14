@@ -1,29 +1,12 @@
 import asyncio
 import logging
 
-import colorlog
 import toml
 
 from . import util
 from .bot import Bot
 
-LOG_LEVEL = logging.INFO
-LOG_FORMAT = "  %(log_color)s%(levelname)-8s%(reset)s | %(name)-7s | %(log_color)s%(message)s%(reset)s"
-
 log = logging.getLogger("launch")
-
-
-def setup_logging() -> None:
-    logging.root.setLevel(LOG_LEVEL)
-    formatter = colorlog.ColoredFormatter(LOG_FORMAT)
-
-    stream = logging.StreamHandler()
-    stream.setLevel(LOG_LEVEL)
-    stream.setFormatter(formatter)
-
-    root = logging.getLogger()
-    root.setLevel(LOG_LEVEL)
-    root.addHandler(stream)
 
 
 def setup_loop() -> None:
@@ -40,7 +23,6 @@ def setup_loop() -> None:
 def main() -> None:
     config_path = "config.toml"
 
-    setup_logging()
     setup_loop()
 
     log.info("Loading config")
@@ -70,7 +52,3 @@ def main() -> None:
 
     log.info("Stopping bot")
     loop.run_until_complete(bot.stop())
-
-
-if __name__ == "__main__":
-    main()

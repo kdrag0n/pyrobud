@@ -58,7 +58,7 @@ fast = ["uvloop"]
 black = "^19.10b0"
 
 [tool.poetry.scripts]
-pyrobud = "pyrobud.launch:main"
+pyrobud = "pyrobud.main:main"
 
 [build-system]
 requires = ["poetry>=0.12"]

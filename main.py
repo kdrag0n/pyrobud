@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
 
-from pyrobud import launch
+from pyrobud import main
 
-launch.main()
+main.main()

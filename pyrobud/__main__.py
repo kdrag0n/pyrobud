@@ -1,3 +1,3 @@
-from . import launch
+from . import main
 
-launch.main()
+main.main()
