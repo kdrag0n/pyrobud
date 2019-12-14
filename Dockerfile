@@ -20,7 +20,8 @@ RUN apk add --no-cache \
         libpng-dev \
         libjpeg-turbo-dev \
         lcms2-dev \
-        libwebp-dev
+        libwebp-dev \
+        openssl-dev
 RUN mkdir -p /opt/venv
 WORKDIR /opt/venv
 RUN python3 -m venv /opt/venv
@@ -29,11 +30,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 RUN mkdir -p /src
 WORKDIR /src
 
-# Build dependencies separately to utilize build cache better
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-
-# Install bot package
+# Install bot package and dependencies
 COPY . .
 RUN pip install .
 
