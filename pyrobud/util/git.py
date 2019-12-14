@@ -10,10 +10,10 @@ except ImportError:
     have_git = False
 
 _repo_initialized = False
-_repo: Optional[git.Repo] = None
+_repo: "Optional[git.Repo]" = None
 
 
-def get_repo() -> git.Repo:
+def get_repo() -> "git.Repo":
     global _repo_initialized
     global _repo
 
@@ -38,7 +38,7 @@ def get_repo() -> git.Repo:
     return _repo
 
 
-def get_current_remote() -> Optional[git.Remote]:
+def get_current_remote() -> "Optional[git.Remote]":
     repo = get_repo()
     if not repo:
         return None
