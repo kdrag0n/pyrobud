@@ -12,7 +12,7 @@ import telethon as tg
 import plyvel
 import sentry_sdk
 
-from . import command, module, util
+from . import command, module, util, modules, custom_modules
 from .listener import Listener, ListenerFunc
 
 
@@ -200,8 +200,6 @@ class Bot:
                         self.load_module(cls, comment=comment)
 
     def load_all_modules(self) -> None:
-        from . import modules, custom_modules
-
         self.log.info("Loading modules")
         self._load_modules_from_metamod(modules)
         self._load_modules_from_metamod(custom_modules, comment="custom")
@@ -217,8 +215,6 @@ class Bot:
         self.log.info("All modules unloaded.")
 
     async def reload_module_pkg(self) -> None:
-        from . import modules, custom_modules
-
         self.log.info("Reloading base module class...")
         await util.run_sync(importlib.reload, module)
 
