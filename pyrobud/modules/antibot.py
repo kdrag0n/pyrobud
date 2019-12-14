@@ -1,14 +1,19 @@
 import asyncio
-import string
 from datetime import timezone, timedelta
+from typing import Union
 
 import telethon as tg
 
 from .. import command, module, util
 
+MessageEvent = Union[tg.events.NewMessage.Event, tg.events.ChatAction.Event]
+
 
 class AntibotModule(module.Module):
     name = "Antibot"
+    db: util.db.AsyncDB
+    group_db: util.db.AsyncDB
+    user_db: util.db.AsyncDB
 
     suspicious_keywords = [
         "investment",
@@ -31,14 +36,14 @@ class AntibotModule(module.Module):
     ]
 
     suspicious_entities = [
-        tg.types.MessageEntityUrl,
-        tg.types.MessageEntityTextUrl,
-        tg.types.MessageEntityEmail,
-        tg.types.MessageEntityPhone,
-        tg.types.MessageEntityCashtag,
+        tg.tl.types.MessageEntityUrl,
+        tg.tl.types.MessageEntityTextUrl,
+        tg.tl.types.MessageEntityEmail,
+        tg.tl.types.MessageEntityPhone,
+        tg.tl.types.MessageEntityCashtag,
     ]
 
-    async def on_load(self):
+    async def on_load(self) -> None:
         self.db = self.bot.get_db("antibot")
         self.group_db = self.db.prefixed_db("groups.")
         self.user_db = self.db.prefixed_db("users.")
@@ -54,7 +59,7 @@ class AntibotModule(module.Module):
 
             await self.db.delete("first_msg_start_time")
 
-    def msg_has_suspicious_entity(self, msg):
+    def msg_has_suspicious_entity(self, msg: tg.custom.Message) -> bool:
         if not msg.entities:
             return False
 
@@ -65,7 +70,7 @@ class AntibotModule(module.Module):
 
         return False
 
-    def msg_has_suspicious_keyword(self, msg):
+    def msg_has_suspicious_keyword(self, msg: tg.custom.Message) -> bool:
         if not msg.raw_text:
             return False
 
@@ -77,14 +82,15 @@ class AntibotModule(module.Module):
 
         return False
 
-    def msg_content_suspicious(self, msg):
+    def msg_content_suspicious(self, msg: tg.custom.Message) -> bool:
         # Consolidate message content checks
         return self.msg_has_suspicious_entity(msg) or self.msg_has_suspicious_keyword(msg)
 
-    def msg_type_suspicious(self, msg):
+    @staticmethod
+    def msg_type_suspicious(msg: tg.custom.Message) -> bool:
         return msg.contact or msg.geo or msg.game
 
-    async def msg_data_is_suspicious(self, msg):
+    async def msg_data_is_suspicious(self, msg: tg.custom.Message) -> bool:
         incoming = not msg.out
         has_date = msg.date
         forwarded = msg.forward
@@ -92,7 +98,7 @@ class AntibotModule(module.Module):
         # Message *could* be suspicious if we didn't send it
         # Check for a date to exonerate empty messages
         if incoming and has_date:
-            # Lazily evalulate suspicious content as it is more expensive
+            # Lazily evaluate suspicious content as it is more expensive
             if forwarded:
                 # Messages forwarded from a linked channel by Telegram don't have a sender
                 # We can assume these messages are safe since only admins can link channels
@@ -104,7 +110,7 @@ class AntibotModule(module.Module):
                 # messages from central coordinated channels for maximum efficiency
                 # This protects users who forward questions with links/images to
                 # various support chats asking for help (arguably, that's spammy,
-                # but it's not what we're defending against here)
+                # it's out of the scope of this function)
                 if msg.forward.from_id == sender.id or msg.forward.from_name == tg.utils.get_display_name(sender):
                     return False
 
@@ -116,7 +122,7 @@ class AntibotModule(module.Module):
 
         return False
 
-    async def msg_is_suspicious(self, msg):
+    async def msg_is_suspicious(self, msg: tg.custom.Message) -> bool:
         # Check if the data in the message is suspicious
         if not await self.msg_data_is_suspicious(msg):
             return False
@@ -149,7 +155,7 @@ class AntibotModule(module.Module):
             return True
 
         join_time_sec = int(participant.date.replace(tzinfo=timezone.utc).timestamp())
-        if join_time_sec > await self.group_db.get(f"{msg.chat_id}.enable_time"):
+        if join_time_sec > await self.group_db.get(f"{msg.chat_id}.enable_time", 0):
             # We started tracking first messages in this group before the user
             # joined, so we can run the first message check
             if not await self.user_db.get(f"{sender.id}.has_spoken_in_{msg.chat_id}", False):
@@ -159,11 +165,12 @@ class AntibotModule(module.Module):
         # Allow this message
         return False
 
-    def profile_check_invite(self, user):
+    @staticmethod
+    def profile_check_invite(user: tg.types.User) -> bool:
         # Some spammers have Telegram invite links in their first or last names
         return "t.me/" in tg.utils.get_display_name(user)
 
-    async def user_is_suspicious(self, user):
+    async def user_is_suspicious(self, user: tg.types.User) -> bool:
         # Some spammers have invites in their names
         if self.profile_check_invite(user):
             return True
@@ -171,7 +178,7 @@ class AntibotModule(module.Module):
         # No profile checks matched; exonerate this user
         return False
 
-    async def take_action(self, event, user):
+    async def take_action(self, event: MessageEvent, user: tg.types.User) -> None:
         # Wait a bit for welcome bots to react
         await asyncio.sleep(1)
 
@@ -185,26 +192,28 @@ class AntibotModule(module.Module):
 
         # Log the event
         self.log.info(f'Kicked spambot with ID {user.id} in group "{chat.title}"')
-        await event.reply(f"❯❯ **Kicked auto-detected spambot** with ID `{user.id}`", schedule=timedelta(seconds=10))
+        await event.reply(
+            f"❯❯ **Kicked auto-detected spambot** with ID `{user.id}`", schedule=timedelta(seconds=10),
+        )
         self.bot.dispatch_event_nowait("stat_event", "spambots_banned")
 
         # Delete the spam message just in case
         await event.delete()
 
-    async def is_enabled(self, event):
+    async def is_enabled(self, event: MessageEvent) -> bool:
         return event.is_group and await self.group_db.get(f"{event.chat_id}.enabled", False)
 
-    async def on_message(self, msg):
+    async def on_message(self, msg: tg.events.NewMessage.Event) -> None:
         # Only run in groups where antibot is enabled
         if await self.is_enabled(msg):
-            if await self.msg_is_suspicious(msg):
+            if await self.msg_is_suspicious(msg.message):
                 # This is most likely a spambot, take action against the user
                 user = await msg.get_sender()
                 await self.take_action(msg, user)
             else:
                 await self.user_db.put(f"{msg.sender_id}.has_spoken_in_{msg.chat_id}", True)
 
-    async def clear_group(self, group_id):
+    async def clear_group(self, group_id: int) -> None:
         async for key, _ in self.group_db.iterator(prefix=f"{group_id}."):
             await self.group_db.delete(key)
 
@@ -212,7 +221,7 @@ class AntibotModule(module.Module):
             if key.endswith(f".has_spoken_in_{group_id}"):
                 await self.user_db.delete(key)
 
-    async def on_chat_action(self, action):
+    async def on_chat_action(self, action: tg.events.ChatAction.Event) -> None:
         # Remove has-spoken-in flag for departing users
         if action.user_left and await self.is_enabled(action):
             await self.user_db.delete(f"{action.user_id}.has_spoken_in_{action.chat_id}")
@@ -239,7 +248,7 @@ class AntibotModule(module.Module):
             await self.take_action(action, user)
 
     @command.desc("Toggle the antibot auto-moderation feature in this group")
-    async def cmd_antibot(self, ctx: command.Context):
+    async def cmd_antibot(self, ctx: command.Context) -> str:
         if not ctx.msg.is_group:
             return "__Antibot can only be used in groups.__"
 
@@ -251,7 +260,7 @@ class AntibotModule(module.Module):
         if state:
             # Check for required permissions
             chat = await ctx.msg.get_chat()
-            ch_participant = await self.bot.client(tg.tl.functions.channels.GetParticipantRequest(chat, "me"))
+            ch_participant = await self.bot.client(tg.tl.functions.channels.GetParticipantRequest(chat, self.bot.user))
             ptcp = ch_participant.participant
 
             if isinstance(ptcp, tg.types.ChannelParticipantCreator):

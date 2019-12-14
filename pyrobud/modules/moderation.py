@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional, List
 
 import telethon as tg
 
@@ -11,7 +12,13 @@ class ModerationModule(module.Module):
     @command.desc("Mention everyone in this group (**DO NOT ABUSE**)")
     @command.usage("[comment?]", optional=True)
     @command.alias("evo", "@everyone")
-    async def cmd_everyone(self, ctx: command.Context, *, tag="\U000e0020everyone", filter=None):
+    async def cmd_everyone(
+        self,
+        ctx: command.Context,
+        *,
+        tag: str = "\U000e0020everyone",
+        user_filter: Optional[tg.types.TypeChannelParticipantsFilter] = None,
+    ) -> Optional[str]:
         comment = ctx.input
 
         if not ctx.msg.is_group:
@@ -24,7 +31,7 @@ class ModerationModule(module.Module):
         mention_slots = 4096 - len(mention_text)
 
         chat = await ctx.msg.get_chat()
-        async for user in self.bot.client.iter_participants(chat, filter=filter):
+        async for user in self.bot.client.iter_participants(chat, filter=user_filter):
             mention_text += f"[\u200b](tg://user?id={user.id})"
 
             mention_slots -= 1
@@ -32,16 +39,17 @@ class ModerationModule(module.Module):
                 break
 
         await ctx.respond(mention_text, mode="repost")
+        return None
 
     @command.desc("Mention all admins in a group (**DO NOT ABUSE**)")
     @command.usage("[comment?]", optional=True)
     @command.alias("adm", "@admin")
-    async def cmd_admin(self, ctx: command.Context):
-        await self.cmd_everyone(ctx, tag="admin", filter=tg.tl.types.ChannelParticipantsAdmins)
+    async def cmd_admin(self, ctx: command.Context) -> Optional[str]:
+        return await self.cmd_everyone(ctx, tag="admin", user_filter=tg.tl.types.ChannelParticipantsAdmins)
 
     @command.desc("Ban user(s) from the current chat by ID or reply")
     @command.usage("[ID(s) of the user(s) to ban?, or reply to user's message]", optional=True)
-    async def cmd_ban(self, ctx: command.Context):
+    async def cmd_ban(self, ctx: command.Context) -> str:
         input_ids = ctx.args
 
         try:
@@ -57,6 +65,7 @@ class ModerationModule(module.Module):
         if not user_ids:
             return "__Provide a list of user IDs to ban, or reply to a user's message to ban them.__"
 
+        lines: List[str]
         chat = await ctx.msg.get_chat()
         single_user = len(user_ids) == 1
         if single_user:
@@ -76,6 +85,11 @@ class ModerationModule(module.Module):
 
                 continue
 
+            if not isinstance(user, tg.types.User):
+                ent_type = type(user).__name__.lower()
+                lines.append(f"Skipped {ent_type} object (`{user_id}`)")
+                continue
+
             if single_user:
                 lines.append(f"**Banned** {util.tg.mention_user(user)} (`{user_id}`)")
             else:
@@ -93,11 +107,12 @@ class ModerationModule(module.Module):
 
     @command.desc("Prune deleted members in this group or the specified group")
     @command.usage("[target chat ID/username/...?]", optional=True)
-    async def cmd_prune(self, ctx: command.Context):
-        chat = ctx.input
+    async def cmd_prune(self, ctx: command.Context) -> str:
+        if ctx.input:
+            chat = await self.bot.client.get_entity(ctx.input)
+            if isinstance(chat, tg.types.User):
+                return f"`{ctx.input}` __references a user, not a chat.__"
 
-        if chat:
-            chat = await self.bot.client.get_entity(chat)
             _chat_name = f" from **{chat.title}**"
             _chat_name2 = f" in **{chat.title}**"
         else:
@@ -118,10 +133,14 @@ class ModerationModule(module.Module):
 
         for user in all_members:
             if user.deleted:
-                rights = tg.tl.types.ChatBannedRights(until_date=None, view_messages=True)
-                ban_request = tg.tl.functions.channels.EditBannedRequest(chat, user, rights)
-                await self.bot.client(ban_request)
+                ban_request: tg.tl.TLRequest
+                if isinstance(chat, tg.types.Chat):
+                    ban_request = tg.tl.functions.messages.DeleteChatUserRequest(chat.id, user)
+                else:
+                    rights = tg.tl.types.ChatBannedRights(until_date=None, view_messages=True)
+                    ban_request = tg.tl.functions.channels.EditBannedRequest(chat, user, rights)
 
+                await self.bot.client(ban_request)
                 pruned_count += 1
 
             percent_done = int((idx + 1) / total_count * 100)
@@ -136,6 +155,4 @@ class ModerationModule(module.Module):
             idx += 1
 
         percent_pruned = int(pruned_count / total_count * 100)
-        await ctx.respond(
-            f"Pruned {pruned_count} deleted users{_chat_name2} — {percent_pruned}% of the original member count."
-        )
+        return f"Pruned {pruned_count} deleted users{_chat_name2} — {percent_pruned}% of the original member count."

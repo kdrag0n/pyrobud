@@ -1,27 +1,30 @@
 import re
 import asyncio
+from typing import Match, Optional
+
+import telethon as tg
 
 from .. import command, module, util
 
 
 class SnippetsModule(module.Module):
     name = "Snippet"
+    db: util.db.AsyncDB
 
-    async def on_load(self):
+    async def on_load(self) -> None:
         self.db = self.bot.get_db("snippets")
 
-    def snip_repl(self, m):
-        replacement = self.db.get_sync(m.group(1))
+    def snip_repl(self, m: Match[str]) -> str:
+        replacement: Optional[str] = self.db.get_sync(m.group(1))
         if replacement is not None:
             self.bot.dispatch_event_nowait("stat_event", "replaced")
             return replacement
 
         return m.group(0)
 
-    async def on_message(self, msg):
+    async def on_message(self, msg: tg.events.NewMessage.Event) -> None:
         if msg.out and msg.text:
             orig_text = msg.text
-            text = msg.text
 
             text = await util.run_sync(lambda: re.sub(r"/([^ ]+?)/", self.snip_repl, orig_text))
             text = util.tg.truncate(text)
@@ -33,7 +36,7 @@ class SnippetsModule(module.Module):
     @command.desc("Save a snippet (fetch: `/snippet/`)")
     @command.usage("[snippet name] [text?, or reply]")
     @command.alias("snippet", "snp")
-    async def cmd_snip(self, ctx: command.Context):
+    async def cmd_snip(self, ctx: command.Context) -> str:
         if ctx.msg.is_reply:
             reply_msg = await ctx.msg.get_reply_message()
 
@@ -58,7 +61,7 @@ class SnippetsModule(module.Module):
 
     @command.desc("Show all snippets")
     @command.alias("sl", "snl", "spl", "snips", "snippets")
-    async def cmd_sniplist(self, ctx: command.Context):
+    async def cmd_sniplist(self, ctx: command.Context) -> str:
         out = "Snippet list:"
 
         async for key, _ in self.db:
@@ -72,7 +75,7 @@ class SnippetsModule(module.Module):
     @command.desc("Delete a snippet")
     @command.usage("[snippet name]")
     @command.alias("ds", "sd", "snd", "spd", "rms", "srm", "rs", "sr", "rmsnip", "delsnip")
-    async def cmd_snipdel(self, ctx: command.Context):
+    async def cmd_snipdel(self, ctx: command.Context) -> str:
         name = ctx.input
 
         if not await self.db.has(name):

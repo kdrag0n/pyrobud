@@ -1,4 +1,21 @@
 import logging
+from typing import Type, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .bot import Bot
+    from .command import Command
+
+
+class Module:
+    name = "Unnamed"
+    bot: "Bot"
+    log: logging.Logger
+    comment: Optional[str]
+
+    def __init__(self, bot: "Bot") -> None:
+        self.bot = bot
+        self.log = logging.getLogger(self.__class__.name.lower().replace(" ", "_"))
+        self.comment = None
 
 
 class ModuleLoadError(Exception):
@@ -6,7 +23,10 @@ class ModuleLoadError(Exception):
 
 
 class ExistingModuleError(ModuleLoadError):
-    def __init__(self, old_module, new_module):
+    old_module: Type[Module]
+    new_module: Type[Module]
+
+    def __init__(self, old_module: Type[Module], new_module: Type[Module]) -> None:
         super().__init__(f"Module '{old_module.name}' ({old_module.__name__}) already exists")
 
         self.old_module = old_module
@@ -14,20 +34,18 @@ class ExistingModuleError(ModuleLoadError):
 
 
 class ExistingCommandError(ModuleLoadError):
-    def __init__(self, old_cmd, new_cmd, alias=False):
+    old_cmd: "Command"
+    new_cmd: "Command"
+    alias: bool
+
+    def __init__(self, old_cmd: "Command", new_cmd: "Command", alias: bool = False) -> None:
         al_str = "alias of " if alias else ""
+        old_name = old_cmd.module.__class__.__name__
+        new_name = new_cmd.module.__class__.__name__
         super().__init__(
-            f"Attempted to replace existing command '{old_cmd.name}' (from {old_cmd.module.__class__.__name__}) with {al_str}'{new_cmd.name}' (from {new_cmd.module.__class__.__name__})"
+            f"Attempt to replace existing command '{old_cmd.name}' (from {old_name}) with {al_str}'{new_cmd.name}' (from {new_name})"
         )
 
         self.old_cmd = old_cmd
         self.new_cmd = new_cmd
         self.alias = alias
-
-
-class Module:
-    name = "Unnamed"
-
-    def __init__(self, bot):
-        self.bot = bot
-        self.log = logging.getLogger(self.__class__.name.lower().replace(" ", "_"))

@@ -1,6 +1,6 @@
 import asyncio
-import os
 import urllib.parse
+from typing import Optional, Tuple
 
 import aiohttp
 import telethon as tg
@@ -19,34 +19,17 @@ class NetworkModule(module.Module):
 
         return "Request response time: %d ms" % (after - before)
 
-    async def get_text_input(self, ctx, input_arg):
-        if ctx.msg.is_reply:
-            reply_msg = await ctx.msg.get_reply_message()
-
-            if reply_msg.document:
-                text = await util.tg.msg_download_file(ctx, reply_msg)
-            elif reply_msg.text:
-                text = util.tg.filter_code_block(reply_msg.text)
-            else:
-                return (False, "__Reply to a message with text or a text file, or provide text in command.__")
-        else:
-            if ctx.msg.document:
-                text = await util.tg.msg_download_file(ctx, ctx.msg)
-            elif input_arg:
-                text = util.tg.filter_code_block(input_arg)
-            else:
-                return (False, "__Reply to a message or provide text in command.__")
-
-        return (True, text)
-
     @command.desc("Paste message text to Dogbin")
     @command.usage("[text to paste?, or upload/reply to message or file]", optional=True)
-    async def cmd_dog(self, ctx: command.Context):
+    async def cmd_dog(self, ctx: command.Context) -> str:
         input_text = ctx.input
 
-        status, text = await self.get_text_input(ctx, input_text)
+        status, text = await util.tg.get_text_input(ctx, input_text)
         if not status:
-            return text
+            if isinstance(text, str):
+                return text
+            else:
+                return "__Unknown error.__"
 
         await ctx.respond("Uploading text to [Dogbin](https://del.dog/)...")
 
@@ -60,7 +43,7 @@ class NetworkModule(module.Module):
 
     @command.desc("Upload given file to file.io")
     @command.usage("[expiry time?]", optional=True)
-    async def cmd_fileio(self, ctx: command.Context):
+    async def cmd_fileio(self, ctx: command.Context) -> str:
         expires = ctx.input
 
         if not ctx.msg.is_reply:
@@ -83,7 +66,7 @@ class NetworkModule(module.Module):
         if not reply_msg.document:
             return "__That message doesn't contain a file.__"
 
-        data = await util.tg.msg_download_file(ctx, reply_msg)
+        data = await util.tg.download_file(ctx, reply_msg)
 
         await ctx.respond("Uploading file to [file.io](https://file.io/)...")
 
@@ -96,7 +79,7 @@ class NetworkModule(module.Module):
             return resp_data["link"]
 
     @command.desc("Upload given file to transfer.sh")
-    async def cmd_transfer(self, ctx: command.Context):
+    async def cmd_transfer(self, ctx: command.Context) -> str:
         if not ctx.msg.is_reply:
             return "__Reply to a file to upload it.__"
 
@@ -104,7 +87,7 @@ class NetworkModule(module.Module):
         if not reply_msg.document:
             return "__That message doesn't contain a file.__"
 
-        data = await util.tg.msg_download_file(ctx, reply_msg)
+        data = await util.tg.download_file(ctx, reply_msg)
 
         await ctx.respond("Uploading file to [transfer.sh](https://transfer.sh/)...")
 
@@ -118,7 +101,7 @@ class NetworkModule(module.Module):
     @command.desc("Update the embed for a link")
     @command.usage("[link?, or reply]", optional=True)
     @command.alias("upde", "updl", "updatelink", "ul", "ulink")
-    async def cmd_update_link(self, ctx: command.Context):
+    async def cmd_update_link(self, ctx: command.Context) -> Optional[str]:
         link = ctx.input
 
         if not link and not ctx.msg.is_reply:
@@ -128,7 +111,7 @@ class NetworkModule(module.Module):
             reply_msg = await ctx.msg.get_reply_message()
 
             for entity, text in reply_msg.get_entities_text():
-                if isinstance(entity, (tg.types.MessageEntityUrl, tg.types.MessageEntityTextUrl)):
+                if isinstance(entity, (tg.tl.types.MessageEntityUrl, tg.tl.types.MessageEntityTextUrl)):
                     link = text
 
         if not link:
@@ -155,9 +138,11 @@ class NetworkModule(module.Module):
                 # Failed for some reason, send the error
                 await ctx.respond(f"Error updating embed for [link]({link}): `{response.raw_text}`")
 
+        return None
+
     @command.desc("Generate a LMGTFY link (Let Me Google That For You)")
     @command.usage("[search query]")
-    async def cmd_lmgtfy(self, ctx: command.Context):
+    async def cmd_lmgtfy(self, ctx: command.Context) -> str:
         query = ctx.input
         params = urllib.parse.urlencode({"q": query})
 

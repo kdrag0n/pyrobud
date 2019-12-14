@@ -13,7 +13,7 @@ LOG_FORMAT = "  %(log_color)s%(levelname)-8s%(reset)s | %(name)-7s | %(log_color
 log = logging.getLogger("launch")
 
 
-def setup_logging():
+def setup_logging() -> None:
     logging.root.setLevel(LOG_LEVEL)
     formatter = colorlog.ColoredFormatter(LOG_FORMAT)
 
@@ -26,7 +26,7 @@ def setup_logging():
     root.addHandler(stream)
 
 
-def setup_loop():
+def setup_loop() -> None:
     # While uvloop is in our requirements.txt, it's not required by any means
     # and doesn't work in Termux due to their patched libuv
     try:
@@ -34,17 +34,17 @@ def setup_loop():
 
         uvloop.install()
     except ImportError:
-        log.warn("Unable to load uvloop; falling back to default asyncio event loop")
+        log.warning("Unable to load uvloop; falling back to default asyncio event loop")
 
 
-def main():
+def main() -> None:
     config_path = "config.toml"
 
     setup_logging()
     setup_loop()
 
     log.info("Loading config")
-    config = toml.load(config_path)
+    config: util.config.Config = toml.load(config_path)
 
     # Initialize Sentry reporting here to exempt config syntax errors and query
     # the user's report_errors value, defaulting to enabled if not specified
@@ -63,7 +63,7 @@ def main():
     try:
         loop.run_until_complete(bot.start())
     except KeyboardInterrupt:
-        log.warn("Received interrupt while connecting; exiting")
+        log.warning("Received interrupt while connecting; exiting")
         return
 
     bot.client.run_until_disconnected()

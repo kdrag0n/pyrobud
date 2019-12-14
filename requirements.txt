@@ -8,7 +8,6 @@ toml
 cryptg
 
 # Database
-async_generator
 msgpack
 plyvel
 

@@ -1,9 +1,9 @@
 import inspect
-import json
-import logging
 import re
 import traceback
+from typing import Tuple, Optional, Any
 
+import telethon as tg
 from meval import meval
 
 from .. import command, module, util
@@ -15,16 +15,16 @@ class DebugModule(module.Module):
     @command.desc("Evaluate code")
     @command.usage("[code snippet]")
     @command.alias("ev", "exec")
-    async def cmd_eval(self, ctx: command.Context):
+    async def cmd_eval(self, ctx: command.Context) -> str:
         code = util.tg.filter_code_block(ctx.input)
 
-        async def _eval(code):
+        async def _eval() -> Tuple[str, str]:
             # Message sending helper for convenience
-            async def send(*args, **kwargs):
+            async def send(*args: Any, **kwargs: Any) -> tg.custom.Message:
                 return await ctx.msg.respond(*args, **kwargs)
 
             try:
-                return ("", await meval(code, globals(), send=send, self=self, ctx=ctx))
+                return "", await meval(code, globals(), send=send, self=self, ctx=ctx)
             except Exception as e:
                 # Find first traceback frame involving the snippet
                 first_snip_idx = -1
@@ -42,10 +42,10 @@ class DebugModule(module.Module):
                 # Return formatted stripped traceback
                 stripped_tb = tb[first_snip_idx:]
                 formatted_tb = util.format_exception(e, tb=stripped_tb)
-                return ("⚠️ Error executing snippet\n\n", formatted_tb)
+                return "⚠️ Error executing snippet\n\n", formatted_tb
 
         before = util.time.usec()
-        prefix, result = await _eval(code)
+        prefix, result = await _eval()
         after = util.time.usec()
 
         el_us = after - before
@@ -61,34 +61,36 @@ Time: {el_str}"""
 
     @command.desc("Get the code of a command")
     @command.usage("[command name]")
-    async def cmd_src(self, ctx: command.Context):
+    async def cmd_src(self, ctx: command.Context) -> str:
         cmd_name = ctx.input
 
         if cmd_name not in self.bot.commands:
             return f"__Command__ `{cmd_name}` __doesn't exist.__"
 
-        src = await util.run_sync(lambda: inspect.getsource(self.bot.commands[cmd_name].func))
-        filtered_src = re.sub(r"^    ", "", src, flags=re.MULTILINE)
+        src = await util.run_sync(inspect.getsource, self.bot.commands[cmd_name].func)
+        # Strip first level of indentation
+        filtered_src = re.sub(r"^ {4}", "", src, flags=re.MULTILINE)
         return f"```{filtered_src}```"
 
     @command.desc("Get plain text of a message")
     @command.alias("text", "raw")
-    async def cmd_gtx(self, ctx: command.Context):
+    async def cmd_gtx(self, ctx: command.Context) -> Optional[str]:
         if not ctx.msg.is_reply:
             return "__Reply to a message to get the text of.__"
 
         reply_msg = await ctx.msg.get_reply_message()
         await ctx.respond(reply_msg.text, parse_mode=None)
+        return None
 
     @command.desc("Send text")
     @command.usage("[text to send]")
-    async def cmd_echo(self, ctx: command.Context):
+    async def cmd_echo(self, ctx: command.Context) -> str:
         text = ctx.input
         return text
 
     @command.desc("Dump all the data of a message")
     @command.alias("md", "msginfo", "minfo")
-    async def cmd_mdump(self, ctx: command.Context):
+    async def cmd_mdump(self, ctx: command.Context) -> str:
         if not ctx.msg.is_reply:
             return "__Reply to a message to get its data.__"
 
@@ -100,22 +102,24 @@ Time: {el_str}"""
     @command.desc("Get all available information about the given entity")
     @command.usage('[entity ID/username/... or "chat" for the current chat?, or reply]', optional=True)
     @command.alias("einfo")
-    async def cmd_entity(self, ctx: command.Context):
-        entity_str = ctx.input
+    async def cmd_entity(self, ctx: command.Context) -> str:
+        entity_ref: tg.hints.EntitiesLike = ctx.input
 
-        if entity_str == "chat":
+        if ctx.input == "chat":
             entity = await ctx.msg.get_chat()
-        elif entity_str:
-            if entity_str.isdigit():
+        elif ctx.input:
+            if ctx.input.isdigit():
                 try:
-                    entity_str = int(entity_str)
+                    entity_ref = int(ctx.input)
                 except ValueError:
-                    return f"Unable to parse `{entity_str}` as ID!"
+                    return f"Unable to parse `{entity_ref}` as ID!"
+            else:
+                entity_ref = ctx.input
 
             try:
-                entity = await self.bot.client.get_entity(entity_str)
+                entity = await self.bot.client.get_entity(entity_ref)
             except ValueError as e:
-                return f"Error getting entity `{entity_str}`: {e}"
+                return f"Error getting entity `{entity_ref}`: {e}"
         elif ctx.msg.is_reply:
             entity = await ctx.msg.get_reply_message()
         else:
@@ -125,7 +129,7 @@ Time: {el_str}"""
 
     @command.desc("Get all contextually relevant IDs")
     @command.alias("user", "info")
-    async def cmd_id(self, ctx: command.Context):
+    async def cmd_id(self, ctx: command.Context) -> str:
         lines = []
 
         if ctx.msg.chat_id:
@@ -145,15 +149,17 @@ Time: {el_str}"""
                 if reply_msg.forward.from_id:
                     lines.append(f"Forwarded message author ID: `{reply_msg.forward.from_id}`")
 
+                f_chat_id = None
                 if hasattr(reply_msg.forward.saved_from_peer, "channel_id"):
                     f_chat_id = reply_msg.forward.saved_from_peer.channel_id
                     lines.append(f"Forwarded message chat ID: `{f_chat_id}`")
 
+                f_msg_id = None
                 if reply_msg.forward.saved_from_msg_id:
                     f_msg_id = reply_msg.forward.saved_from_msg_id
                     lines.append(f"Forwarded message original ID: `{f_msg_id}`")
 
-                if reply_msg.forward.saved_from_peer and reply_msg.forward.saved_from_msg_id:
+                if f_chat_id is not None and f_msg_id is not None:
                     lines.append(f"[Link to forwarded message](https://t.me/c/{f_chat_id}/{f_msg_id})")
 
         return "\n".join(lines)

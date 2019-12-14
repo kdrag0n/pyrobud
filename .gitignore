@@ -135,3 +135,6 @@ ChangeLog
 
 # PyCharm project
 .idea/
+
+# PyType static type checker
+.pytype/

@@ -1,12 +1,14 @@
 import asyncio
+from typing import Union, Optional, Tuple, Type
 
 import telethon as tg
 
+from .. import command
 
 TRUNCATION_SUFFIX = "... (truncated)"
 
 
-def mention_user(user):
+def mention_user(user: tg.types.User) -> str:
     if user.username:
         # Use username mention if possible
         name = f"@{user.username}"
@@ -20,7 +22,7 @@ def mention_user(user):
     return f"[{name}](tg://user?id={user.id})"
 
 
-def filter_code_block(inp):
+def filter_code_block(inp: str) -> str:
     if inp.startswith("```") and inp.endswith("```"):
         inp = inp[3:][:-3]
     elif inp.startswith("`") and inp.endswith("`"):
@@ -29,10 +31,15 @@ def filter_code_block(inp):
     return inp
 
 
-async def msg_download_file(ctx, download_msg, destination=bytes, file_type="file"):
+async def download_file(
+    ctx: command.Context,
+    msg: tg.custom.Message,
+    dest: Union[tg.hints.FileLike, Type[bytes]] = bytes,
+    file_type: str = "file",
+) -> Union[str, bytes, None]:
     last_percent = -5
 
-    def prog_func(current_bytes, total_bytes):
+    def prog_func(current_bytes: int, total_bytes: int) -> None:
         nonlocal last_percent
 
         if not ctx:
@@ -46,11 +53,32 @@ async def msg_download_file(ctx, download_msg, destination=bytes, file_type="fil
 
         last_percent = percent
 
-    return await download_msg.download_media(file=destination, progress_callback=prog_func)
+    return await msg.download_media(file=dest, progress_callback=prog_func)
 
 
-def truncate(text):
+def truncate(text: str) -> str:
     if len(text) > 4096:
         return text[: 4096 - len(TRUNCATION_SUFFIX)] + TRUNCATION_SUFFIX
     else:
         return text
+
+
+async def get_text_input(ctx: command.Context, input_arg: Optional[str]) -> Tuple[bool, Optional[Union[str, bytes]]]:
+    if ctx.msg.is_reply:
+        reply_msg = await ctx.msg.get_reply_message()
+
+        if reply_msg.document:
+            text = await download_file(ctx, reply_msg)
+        elif reply_msg.text:
+            text = filter_code_block(reply_msg.text)
+        else:
+            return False, "__Reply to a message with text or a text file, or provide text in command.__"
+    else:
+        if ctx.msg.document:
+            text = await download_file(ctx, ctx.msg)
+        elif input_arg:
+            text = filter_code_block(input_arg)
+        else:
+            return False, "__Reply to a message or provide text in command.__"
+
+    return True, text
