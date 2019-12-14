@@ -64,7 +64,7 @@ class AntibotModule(module.Module):
             return False
 
         # Messages containing certain entities are more likely to be spam
-        return any(type(entity) in self.__class__.suspicious_entities for entity in msg.entities)
+        return any(type(entity) in type(self).suspicious_entities for entity in msg.entities)
 
     def msg_has_suspicious_keyword(self, msg: tg.custom.Message) -> bool:
         if not msg.raw_text:
@@ -72,7 +72,7 @@ class AntibotModule(module.Module):
 
         # Many spam messages mention certain keywords, such as cryptocurrency exchanges
         l_text = msg.raw_text.lower()
-        return any(kw in l_text for kw in self.__class__.suspicious_keywords)
+        return any(kw in l_text for kw in type(self).suspicious_keywords)
 
     def msg_content_suspicious(self, msg: tg.custom.Message) -> bool:
         # Consolidate message content checks

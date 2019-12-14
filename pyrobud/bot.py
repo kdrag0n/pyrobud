@@ -168,7 +168,7 @@ class Bot:
         )
 
         if cls.name in self.modules:
-            old = self.modules[cls.name].__class__
+            old = type(self.modules[cls.name])
             raise module.ExistingModuleError(old, cls)
 
         mod = cls(self)
@@ -180,10 +180,9 @@ class Bot:
     def unload_module(self, mod: module.Module) -> None:
         _comment = mod.comment + " " if mod.comment else ""
 
-        cls = mod.__class__
-        self.log.info(
-            f"Unloading {_comment}module '{cls.name}' ({cls.__name__}) from '{os.path.relpath(inspect.getfile(cls))}'"
-        )
+        cls = type(mod)
+        path = os.path.relpath(inspect.getfile(cls))
+        self.log.info(f"Unloading {_comment}module '{cls.name}' ({cls.__name__}) from '{path}'")
 
         self.unregister_listeners(mod)
         self.unregister_commands(mod)

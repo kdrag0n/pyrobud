@@ -59,7 +59,7 @@ Expected parameters: {args_desc}"""
             if cmd.aliases:
                 aliases = f' (aliases: {", ".join(cmd.aliases)})'
 
-            mod_name = cmd.module.__class__.name
+            mod_name = type(cmd.module).name
             if mod_name not in lines:
                 lines[mod_name] = []
 
