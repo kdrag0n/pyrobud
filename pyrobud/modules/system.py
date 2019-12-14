@@ -181,11 +181,10 @@ class SystemModule(module.Module):
         self.log.info(f"Pulling from Git remote '{remote.name}'")
         await util.run_sync(remote.pull)
 
-        # Don't restart yet if requirements were updated
         for change in old_commit.diff():
-            if change.a_path == "requirements.txt":
+            if change.a_path == "poetry.lock":
                 self.update_restart_pending = True
-                return "Successfully pulled updates. Dependencies in `requirements.txt` were changed, so please update dependencies __before__ restarting the bot by re-running the `update` or `restart` command."
+                return "Successfully pulled updates. Dependencies have changed, so please update them __before__ restarting the bot by re-running the `update` or `restart` command."
 
         # Restart after updating
         await self.cmd_restart(ctx)
