@@ -1,11 +1,14 @@
-name: Build & publish Docker image
-on: [push]
+name: Build & publish stable Docker image
+on:
+  push:
+    branches:
+      - stable
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@stable
+      - uses: actions/checkout@master
 
       - name: Build and publish to registry
         uses: elgohr/Publish-Docker-Github-Action@master
