@@ -204,13 +204,13 @@ class Bot:
         from . import modules, custom_modules
 
         self.log.info("Reloading base module class...")
-        await util.run_sync(lambda: importlib.reload(module))
+        await util.run_sync(importlib.reload, module)
 
         self.log.info("Reloading master module...")
-        await util.run_sync(lambda: importlib.reload(modules))
+        await util.run_sync(importlib.reload, modules)
 
         self.log.info("Reloading custom master module...")
-        await util.run_sync(lambda: importlib.reload(custom_modules))
+        await util.run_sync(importlib.reload, custom_modules)
 
     def command_predicate(self, event: tg.events.NewMessage.Event) -> bool:
         if event.raw_text.startswith(self.prefix):

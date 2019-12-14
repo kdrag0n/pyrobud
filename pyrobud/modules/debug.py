@@ -67,7 +67,7 @@ Time: {el_str}"""
         if cmd_name not in self.bot.commands:
             return f"__Command__ `{cmd_name}` __doesn't exist.__"
 
-        src = await util.run_sync(lambda: inspect.getsource(self.bot.commands[cmd_name].func))
+        src = await util.run_sync(inspect.getsource, self.bot.commands[cmd_name].func)
         # Strip first level of indentation
         filtered_src = re.sub(r"^ {4}", "", src, flags=re.MULTILINE)
         return f"```{filtered_src}```"

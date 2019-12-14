@@ -36,7 +36,7 @@ class AsyncDB:
         return self.db.put(key.encode("utf-8"), value, **kwargs)
 
     async def put(self, key: str, value: Any, **kwargs: Any) -> None:
-        return await run_sync(lambda: self.put_sync(key, value, **kwargs))
+        return await run_sync(self.put_sync, key, value, **kwargs)
 
     @overload
     def get_sync(self, key: str, **kwargs: Any) -> Optional[Value]:
@@ -63,13 +63,13 @@ class AsyncDB:
         pass
 
     async def get(self, key: str, default: Optional[Value] = None, **kwargs: Any) -> Optional[Value]:
-        return await run_sync(lambda: self.get_sync(key, default, **kwargs))
+        return await run_sync(self.get_sync, key, default, **kwargs)
 
     def delete_sync(self, key: str, **kwargs: Any) -> None:
         return self.db.delete(key.encode("utf-8"), **kwargs)
 
     async def delete(self, key: str, **kwargs: Any) -> None:
-        return await run_sync(lambda: self.delete_sync(key, **kwargs))
+        return await run_sync(self.delete_sync, key, **kwargs)
 
     def close_sync(self) -> None:
         return self.db.close()
@@ -93,21 +93,21 @@ class AsyncDB:
         return self.put_sync(key, old_value + delta)
 
     async def inc(self, key: str, delta: int = 1) -> None:
-        return await run_sync(lambda: self.inc_sync(key, delta))
+        return await run_sync(self.inc_sync, key, delta)
 
     def dec_sync(self, key: str, delta: int = 1) -> None:
         old_value: int = self.get_sync(key, 0)
         return self.put_sync(key, old_value - delta)
 
     async def dec(self, key: str, delta: int = 1) -> None:
-        return await run_sync(lambda: self.dec_sync(key, delta))
+        return await run_sync(self.dec_sync, key, delta)
 
     def has_sync(self, key: str, **kwargs: Any) -> bool:
         value: Optional[Any] = self.db.get(key.encode("utf-8"), **kwargs)
         return value is not None
 
     async def has(self, key: str, **kwargs: Any) -> bool:
-        return await run_sync(lambda: self.has_sync(key, **kwargs))
+        return await run_sync(self.has_sync, key, **kwargs)
 
     def clear_sync(self, **kwargs: Any) -> None:
         for key, _ in self.db:
@@ -189,4 +189,4 @@ class AsyncDBIterator:
         return await run_sync(self.iterator.seek_to_stop)
 
     async def seek(self, target: str) -> None:
-        return await run_sync(lambda: self.iterator.seek(target.encode("utf-8")))
+        return await run_sync(self.iterator.seek, target.encode("utf-8"))

@@ -157,7 +157,7 @@ class SystemModule(module.Module):
             return await self.cmd_restart(ctx)
 
         # Attempt to get the Git repo
-        repo = await util.run_sync(lambda: util.git.get_repo())
+        repo = await util.run_sync(util.git.get_repo)
         if not repo:
             return "__Unable to locate Git repository data.__"
 
@@ -165,7 +165,7 @@ class SystemModule(module.Module):
         if remote_name:
             # Attempt to get requested remote
             try:
-                remote = await util.run_sync(lambda: repo.remote(remote_name))
+                remote = await util.run_sync(repo.remote, remote_name)
             except ValueError:
                 return f"__Remote__ `{remote_name}` __not found.__"
         else:
