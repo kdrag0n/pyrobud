@@ -32,7 +32,7 @@ WORKDIR /src
 
 # Install bot package and dependencies
 COPY . .
-RUN pip install .
+RUN pip install .[fast]
 
 
 # Package everything
