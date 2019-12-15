@@ -243,7 +243,10 @@ class AntibotModule(module.Module):
         if not ctx.msg.is_channel:
             return "__Please convert this group to a supergroup in order to enable antibot.__"
 
-        state = not await self.group_db.get(f"{ctx.msg.chat_id}.enabled", False)
+        if ctx.input:
+            state = ctx.input.lower() in util.INPUT_YES
+        else:
+            state = not await self.group_db.get(f"{ctx.msg.chat_id}.enabled", False)
 
         if state:
             # Check for required permissions
