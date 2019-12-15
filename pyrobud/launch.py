@@ -40,16 +40,5 @@ def main(*, config_path: str = DEFAULT_CONFIG_PATH) -> None:
     log.info("Initializing bot")
     bot = Bot(config)
 
-    log.info("Starting bot")
     loop = asyncio.get_event_loop()
-
-    try:
-        loop.run_until_complete(bot.start())
-    except KeyboardInterrupt:
-        log.warning("Received interrupt while connecting; exiting")
-        return
-
-    bot.client.run_until_disconnected()
-
-    log.info("Stopping bot")
-    loop.run_until_complete(bot.stop())
+    loop.run_until_complete(bot.run())

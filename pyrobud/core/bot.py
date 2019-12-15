@@ -30,6 +30,7 @@ class Bot(TelegramBot, ModuleExtender, CommandDispatcher, DatabaseProvider, Even
         super().__init__()
 
     async def stop(self) -> None:
+        self.log.info("Stopping")
         await self.dispatch_event("stop")
         await self.http_session.close()
         await self._db.close()

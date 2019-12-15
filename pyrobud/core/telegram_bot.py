@@ -47,6 +47,8 @@ class TelegramBot(MixinBase):
         super().__init__(**kwargs)
 
     async def start(self: "Bot") -> None:
+        self.log.info("Starting")
+
         # Get and store current event loop, since this is the first coroutine that runs
         self.loop = asyncio.get_event_loop()
 
@@ -91,6 +93,20 @@ class TelegramBot(MixinBase):
         self.log.info("Catching up on missed events")
         await self.client.catch_up()
         self.log.info("Finished catching up")
+
+    async def run(self: "Bot") -> None:
+        # Start client
+        try:
+            await self.start()
+        except KeyboardInterrupt:
+            self.log.warning("Received interrupt while connecting")
+
+        # Request updates, then idle until disconnected and stop when done
+        try:
+            # noinspection PyProtectedMember
+            await self.client._run_until_disconnected()
+        finally:
+            await self.stop()
 
     async def on_message(self: "Bot", event: tg.events.NewMessage.Event) -> None:
         await self.dispatch_event("message", event)
