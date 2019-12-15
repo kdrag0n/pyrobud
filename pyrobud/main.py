@@ -1,6 +1,14 @@
+import argparse
 import logging
 
-from . import logs
+from . import logs, __description__, DEFAULT_CONFIG_PATH
+
+parser = argparse.ArgumentParser(description=__description__)
+parser.add_argument(
+    "-c", "--config-path", metavar="PATH", type=str, default=DEFAULT_CONFIG_PATH, help="config file to use"
+)
+
+args = parser.parse_args()
 
 log = logging.getLogger("launch")
 logs.setup_logging()
@@ -11,7 +19,7 @@ from . import launch
 
 
 def main():
-    launch.main()
+    launch.main(config_path=args.config_path)
 
 
 if __name__ == "__main__":

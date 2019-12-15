@@ -3,7 +3,7 @@ import logging
 
 import tomlkit
 
-from . import util
+from . import util, DEFAULT_CONFIG_PATH
 from .bot import Bot
 
 log = logging.getLogger("launch")
@@ -22,9 +22,7 @@ def setup_asyncio(config: util.config.Config) -> None:
             log.warning("Unable to load uvloop; falling back to default asyncio event loop")
 
 
-def main() -> None:
-    config_path = "config.toml"
-
+def main(*, config_path: str = DEFAULT_CONFIG_PATH) -> None:
     log.info("Loading config")
     with open(config_path, "r") as f:
         config_data = f.read()
