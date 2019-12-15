@@ -18,11 +18,13 @@ def get_use_uvloop(config: util.config.Config) -> bool:
     if asyncio_config["use_uvloop"]:
         try:
             import uvloop
+
+            return True
         except ImportError:
             log.warning("Unable to load uvloop; falling back to default asyncio event loop")
             return False
-        else:
-            return True
+    else:
+        return False
 
 
 def main(*, config_path: str = DEFAULT_CONFIG_PATH) -> None:
