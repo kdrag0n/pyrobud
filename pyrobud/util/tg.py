@@ -1,6 +1,6 @@
 import asyncio
 import os
-from typing import Union, Optional, Tuple, Type
+from typing import Optional, Tuple, Type, Union
 
 import telethon as tg
 

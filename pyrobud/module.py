@@ -1,5 +1,5 @@
 import logging
-from typing import Type, Optional, ClassVar, TYPE_CHECKING
+from typing import TYPE_CHECKING, ClassVar, Optional, Type
 
 if TYPE_CHECKING:
     from .bot import Bot

@@ -1,5 +1,5 @@
 import subprocess
-from typing import Union, Sequence, Any
+from typing import Any, Sequence, Union
 
 from .async_helpers import run_sync
 

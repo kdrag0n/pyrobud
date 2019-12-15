@@ -1,5 +1,5 @@
 import os
-from typing import Union, IO, Optional, Mapping
+from typing import IO, Mapping, Optional, Union
 
 from PIL import Image
 

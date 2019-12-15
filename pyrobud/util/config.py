@@ -1,7 +1,7 @@
 import logging
 import os
 from pathlib import Path
-from typing import Any, Union, List, MutableMapping, Sequence
+from typing import Any, List, MutableMapping, Sequence, Union
 
 import plyvel
 import tomlkit

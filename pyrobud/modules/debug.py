@@ -1,7 +1,7 @@
 import inspect
 import re
 import traceback
-from typing import Tuple, Optional, Any, ClassVar
+from typing import Any, ClassVar, Optional, Tuple
 
 import telethon as tg
 from meval import meval

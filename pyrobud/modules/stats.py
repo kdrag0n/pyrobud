@@ -1,5 +1,6 @@
+from typing import ClassVar, Optional
+
 import telethon as tg
-from typing import Optional, ClassVar
 
 from .. import command, module, util
 

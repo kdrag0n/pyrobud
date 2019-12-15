@@ -16,7 +16,7 @@ def reload() -> None:
 
 __all__: Sequence[str] = list(info.name for info in pkgutil.iter_modules([str(Path(__file__).parent)]))
 
-from . import *
+from . import *  # isort:skip
 
 
 try:

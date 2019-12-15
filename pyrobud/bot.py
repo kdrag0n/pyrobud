@@ -4,15 +4,15 @@ import importlib
 import inspect
 import logging
 import os
-from typing import Mapping, MutableSequence, Optional, Type, Union, Any, MutableMapping
 from types import ModuleType
+from typing import Any, Mapping, MutableMapping, MutableSequence, Optional, Type, Union
 
 import aiohttp
-import telethon as tg
 import plyvel
 import sentry_sdk
+import telethon as tg
 
-from . import command, module, util, modules, custom_modules
+from . import command, custom_modules, module, modules, util
 from .listener import Listener, ListenerFunc
 
 

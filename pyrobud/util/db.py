@@ -1,6 +1,6 @@
 import struct
-from typing import Any, Optional, Union, TypeVar, Type, Tuple, overload
 from types import TracebackType
+from typing import Any, Optional, Tuple, Type, TypeVar, Union, overload
 
 import msgpack
 import plyvel

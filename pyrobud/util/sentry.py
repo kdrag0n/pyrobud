@@ -2,13 +2,13 @@ import logging
 import sqlite3
 import traceback
 from pathlib import Path
-from typing import Dict, Any, Optional, Type
+from typing import Any, Dict, Optional, Type
 
 import ratelimit
 import sentry_sdk
 
-from . import version, system, git
 from .. import __version__
+from . import git, system, version
 
 Event = Dict[str, Any]
 EventHint = Dict[str, Any]

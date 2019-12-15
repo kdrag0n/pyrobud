@@ -4,7 +4,7 @@ import os
 import subprocess
 from datetime import datetime
 from pathlib import Path
-from typing import Tuple, Optional, Set, ClassVar
+from typing import ClassVar, Optional, Set, Tuple
 
 import telethon as tg
 

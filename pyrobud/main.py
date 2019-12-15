@@ -1,7 +1,7 @@
 import argparse
 import logging
 
-from . import logs, __description__, DEFAULT_CONFIG_PATH
+from . import DEFAULT_CONFIG_PATH, __description__, launch, logs
 
 parser = argparse.ArgumentParser(description=__description__)
 parser.add_argument(
@@ -15,7 +15,6 @@ logs.setup_logging()
 
 log.info("Loading code...")
 
-from . import launch
 
 
 def main():

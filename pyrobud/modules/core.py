@@ -1,4 +1,4 @@
-from typing import Dict, List, ClassVar
+from typing import ClassVar, Dict, List
 
 from .. import command, module, util
 

@@ -1,6 +1,6 @@
 import asyncio
 import urllib.parse
-from typing import Optional, ClassVar
+from typing import ClassVar, Optional
 
 import aiohttp
 import telethon as tg

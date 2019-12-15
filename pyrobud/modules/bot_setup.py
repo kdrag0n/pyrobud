@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime
-from typing import Tuple, Union, Sequence, ClassVar
+from typing import ClassVar, Sequence, Tuple, Union
 
 import telethon as tg
 import tomlkit

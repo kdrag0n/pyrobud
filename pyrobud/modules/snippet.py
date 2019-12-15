@@ -1,6 +1,6 @@
-import re
 import asyncio
-from typing import Match, Optional, ClassVar
+import re
+from typing import ClassVar, Match, Optional
 
 import telethon as tg
 

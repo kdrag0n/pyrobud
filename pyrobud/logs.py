@@ -1,4 +1,5 @@
 import logging
+
 import colorlog
 
 LOG_LEVEL = logging.INFO

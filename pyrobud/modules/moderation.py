@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, List, ClassVar
+from typing import ClassVar, List, Optional
 
 import telethon as tg
 

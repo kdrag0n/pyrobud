@@ -3,7 +3,7 @@ import logging
 
 import tomlkit
 
-from . import util, DEFAULT_CONFIG_PATH
+from . import DEFAULT_CONFIG_PATH, util
 from .bot import Bot
 
 log = logging.getLogger("launch")

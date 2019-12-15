@@ -1,7 +1,7 @@
 import os
 import subprocess
 import sys
-from typing import Optional, ClassVar
+from typing import ClassVar, Optional
 
 import speedtest
 

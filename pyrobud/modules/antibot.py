@@ -1,6 +1,6 @@
 import asyncio
-from datetime import timezone, timedelta
-from typing import Union, ClassVar
+from datetime import timedelta, timezone
+from typing import ClassVar, Union
 
 import telethon as tg
 

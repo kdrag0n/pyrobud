@@ -1,8 +1,8 @@
 import os
 import traceback
-from typing import Any, List, Tuple, Callable, Optional, Sequence
+from typing import Any, Callable, List, Optional, Sequence, Tuple
 
-from . import async_helpers, config, db, sentry, tg, time, version, system, git, image
+from . import async_helpers, config, db, git, image, sentry, system, tg, time, version
 
 run_sync = async_helpers.run_sync
 

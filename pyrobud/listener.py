@@ -1,5 +1,4 @@
-from typing import Callable, Any
-
+from typing import Any, Callable
 
 ListenerFunc = Any
 Decorator = Callable[[ListenerFunc], ListenerFunc]
