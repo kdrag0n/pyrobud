@@ -63,6 +63,7 @@ fast = ["uvloop"]
 black = "^19.10b0"
 isort = {version = "^4.3.21", extras = ["pyproject"]}
 mypy = "^0.750"
+pre-commit = "^1.20.0"
 
 [tool.poetry.scripts]
 pyrobud = "pyrobud.main:main"

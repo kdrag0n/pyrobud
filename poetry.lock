@@ -44,6 +44,17 @@ python-versions = "*"
 version = "1.4.3"
 
 [[package]]
+category = "dev"
+description = "A few extensions to pyyaml."
+name = "aspy.yaml"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+version = "1.3.0"
+
+[package.dependencies]
+pyyaml = "*"
+
+[[package]]
 category = "main"
 description = "Timeout context manager for asyncio programs"
 name = "async-timeout"
@@ -103,6 +114,17 @@ version = "1.13.2"
 
 [package.dependencies]
 pycparser = "*"
+
+[[package]]
+category = "dev"
+description = "Validate configuration and produce human readable error messages."
+name = "cfgv"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+version = "2.0.1"
+
+[package.dependencies]
+six = "*"
 
 [[package]]
 category = "main"
@@ -175,6 +197,17 @@ version = "3.0.5"
 gitdb2 = ">=2.0.0"
 
 [[package]]
+category = "dev"
+description = "File identification library for Python"
+name = "identify"
+optional = false
+python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,>=2.7"
+version = "1.4.8"
+
+[package.extras]
+license = ["editdistance"]
+
+[[package]]
 category = "main"
 description = "Internationalized Domain Names in Applications (IDNA)"
 name = "idna"
@@ -193,6 +226,31 @@ version = "1.1.0"
 
 [package.dependencies]
 idna = ">=2.0"
+
+[[package]]
+category = "dev"
+description = "Read metadata from Python packages"
+marker = "python_version < \"3.8\""
+name = "importlib-metadata"
+optional = false
+python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
+version = "1.3.0"
+
+[package.dependencies]
+zipp = ">=0.5"
+
+[package.extras]
+docs = ["sphinx", "rst.linker"]
+testing = ["packaging", "importlib-resources"]
+
+[[package]]
+category = "dev"
+description = "Read resources from Python packages"
+marker = "python_version < \"3.7\""
+name = "importlib-resources"
+optional = false
+python-versions = ">=2.7,!=3.0,!=3.1,!=3.2,!=3.3"
+version = "1.0.2"
 
 [[package]]
 category = "dev"
@@ -220,6 +278,15 @@ name = "meval"
 optional = false
 python-versions = ">=3.5"
 version = "2.5"
+
+[[package]]
+category = "dev"
+description = "More routines for operating on iterables, beyond itertools"
+marker = "python_version < \"3.8\""
+name = "more-itertools"
+optional = false
+python-versions = ">=3.5"
+version = "8.0.2"
 
 [[package]]
 category = "main"
@@ -263,6 +330,14 @@ version = "0.4.3"
 
 [[package]]
 category = "dev"
+description = "Node.js virtual environment builder"
+name = "nodeenv"
+optional = false
+python-versions = "*"
+version = "1.3.3"
+
+[[package]]
+category = "dev"
 description = "Utility library for gitignore style pattern matching of file paths."
 name = "pathspec"
 optional = false
@@ -284,6 +359,32 @@ name = "plyvel"
 optional = false
 python-versions = "*"
 version = "1.1.0"
+
+[[package]]
+category = "dev"
+description = "A framework for managing and maintaining multi-language pre-commit hooks."
+name = "pre-commit"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+version = "1.20.0"
+
+[package.dependencies]
+"aspy.yaml" = "*"
+cfgv = ">=2.0.0"
+identify = ">=1.0.0"
+nodeenv = ">=0.11.1"
+pyyaml = "*"
+six = "*"
+toml = "*"
+virtualenv = ">=15.2"
+
+[package.dependencies.importlib-metadata]
+python = "<3.8"
+version = "*"
+
+[package.dependencies.importlib-resources]
+python = "<3.7"
+version = "*"
 
 [[package]]
 category = "main"
@@ -308,6 +409,14 @@ name = "pycparser"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "2.19"
+
+[[package]]
+category = "dev"
+description = "YAML parser and emitter for Python"
+name = "pyyaml"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+version = "5.2"
 
 [[package]]
 category = "main"
@@ -361,6 +470,14 @@ rq = ["0.6"]
 sanic = ["sanic (>=0.8)"]
 sqlalchemy = ["sqlalchemy (>=1.2)"]
 tornado = ["tornado (>=5)"]
+
+[[package]]
+category = "dev"
+description = "Python 2 and 3 compatibility utilities"
+name = "six"
+optional = false
+python-versions = ">=2.6, !=3.0.*, !=3.1.*"
+version = "1.13.0"
 
 [[package]]
 category = "main"
@@ -447,6 +564,18 @@ python-versions = "*"
 version = "0.14.0"
 
 [[package]]
+category = "dev"
+description = "Virtual Python Environment builder"
+name = "virtualenv"
+optional = false
+python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,>=2.7"
+version = "16.7.9"
+
+[package.extras]
+docs = ["sphinx (>=1.8.0,<2)", "towncrier (>=18.5.0)", "sphinx-rtd-theme (>=0.4.2,<1)"]
+testing = ["pytest (>=4.0.0,<5)", "coverage (>=4.5.0,<5)", "pytest-timeout (>=1.3.0,<2)", "six (>=1.10.0,<2)", "pytest-xdist", "pytest-localserver", "pypiserver", "mock", "xonsh"]
+
+[[package]]
 category = "main"
 description = "Yet another URL library"
 name = "yarl"
@@ -458,11 +587,27 @@ version = "1.4.2"
 idna = ">=2.0"
 multidict = ">=4.0"
 
+[[package]]
+category = "dev"
+description = "Backport of pathlib-compatible object wrapper for zip files"
+marker = "python_version < \"3.8\""
+name = "zipp"
+optional = false
+python-versions = ">=2.7"
+version = "0.6.0"
+
+[package.dependencies]
+more-itertools = "*"
+
+[package.extras]
+docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
+testing = ["pathlib2", "contextlib2", "unittest2"]
+
 [extras]
 fast = ["uvloop"]
 
 [metadata]
-content-hash = "aca03b8656f258a63034b41d4fa70ed046b5ea90ed6d0efe1e8e64b7a74ad9dd"
+content-hash = "2af1be5f1dc992ebd840f942586ac08df5e60d7bde08313ba6565a1d3bd04cdf"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -487,6 +632,10 @@ aiorun = [
 appdirs = [
     {file = "appdirs-1.4.3-py2.py3-none-any.whl", hash = "sha256:d8b24664561d0d34ddfaec54636d502d7cea6e29c3eaf68f3df6180863e2166e"},
     {file = "appdirs-1.4.3.tar.gz", hash = "sha256:9e5896d1372858f8dd3344faf4e5014d21849c756c8d5701f78f8a103b372d92"},
+]
+"aspy.yaml" = [
+    {file = "aspy.yaml-1.3.0-py2.py3-none-any.whl", hash = "sha256:463372c043f70160a9ec950c3f1e4c3a82db5fca01d334b6bc89c7164d744bdc"},
+    {file = "aspy.yaml-1.3.0.tar.gz", hash = "sha256:e7c742382eff2caed61f87a39d13f99109088e5e93f04d76eb8d4b28aa143f45"},
 ]
 async-timeout = [
     {file = "async-timeout-3.0.1.tar.gz", hash = "sha256:0c3c816a028d47f659d6ff5c745cb2acf1f966da1fe5c19c77a70282b25f4c5f"},
@@ -539,6 +688,10 @@ cffi = [
     {file = "cffi-1.13.2-cp38-cp38-win_amd64.whl", hash = "sha256:2781e9ad0e9d47173c0093321bb5435a9dfae0ed6a762aabafa13108f5f7b2ba"},
     {file = "cffi-1.13.2.tar.gz", hash = "sha256:599a1e8ff057ac530c9ad1778293c665cb81a791421f46922d80a86473c13346"},
 ]
+cfgv = [
+    {file = "cfgv-2.0.1-py2.py3-none-any.whl", hash = "sha256:fbd93c9ab0a523bf7daec408f3be2ed99a980e20b2d19b50fc184ca6b820d289"},
+    {file = "cfgv-2.0.1.tar.gz", hash = "sha256:edb387943b665bf9c434f717bf630fa78aecd53d5900d2e05da6ad6048553144"},
+]
 chardet = [
     {file = "chardet-3.0.4-py2.py3-none-any.whl", hash = "sha256:fc323ffcaeaed0e0a02bf4d117757b98aed530d9ed4531e3e15460124c106691"},
     {file = "chardet-3.0.4.tar.gz", hash = "sha256:84ab92ed1c4d4f16916e05906b6b75a6c0fb5db821cc65e70cbd64a3e2a5eaae"},
@@ -588,12 +741,24 @@ gitpython = [
     {file = "GitPython-3.0.5-py3-none-any.whl", hash = "sha256:c155c6a2653593ccb300462f6ef533583a913e17857cfef8fc617c246b6dc245"},
     {file = "GitPython-3.0.5.tar.gz", hash = "sha256:9c2398ffc3dcb3c40b27324b316f08a4f93ad646d5a6328cafbb871aa79f5e42"},
 ]
+identify = [
+    {file = "identify-1.4.8-py2.py3-none-any.whl", hash = "sha256:9e7521e9abeaede4d2d1092a106e418c65ddf6b3182b43930bcb3c8cfb974488"},
+    {file = "identify-1.4.8.tar.gz", hash = "sha256:7782115794ec28b011702815d9f5e532244560cd2bf0789c4f09381d43befd90"},
+]
 idna = [
     {file = "idna-2.8-py2.py3-none-any.whl", hash = "sha256:ea8b7f6188e6fa117537c3df7da9fc686d485087abf6ac197f9c46432f7e4a3c"},
     {file = "idna-2.8.tar.gz", hash = "sha256:c357b3f628cf53ae2c4c05627ecc484553142ca23264e593d327bcde5e9c3407"},
 ]
 idna-ssl = [
     {file = "idna-ssl-1.1.0.tar.gz", hash = "sha256:a933e3bb13da54383f9e8f35dc4f9cb9eb9b3b78c6b36f311254d6d0d92c6c7c"},
+]
+importlib-metadata = [
+    {file = "importlib_metadata-1.3.0-py2.py3-none-any.whl", hash = "sha256:d95141fbfa7ef2ec65cfd945e2af7e5a6ddbd7c8d9a25e66ff3be8e3daf9f60f"},
+    {file = "importlib_metadata-1.3.0.tar.gz", hash = "sha256:073a852570f92da5f744a3472af1b61e28e9f78ccf0c9117658dc32b15de7b45"},
+]
+importlib-resources = [
+    {file = "importlib_resources-1.0.2-py2.py3-none-any.whl", hash = "sha256:6e2783b2538bd5a14678284a3962b0660c715e5a0f10243fd5e00a4b5974f50b"},
+    {file = "importlib_resources-1.0.2.tar.gz", hash = "sha256:d3279fd0f6f847cced9f7acc19bd3e5df54d34f93a2e7bb5f238f81545787078"},
 ]
 isort = [
     {file = "isort-4.3.21-py2.py3-none-any.whl", hash = "sha256:6e811fcb295968434526407adb8796944f1988c5b65e8139058f2014cbe100fd"},
@@ -602,6 +767,10 @@ isort = [
 meval = [
     {file = "meval-2.5-py3-none-any.whl", hash = "sha256:24430865001b5596864a7c28f423294edadaac57af9ab6964dda3eabc8762577"},
     {file = "meval-2.5.tar.gz", hash = "sha256:a5aa481617f1fd07a5972076cd3aa14e38515ac84b3ff028efdf76371a856765"},
+]
+more-itertools = [
+    {file = "more-itertools-8.0.2.tar.gz", hash = "sha256:b84b238cce0d9adad5ed87e745778d20a3f8487d0f0cb8b8a586816c7496458d"},
+    {file = "more_itertools-8.0.2-py3-none-any.whl", hash = "sha256:c833ef592a0324bcc6a60e48440da07645063c453880c9477ceb22490aec1564"},
 ]
 msgpack = [
     {file = "msgpack-0.6.2-cp27-cp27m-manylinux1_i686.whl", hash = "sha256:774f5edc3475917cd95fe593e625d23d8580f9b48b570d8853d06cac171cd170"},
@@ -665,6 +834,9 @@ mypy-extensions = [
     {file = "mypy_extensions-0.4.3-py2.py3-none-any.whl", hash = "sha256:090fedd75945a69ae91ce1303b5824f428daf5a028d2f6ab8a299250a846f15d"},
     {file = "mypy_extensions-0.4.3.tar.gz", hash = "sha256:2d82818f5bb3e369420cb3c4060a7970edba416647068eb4c5343488a6c604a8"},
 ]
+nodeenv = [
+    {file = "nodeenv-1.3.3.tar.gz", hash = "sha256:ad8259494cf1c9034539f6cced78a1da4840a4b157e23640bc4a0c0546b0cb7a"},
+]
 pathspec = [
     {file = "pathspec-0.6.0.tar.gz", hash = "sha256:e285ccc8b0785beadd4c18e5708b12bb8fcf529a1e61215b3feff1d1e559ea5c"},
 ]
@@ -709,6 +881,10 @@ plyvel = [
     {file = "plyvel-1.1.0-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:55946e545feecd45d520803373ae8c4442c1434c8a089c7b26bbcf6a8031c2b5"},
     {file = "plyvel-1.1.0.tar.gz", hash = "sha256:3731310784aaffe4e4e004ca5899d8d187a3ca9143e606142200498931f39ac5"},
 ]
+pre-commit = [
+    {file = "pre_commit-1.20.0-py2.py3-none-any.whl", hash = "sha256:c2e4810d2d3102d354947907514a78c5d30424d299dc0fe48f5aa049826e9b50"},
+    {file = "pre_commit-1.20.0.tar.gz", hash = "sha256:9f152687127ec90642a2cc3e4d9e1e6240c4eb153615cb02aa1ad41d331cbb6e"},
+]
 pyaes = [
     {file = "pyaes-1.6.1.tar.gz", hash = "sha256:02c1b1405c38d3c370b085fb952dd8bea3fadcee6411ad99f312cc129c536d8f"},
 ]
@@ -729,6 +905,19 @@ pyasn1 = [
 ]
 pycparser = [
     {file = "pycparser-2.19.tar.gz", hash = "sha256:a988718abfad80b6b157acce7bf130a30876d27603738ac39f140993246b25b3"},
+]
+pyyaml = [
+    {file = "PyYAML-5.2-cp27-cp27m-win32.whl", hash = "sha256:35ace9b4147848cafac3db142795ee42deebe9d0dad885ce643928e88daebdcc"},
+    {file = "PyYAML-5.2-cp27-cp27m-win_amd64.whl", hash = "sha256:ebc4ed52dcc93eeebeae5cf5deb2ae4347b3a81c3fa12b0b8c976544829396a4"},
+    {file = "PyYAML-5.2-cp35-cp35m-win32.whl", hash = "sha256:38a4f0d114101c58c0f3a88aeaa44d63efd588845c5a2df5290b73db8f246d15"},
+    {file = "PyYAML-5.2-cp35-cp35m-win_amd64.whl", hash = "sha256:483eb6a33b671408c8529106df3707270bfacb2447bf8ad856a4b4f57f6e3075"},
+    {file = "PyYAML-5.2-cp36-cp36m-win32.whl", hash = "sha256:7f38e35c00e160db592091751d385cd7b3046d6d51f578b29943225178257b31"},
+    {file = "PyYAML-5.2-cp36-cp36m-win_amd64.whl", hash = "sha256:0e7f69397d53155e55d10ff68fdfb2cf630a35e6daf65cf0bdeaf04f127c09dc"},
+    {file = "PyYAML-5.2-cp37-cp37m-win32.whl", hash = "sha256:e4c015484ff0ff197564917b4b4246ca03f411b9bd7f16e02a2f586eb48b6d04"},
+    {file = "PyYAML-5.2-cp37-cp37m-win_amd64.whl", hash = "sha256:4b6be5edb9f6bb73680f5bf4ee08ff25416d1400fbd4535fe0069b2994da07cd"},
+    {file = "PyYAML-5.2-cp38-cp38-win32.whl", hash = "sha256:8100c896ecb361794d8bfdb9c11fce618c7cf83d624d73d5ab38aef3bc82d43f"},
+    {file = "PyYAML-5.2-cp38-cp38-win_amd64.whl", hash = "sha256:2e9f0b7c5914367b0916c3c104a024bb68f269a486b9d04a2e8ac6f6597b7803"},
+    {file = "PyYAML-5.2.tar.gz", hash = "sha256:c0ee8eca2c582d29c3c2ec6e2c4f703d1b7f1fb10bc72317355a746057e7346c"},
 ]
 ratelimit = [
     {file = "ratelimit-2.2.1.tar.gz", hash = "sha256:af8a9b64b821529aca09ebaf6d8d279100d766f19e90b5059ac6a718ca6dee42"},
@@ -753,6 +942,10 @@ rsa = [
 sentry-sdk = [
     {file = "sentry-sdk-0.13.5.tar.gz", hash = "sha256:c6b919623e488134a728f16326c6f0bcdab7e3f59e7f4c472a90eea4d6d8fe82"},
     {file = "sentry_sdk-0.13.5-py2.py3-none-any.whl", hash = "sha256:05285942901d38c7ce2498aba50d8e87b361fc603281a5902dda98f3f8c5e145"},
+]
+six = [
+    {file = "six-1.13.0-py2.py3-none-any.whl", hash = "sha256:1f1b7d42e254082a9db6279deae68afb421ceba6158efa6131de7b3003ee93fd"},
+    {file = "six-1.13.0.tar.gz", hash = "sha256:30f610279e8b2578cab6db20741130331735c781b56053c59c4076da27f06b66"},
 ]
 smmap2 = [
     {file = "smmap2-2.0.5-py2.py3-none-any.whl", hash = "sha256:0555a7bf4df71d1ef4218e4807bbf9b201f910174e6e08af2e138d4e517b4dde"},
@@ -817,6 +1010,10 @@ uvloop = [
     {file = "uvloop-0.14.0-cp38-cp38-manylinux2010_x86_64.whl", hash = "sha256:4315d2ec3ca393dd5bc0b0089d23101276778c304d42faff5dc4579cb6caef09"},
     {file = "uvloop-0.14.0.tar.gz", hash = "sha256:123ac9c0c7dd71464f58f1b4ee0bbd81285d96cdda8bc3519281b8973e3a461e"},
 ]
+virtualenv = [
+    {file = "virtualenv-16.7.9-py2.py3-none-any.whl", hash = "sha256:55059a7a676e4e19498f1aad09b8313a38fcc0cdbe4fdddc0e9b06946d21b4bb"},
+    {file = "virtualenv-16.7.9.tar.gz", hash = "sha256:0d62c70883c0342d59c11d0ddac0d954d0431321a41ab20851facf2b222598f3"},
+]
 yarl = [
     {file = "yarl-1.4.2-cp35-cp35m-macosx_10_13_x86_64.whl", hash = "sha256:3ce3d4f7c6b69c4e4f0704b32eca8123b9c58ae91af740481aa57d7857b5e41b"},
     {file = "yarl-1.4.2-cp35-cp35m-manylinux1_x86_64.whl", hash = "sha256:a4844ebb2be14768f7994f2017f70aca39d658a96c786211be5ddbe1c68794c1"},
@@ -835,4 +1032,8 @@ yarl = [
     {file = "yarl-1.4.2-cp38-cp38-win32.whl", hash = "sha256:6faa19d3824c21bcbfdfce5171e193c8b4ddafdf0ac3f129ccf0cdfcb083e462"},
     {file = "yarl-1.4.2-cp38-cp38-win_amd64.whl", hash = "sha256:0ca2f395591bbd85ddd50a82eb1fde9c1066fafe888c5c7cc1d810cf03fd3cc6"},
     {file = "yarl-1.4.2.tar.gz", hash = "sha256:58cd9c469eced558cd81aa3f484b2924e8897049e06889e8ff2510435b7ef74b"},
+]
+zipp = [
+    {file = "zipp-0.6.0-py2.py3-none-any.whl", hash = "sha256:f06903e9f1f43b12d371004b4ac7b06ab39a44adc747266928ae6debfa7b3335"},
+    {file = "zipp-0.6.0.tar.gz", hash = "sha256:3718b1cbcd963c7d4c5511a8240812904164b7f381b647143a89d3b98f9bcd8e"},
 ]
