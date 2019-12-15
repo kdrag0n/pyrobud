@@ -184,6 +184,25 @@ version = "1.1.0"
 idna = ">=2.0"
 
 [[package]]
+category = "dev"
+description = "A Python utility / library to sort Python imports."
+name = "isort"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+version = "4.3.21"
+
+[package.dependencies]
+[package.dependencies.toml]
+optional = true
+version = "*"
+
+[package.extras]
+pipfile = ["pipreqs", "requirementslib"]
+pyproject = ["toml"]
+requirements = ["pipreqs", "pip-api"]
+xdg_home = ["appdirs (>=1.4.0)"]
+
+[[package]]
 category = "main"
 description = "Performs async evaluations of strings"
 name = "meval"
@@ -409,7 +428,7 @@ multidict = ">=4.0"
 fast = ["uvloop"]
 
 [metadata]
-content-hash = "f642e0414014c33f4dffdf5e04944eb9414162dbac30aa951fd5a14f54270658"
+content-hash = "3f20f4616fd2da5f8f48d267b08495beb39662a397b0df3d0685d381a6a10003"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -537,6 +556,10 @@ idna = [
 ]
 idna-ssl = [
     {file = "idna-ssl-1.1.0.tar.gz", hash = "sha256:a933e3bb13da54383f9e8f35dc4f9cb9eb9b3b78c6b36f311254d6d0d92c6c7c"},
+]
+isort = [
+    {file = "isort-4.3.21-py2.py3-none-any.whl", hash = "sha256:6e811fcb295968434526407adb8796944f1988c5b65e8139058f2014cbe100fd"},
+    {file = "isort-4.3.21.tar.gz", hash = "sha256:54da7e92468955c4fceacd0c86bd0ec997b0e1ee80d97f67c35a78b719dccab1"},
 ]
 meval = [
     {file = "meval-2.5-py3-none-any.whl", hash = "sha256:24430865001b5596864a7c28f423294edadaac57af9ab6964dda3eabc8762577"},

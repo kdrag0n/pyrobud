@@ -60,6 +60,7 @@ fast = ["uvloop"]
 
 [tool.poetry.dev-dependencies]
 black = "^19.10b0"
+isort = {version = "^4.3.21", extras = ["pyproject"]}
 
 [tool.poetry.scripts]
 pyrobud = "pyrobud.main:main"
