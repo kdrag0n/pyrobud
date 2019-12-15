@@ -102,6 +102,7 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+.dmypy.json
 
 # Configuration files
 *config*.toml
