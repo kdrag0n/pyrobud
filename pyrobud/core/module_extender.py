@@ -59,6 +59,7 @@ class ModuleExtender(MixinBase):
                     if inspect.isclass(cls) and issubclass(cls, module.Module):
                         self.load_module(cls, comment=comment)
 
+    # noinspection PyTypeChecker,PyTypeChecker
     def load_all_modules(self: "Bot") -> None:
         self.log.info("Loading modules")
         self._load_modules_from_metamod(modules)

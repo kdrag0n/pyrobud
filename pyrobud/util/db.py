@@ -148,6 +148,7 @@ class AsyncDB:
 
 # Iterator wrapper
 class AsyncDBIterator:
+    # noinspection PyProtectedMember
     def __init__(self, iterator: plyvel._plyvel.Iterator) -> None:
         self.iterator = iterator
 

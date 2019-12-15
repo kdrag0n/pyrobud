@@ -7,6 +7,7 @@ try:
 
     have_git = True
 except ImportError:
+    git = None
     have_git = False
 
 _repo_initialized = False

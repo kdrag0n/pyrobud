@@ -55,7 +55,7 @@ They can then be activated using `source [target directory]/bin/activate` or the
 equivalent command and script for your shell of choice.
 
 You can still install all the dependencies in your system Python environment,
-but please be aware of the potential issues when doing so. The intalled packages
+but please be aware of the potential issues when doing so. The installed packages
 may conflict with the system package manager's installed packages, which can
 cause trouble down the road and errors when upgrading conflicting packages.
 **You have been warned.**

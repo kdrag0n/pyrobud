@@ -65,6 +65,7 @@ class TelegramBot(MixinBase):
         if not isinstance(user, tg.types.User):
             raise TypeError("Missing full self user information")
         self.user = user
+        # noinspection PyTypeChecker
         self.uid = user.id
 
         # Set Sentry username if enabled
