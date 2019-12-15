@@ -7,8 +7,8 @@ from . import DEFAULT_CONFIG_PATH, util
 from .core import Bot
 
 log = logging.getLogger("launch")
-# Suppress most messages from aiorun's overly verbose logger
-aiorun.logger.setLevel(logging.WARNING)
+# Silence aiorun's overly verbose logger
+aiorun.logger.disabled = True
 
 
 def get_use_uvloop(config: util.config.Config) -> bool:
