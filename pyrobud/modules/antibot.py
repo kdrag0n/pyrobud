@@ -80,7 +80,7 @@ class AntibotModule(module.Module):
 
     @staticmethod
     def msg_type_suspicious(msg: tg.custom.Message) -> bool:
-        return msg.contact or msg.geo or msg.game
+        return bool(msg.contact or msg.geo or msg.game)
 
     async def msg_data_is_suspicious(self, msg: tg.custom.Message) -> bool:
         incoming = not msg.out
@@ -189,7 +189,7 @@ class AntibotModule(module.Module):
         await event.delete()
 
     async def is_enabled(self, event: MessageEvent) -> bool:
-        return event.is_group and await self.group_db.get(f"{event.chat_id}.enabled", False)
+        return bool(event.is_group and await self.group_db.get(f"{event.chat_id}.enabled", False))
 
     async def on_message(self, msg: tg.events.NewMessage.Event) -> None:
         # Only run in groups where antibot is enabled

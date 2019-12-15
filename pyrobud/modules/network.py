@@ -76,7 +76,7 @@ class NetworkModule(module.Module):
             if not resp_data["success"]:
                 return f"__Error uploading file — status code {resp.status}__"
 
-            return resp_data["link"]
+            return str(resp_data["link"])
 
     @command.desc("Upload given file to transfer.sh")
     async def cmd_transfer(self, ctx: command.Context) -> str:
