@@ -67,6 +67,7 @@ class Context:
     invoker: str
 
     response: Optional[tg.custom.Message]
+    response_mode: Optional[str]
     input: str
     parsed_input: str
     args: Sequence[str]
@@ -80,6 +81,7 @@ class Context:
 
         # Response message to be filled later
         self.response = None
+        self.response_mode = None
         # Single argument string (unparsed, i.e. complete with Markdown formatting symbols)
         self.input = self.msg.text[self.cmd_len :]
         # Single argument string (parsed, i.e. plain text)
@@ -102,6 +104,12 @@ class Context:
         self, text: Optional[str] = None, *, mode: Optional[str] = None, redact: Optional[bool] = None, **kwargs: Any
     ) -> tg.custom.Message:
         self.response = await self.bot.respond(
-            self.msg, text, mode=mode, redact=redact, response=self.response, **kwargs
+            self.msg,
+            text,
+            mode=mode,
+            redact=redact,
+            response=self.response if mode == self.response_mode else None,
+            **kwargs,
         )
+        self.response_mode = mode
         return self.response
