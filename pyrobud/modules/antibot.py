@@ -260,9 +260,9 @@ class AntibotModule(module.Module):
             elif isinstance(ptcp, tg.types.ChannelParticipantAdmin):
                 # Check for the required admin permissions
                 if not (ptcp.admin_rights.delete_messages and ptcp.admin_rights.ban_users):
-                    return "__Antibot requires the **Delete Messages** and **Ban users** permissions.__"
+                    return "__Antibot requires the **Delete Messages** and **Ban Users** permissions.__"
             else:
-                return "__I must be an admin with the **Delete Messages** and **Ban users** permissions for antibot to work.__"
+                return "__I must be an admin with the **Delete Messages** and **Ban Users** permissions for antibot to work.__"
 
             await self.group_db.put(f"{ctx.msg.chat_id}.enabled", True)
             await self.group_db.put(f"{ctx.msg.chat_id}.enable_time", util.time.sec())
