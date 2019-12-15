@@ -54,6 +54,7 @@ pillow = "^6.2.1"
 speedtest-cli = "^2.1.2"
 # Debug module
 meval = "^2.5"
+aiorun = "^2019.11.1"
 
 [tool.poetry.extras]
 fast = ["uvloop"]

@@ -18,6 +18,7 @@ class TelegramBot(MixinBase):
     tg_config: TelegramConfig
 
     # Initialized during startup
+    client: tg.TelegramClient
     loop: asyncio.AbstractEventLoop
     prefix: str
     user: tg.types.User
@@ -25,6 +26,10 @@ class TelegramBot(MixinBase):
     start_time_us: int
 
     def __init__(self: "Bot", **kwargs: Any) -> None:
+        # Propagate initialization to other mixins
+        super().__init__(**kwargs)
+
+    async def init_client(self: "Bot") -> None:
         # Get Telegram parameters from config and check types
         self.tg_config = self.config["telegram"]
 
@@ -43,11 +48,9 @@ class TelegramBot(MixinBase):
         # Initialize Telegram client with gathered parameters
         self.client = tg.TelegramClient(session_name, api_id, api_hash)
 
-        # Propagate initialization to other mixins
-        super().__init__(**kwargs)
-
     async def start(self: "Bot") -> None:
         self.log.info("Starting")
+        await self.init_client()
 
         # Get and store current event loop, since this is the first coroutine that runs
         self.loop = asyncio.get_event_loop()

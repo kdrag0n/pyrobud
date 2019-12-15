@@ -25,6 +25,17 @@ version = ">=3.6.5"
 speedups = ["aiodns", "brotlipy", "cchardet"]
 
 [[package]]
+category = "main"
+description = "Boilerplate for asyncio applications"
+name = "aiorun"
+optional = false
+python-versions = ">=3.5"
+version = "2019.11.1"
+
+[package.extras]
+dev = ["pytest", "pytest-cov"]
+
+[[package]]
 category = "dev"
 description = "A small Python module for determining appropriate platform-specific dirs, e.g. a \"user data dir\"."
 name = "appdirs"
@@ -451,7 +462,7 @@ multidict = ">=4.0"
 fast = ["uvloop"]
 
 [metadata]
-content-hash = "5e5d16a4c9407a554b9d210ff28ff2a900ed5b6643bd41ca75f29c70b38b197c"
+content-hash = "aca03b8656f258a63034b41d4fa70ed046b5ea90ed6d0efe1e8e64b7a74ad9dd"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -468,6 +479,10 @@ aiohttp = [
     {file = "aiohttp-3.6.2-cp37-cp37m-win_amd64.whl", hash = "sha256:32e5f3b7e511aa850829fbe5aa32eb455e5534eaa4b1ce93231d00e2f76e5654"},
     {file = "aiohttp-3.6.2-py3-none-any.whl", hash = "sha256:460bd4237d2dbecc3b5ed57e122992f60188afe46e7319116da5eb8a9dfedba4"},
     {file = "aiohttp-3.6.2.tar.gz", hash = "sha256:259ab809ff0727d0e834ac5e8a283dc5e3e0ecc30c4d80b3cd17a4139ce1f326"},
+]
+aiorun = [
+    {file = "aiorun-2019.11.1-py3-none-any.whl", hash = "sha256:625074ae213796bea07637e238f472f0947c4485a305f0c9d11c40c4b6cd47b6"},
+    {file = "aiorun-2019.11.1.tar.gz", hash = "sha256:27e10f0e7a45faa816fed85a516b0a19074723e4a07d8d024ed56977075b919a"},
 ]
 appdirs = [
     {file = "appdirs-1.4.3-py2.py3-none-any.whl", hash = "sha256:d8b24664561d0d34ddfaec54636d502d7cea6e29c3eaf68f3df6180863e2166e"},
