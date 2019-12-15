@@ -1,0 +1,38 @@
+import logging
+
+import aiohttp
+import telethon as tg
+
+from ..util.config import Config
+from .command_dispatcher import CommandDispatcher
+from .database_provider import DatabaseProvider
+from .event_dispatcher import EventDispatcher
+from .module_extender import ModuleExtender
+from .telegram_bot import TelegramBot
+
+
+class Bot(TelegramBot, ModuleExtender, CommandDispatcher, DatabaseProvider, EventDispatcher):
+    # Initialized during instantiation
+    config: Config
+    log: logging.Logger
+    http_session: aiohttp.ClientSession
+    client: tg.TelegramClient
+
+    def __init__(self, config: Config):
+        # Save reference to config
+        self.config = config
+
+        # Initialize other objects
+        self.log = logging.getLogger("bot")
+        self.http_session = aiohttp.ClientSession()
+
+        # Initialize mixins
+        super().__init__()
+
+    async def stop(self) -> None:
+        await self.dispatch_event("stop")
+        await self.http_session.close()
+        await self._db.close()
+
+        self.log.info("Running post-stop hooks")
+        await self.dispatch_event("stopped")

@@ -4,7 +4,7 @@ import logging
 import tomlkit
 
 from . import DEFAULT_CONFIG_PATH, util
-from .bot import Bot
+from .core import Bot
 
 log = logging.getLogger("launch")
 

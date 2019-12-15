@@ -2,7 +2,7 @@ import logging
 from typing import TYPE_CHECKING, ClassVar, Optional, Type
 
 if TYPE_CHECKING:
-    from .bot import Bot
+    from .core import Bot
     from .command import Command
 
 

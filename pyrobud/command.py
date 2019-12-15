@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Any, Callable, Coroutine, Optional, Sequence, 
 import telethon as tg
 
 if TYPE_CHECKING:
-    from .bot import Bot
+    from .core import Bot
 
 CommandFunc = Union[
     Callable[..., Coroutine[Any, Any, None]], Callable[..., Coroutine[Any, Any, Optional[str]]],
