@@ -46,10 +46,10 @@ def upgrade_v2(config: Config, path: str) -> None:
         log.info("Adding default session name 'main' to Telegram config section")
         tg_config["session_name"] = "main"
 
-        if os.path.exists("anon.session"):
+        if Path("anon.session").exists():
             log.info("Renaming 'anon' session to 'main'")
             os.rename("anon.session", "main.session")
-        if os.path.exists("anon.session-journal"):
+        if Path("anon.session-journal").exists():
             os.rename("anon.session-journal", "main.session-journal")
 
 
