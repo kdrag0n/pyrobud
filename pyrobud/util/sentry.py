@@ -8,7 +8,7 @@ import ratelimit
 import sentry_sdk
 
 from .. import __version__
-from . import git, system, version
+from . import git, version
 
 Event = Dict[str, Any]
 EventHint = Dict[str, Any]

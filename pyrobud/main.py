@@ -16,7 +16,6 @@ logs.setup_logging()
 log.info("Loading code...")
 
 
-
 def main():
     launch.main(config_path=args.config_path)
 

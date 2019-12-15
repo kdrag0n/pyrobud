@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Callable, Coroutine, List, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Any, Callable, Coroutine, Optional, Sequence, Union
 
 import telethon as tg
 

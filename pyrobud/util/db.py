@@ -1,4 +1,3 @@
-import struct
 from types import TracebackType
 from typing import Any, Optional, Tuple, Type, TypeVar, Union, overload
 
