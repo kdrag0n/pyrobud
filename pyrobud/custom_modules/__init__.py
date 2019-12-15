@@ -1,7 +1,7 @@
 import logging
-import os
 import pkgutil
 from importlib import reload as _importlib_reload
+from pathlib import Path
 from typing import Sequence
 
 log = logging.getLogger("metamod_custom")
@@ -14,7 +14,7 @@ def reload() -> None:
         _importlib_reload(module)
 
 
-__all__: Sequence[str] = list(info.name for info in pkgutil.iter_modules([os.path.dirname(__file__)]))
+__all__: Sequence[str] = list(info.name for info in pkgutil.iter_modules([str(Path(__file__).parent)]))
 
 from . import *
 

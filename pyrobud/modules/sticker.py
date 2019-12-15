@@ -3,6 +3,7 @@ import io
 import os
 import subprocess
 from datetime import datetime
+from pathlib import Path
 from typing import Tuple, Optional, Set, ClassVar
 
 import telethon as tg
@@ -173,7 +174,8 @@ class StickerModule(module.Module):
         if not reply_msg.sticker:
             return "__That message isn't a sticker.__"
 
-        path = await util.tg.download_file(ctx, reply_msg, dest=f"stickers/{name}.webp", file_type="sticker")
+        f_path = Path("stickers") / f"{name}.webp"
+        path = await util.tg.download_file(ctx, reply_msg, dest=f_path, file_type="sticker")
         if not path:
             return "__Error downloading sticker__"
 
@@ -239,15 +241,16 @@ class StickerModule(module.Module):
     async def cmd_sp(self, ctx: command.Context) -> Optional[str]:
         name = ctx.input
 
-        webp_path: Optional[str] = await self.db.get(name)
-        if webp_path is None:
+        _webp_path: Optional[str] = await self.db.get(name)
+        if _webp_path is None:
             return "__That sticker doesn't exist.__"
 
-        if not webp_path.endswith(".webp"):
+        webp_path = Path(_webp_path)
+        if not webp_path.suffix == ".webp":
             return "__That sticker can't be sent as a photo.__"
 
         await ctx.respond("Uploading sticker...")
-        png_path = webp_path[: -len(".webp")] + ".png"
+        png_path = webp_path.with_suffix(".png")
         if not os.path.isfile(png_path):
             await util.image.img_to_png(webp_path, dest=png_path)
 
@@ -310,10 +313,10 @@ class StickerModule(module.Module):
         sticker_bytes = await reply_msg.download_media(file=bytes)
         sticker_buf = io.BytesIO(sticker_bytes)
 
-        path = f"stickers/{name}.webp"
+        path = Path("stickers") / f"{name}.webp"
         await util.image.img_to_sticker(sticker_buf, {"webp": path})
 
-        await self.db.put(name, path)
+        await self.db.put(name, str(path))
         self.bot.dispatch_event_nowait("stat_event", "stickers_created")
         return f"Sticker saved to disk as `{name}`."
 

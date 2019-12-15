@@ -1,5 +1,5 @@
-import os
 import sys
+from pathlib import Path
 from typing import Optional
 
 try:
@@ -27,7 +27,7 @@ def get_repo() -> "git.Repo":
 
     # Attempt to get a reference to the Git repository
     try:
-        _repo = git.Repo(os.path.dirname(sys.argv[0]), search_parent_directories=True, odbt=git.GitDB)
+        _repo = git.Repo(Path(sys.argv[0]).parent, search_parent_directories=True, odbt=git.GitDB)
     # Silence a bogus pylint error
     # pylint: disable=no-member
     except git.exc.InvalidGitRepositoryError:

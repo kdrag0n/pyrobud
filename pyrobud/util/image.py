@@ -1,10 +1,11 @@
+import os
 from typing import Union, IO, Optional, Mapping
 
 from PIL import Image
 
 from .async_helpers import run_sync
 
-FileLike = Union[str, IO[bytes]]
+FileLike = Union[str, os.PathLike, IO[bytes]]
 FormatMap = Mapping[str, FileLike]
 
 

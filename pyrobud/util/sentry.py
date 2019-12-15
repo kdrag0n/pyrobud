@@ -1,6 +1,7 @@
 import logging
 import sqlite3
 import traceback
+from pathlib import Path
 from typing import Dict, Any, Optional, Type
 
 import ratelimit
@@ -54,7 +55,7 @@ def send_filter(event: Event, hint: EventHint) -> Optional[Event]:
             tb = traceback.extract_tb(exc_value.__traceback__)
             for frame in tb:
                 # Ignore custom module errors
-                if system.split_path(frame.filename)[-2] == "custom_modules":
+                if Path(frame.filename).parent == "custom_modules":
                     return None
 
     return event
