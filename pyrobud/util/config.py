@@ -1,5 +1,6 @@
 import logging
 import os
+from pathlib import Path
 from typing import Any, Union, List, MutableMapping, Sequence
 
 import plyvel
@@ -16,25 +17,26 @@ AsyncIOConfig = MutableMapping[str, bool]
 log = logging.getLogger("migrate")
 
 
-def save(config: Config, path: str) -> None:
+def save(config: Config, _path: str) -> None:
     if not isinstance(config, tomlkit.toml_document.TOMLDocument):
         raise TypeError("Only tomlkit saving is supported for now")
 
-    tmp_path = path + ".tmp"
+    path = Path(_path)
+    tmp_path = path.with_suffix(path.suffix + ".tmp")
     done = False
     config_data = tomlkit.dumps(config)
 
     try:
-        with open(tmp_path, "w+") as f:
+        with tmp_path.open("w+") as f:
             f.write(config_data)
             f.flush()
             os.fsync(f.fileno())
 
-        os.rename(tmp_path, path)
+        tmp_path.replace(path)
         done = True
     finally:
         if not done:
-            os.remove(tmp_path)
+            tmp_path.unlink()
 
 
 def upgrade_v2(config: Config, path: str) -> None:
