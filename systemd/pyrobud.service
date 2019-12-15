@@ -12,7 +12,7 @@ RestartSec=10
 User=pyrobud
 Group=pyrobud
 WorkingDirectory=/home/pyrobud/pyrobud
-ExecStart=/home/pyrobud/venv/bin/python /home/pyrobud/pyrobud/main.py
+ExecStart=/home/pyrobud/venv/bin/python -O /home/pyrobud/pyrobud/main.py
 
 # Limit damage in case something goes awry
 MemoryLimit=256M
