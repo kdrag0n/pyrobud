@@ -1,0 +1,35 @@
+[Unit]
+Description=Pyrobud Telegram selfbot
+After=multi-user.target
+
+[Service]
+# Base settings
+Type=simple
+Restart=always
+RestartSec=10
+
+# Execution parameters
+User=pyrobud
+Group=pyrobud
+WorkingDirectory=/home/pyrobud/pyrobud
+ExecStart=/home/pyrobud/venv/bin/python /home/pyrobud/pyrobud/main.py
+
+# Limit damage in case something goes awry
+MemoryLimit=256M
+CPUQuota=200%
+
+# Security
+PrivateTmp=true
+ProtectSystem=full
+NoNewPrivileges=true
+ProtectControlGroups=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+PrivateDevices=true
+RestrictAddressFamilies=AF_INET AF_INET6
+RestrictNamespaces=true
+RestrictRealtime=true
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target

@@ -90,6 +90,25 @@ would type `.help` to run the command. All other commands work the same way,
 save for snippet replacements which are used with `/snipname/` anywhere in a
 message.
 
+## Deployment
+
+For long-term server deployments, an example systemd service is available
+[here](https://github.com/kdrag0n/pyrobud/blob/master/systemd/pyrobud.service).
+It is strongly recommended to use this service for any long-term deployments as
+it it includes parameters to improve security and restrict the system resources
+the bot can utilize to limit damage if something goes awry. The example assumes
+that the bot will run under an independent user named `pyrobud` with a virtual
+environment located at `/home/pyrobud/venv` and a Git clone of the bot located
+at `/home/pyrobud/pyrobud`. This setup avoids tainting the system's Python install
+with unmanaged packages and allows the bot to self-update using Git.
+
+`tmux` or `screen` should never be used to run the bot in production. A supervisor,
+unlike a terminal multiplexer, contains a plethora of features crucial for proper
+deployments: automatic ratelimited restarting, logging, monitoring, and more. Some,
+such as systemd, also support limiting resources and and imposing restrictions for
+security. A shell script that invokes Python in a `while` loop is not a replacement
+for a proper supervisor.
+
 ## Support
 
 Feel free to join the [official support group](https://t.me/pyrobud) on Telegram
