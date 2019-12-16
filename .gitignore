@@ -17,9 +17,11 @@ ENV/
 env.bak/
 venv.bak/
 
-# mypy
+# Static type checkers
 .mypy_cache/
 .dmypy.json
+.pytype/
+.pyre/
 
 # Configuration files
 *config*.toml
@@ -49,6 +51,3 @@ data/
 
 # PyCharm project
 .idea/
-
-# PyType static type checker
-.pytype/
