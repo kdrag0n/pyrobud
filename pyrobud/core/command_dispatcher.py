@@ -93,8 +93,9 @@ class CommandDispatcher(MixinBase):
                 return
 
             # Construct invocation context
-            ctx = command.Context(self, msg.message, msg.segments, len(self.prefix) + len(msg.segments[0]) + 1,)
+            ctx = command.Context(self, msg.message, msg.segments, len(self.prefix) + len(msg.segments[0]) + 1)
 
+            # Ensure specified argument needs are met
             if not (cmd.usage is None or cmd.usage_optional or ctx.input):
                 err_base = f"⚠️ Missing parameters: {cmd.usage}"
 
