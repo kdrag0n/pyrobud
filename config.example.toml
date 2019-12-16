@@ -1,6 +1,6 @@
 # Config schema version. DO NOT TOUCH!
 # The config upgrader/migrator system will update this automatically as necessary.
-version = 8
+version = 9
 
 [telegram]
 # Client API ID used for authentication, obtained from https://my.telegram.org/apps
@@ -51,3 +51,9 @@ redact_responses = true
 # uvloop is generally faster, but might not be desired for debugging or other reasons.
 # This option has no effect if uvloop is not installed.
 use_uvloop = true
+# Whether to enable asyncio's debug mode.
+# This enables several debugging checks to assist development. Examples are logging
+# coroutines that are never awaited and logging long synchronous operations.
+# For more information, see https://docs.python.org/3/library/asyncio-dev.html
+# This should generally be disabled unless you are modifying the bot's code.
+debug = false

@@ -176,6 +176,14 @@ def upgrade_v8(config: Config, _: str) -> None:
         asyncio_config["use_uvloop"] = True
 
 
+def upgrade_v9(config: Config, _: str) -> None:
+    asyncio_config: AsyncIOConfig = config["asyncio"]
+
+    if "debug" not in asyncio_config:
+        log.info("Disabling asyncio debug mode by default")
+        asyncio_config["debug"] = False
+
+
 # Old version -> function to perform migration to new version
 upgrade_funcs = [
     upgrade_v2,  # 1 -> 2
@@ -185,6 +193,7 @@ upgrade_funcs = [
     upgrade_v6,  # 5 -> 6
     upgrade_v7,  # 6 -> 7
     upgrade_v8,  # 7 -> 8
+    upgrade_v9,  # 8 -> 9
 ]
 
 

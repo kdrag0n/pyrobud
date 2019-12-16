@@ -18,8 +18,7 @@ def setup_asyncio(config: util.config.Config) -> asyncio.AbstractEventLoop:
 
     if sys.platform == "win32":
         # Force ProactorEventLoop on Windows for subprocess support
-        loop = asyncio.ProactorEventLoop()
-        asyncio.set_event_loop(loop)
+        asyncio.set_event_loop(asyncio.ProactorEventLoop())
     elif asyncio_config["use_uvloop"]:
         # Initialize uvloop if available and working
         try:
@@ -30,7 +29,9 @@ def setup_asyncio(config: util.config.Config) -> asyncio.AbstractEventLoop:
         except ImportError:
             log.warning("Unable to load uvloop; falling back to default asyncio event loop")
 
-    return asyncio.get_event_loop()
+    loop = asyncio.get_event_loop()
+    loop.set_debug(asyncio_config["debug"])
+    return loop
 
 
 def main(*, config_path: str = DEFAULT_CONFIG_PATH) -> None:
