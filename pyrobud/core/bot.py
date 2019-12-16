@@ -29,6 +29,12 @@ class Bot(TelegramBot, ModuleExtender, CommandDispatcher, DatabaseProvider, Even
         # Initialize mixins
         super().__init__()
 
+    @classmethod
+    async def create_and_run(cls, config: Config) -> "Bot":
+        bot = cls(config)
+        await bot.run()
+        return bot
+
     async def stop(self) -> None:
         self.log.info("Stopping")
         await self.dispatch_event("stop")

@@ -54,6 +54,4 @@ def main(*, config_path: str = DEFAULT_CONFIG_PATH) -> None:
     loop = setup_asyncio(config)
 
     log.info("Initializing bot")
-    bot = Bot(config)
-
-    aiorun.run(bot.run(), loop=loop)
+    aiorun.run(Bot.create_and_run(config), loop=loop)
