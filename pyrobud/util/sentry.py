@@ -37,7 +37,7 @@ def send_filter(event: Event, hint: EventHint) -> Optional[Event]:
         exc_type, exc_value, = hint["exc_info"]
 
         # User-initiated interrupts, network errors, and I/O errors
-        if exc_type in (KeyboardInterrupt, ConnectionError, IOError, sqlite3.OperationalError,):
+        if exc_type in (KeyboardInterrupt, ConnectionError, IOError, sqlite3.OperationalError):
             return None
 
         exc_msg = str(exc_value)
