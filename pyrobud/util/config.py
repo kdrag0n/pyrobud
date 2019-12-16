@@ -1,7 +1,8 @@
+import collections.abc
 import logging
 import os
 from pathlib import Path
-from typing import Any, MutableMapping, Union
+from typing import Any, Mapping, MutableMapping, Union
 
 import tomlkit
 import tomlkit.toml_document
@@ -37,6 +38,16 @@ def save(config: Config, _path: str) -> None:
             tmp_path.unlink()
 
 
+# Source: https://stackoverflow.com/a/3233356
+def recursive_update(d: MutableMapping, u: Mapping) -> MutableMapping:  # sourcery off
+    for k, v in u.items():
+        if isinstance(v, collections.abc.Mapping):
+            d[k] = recursive_update(d.get(k, {}), v)
+        else:
+            d[k] = v
+    return d
+
+
 def upgrade_v2(config: Config) -> None:
     tg_config: MutableMapping[str, str] = config["telegram"]
 
@@ -53,69 +64,16 @@ def upgrade_v2(config: Config) -> None:
             sess_db_journal.rename("main.session-journal")
 
 
-def upgrade_v4(config: Config) -> None:
-    bot_config: BotConfig = config["bot"]
-
-    if "report_errors" not in bot_config:
-        log.info("Enabling error reporting by default without usernames")
-        log.info("Please consider enabling report_username if you're comfortable with it!")
-        bot_config["report_errors"] = True
-        bot_config["report_username"] = False
-
-
-def upgrade_v5(config: Config) -> None:
-    bot_config: BotConfig = config["bot"]
-
-    if "sentry_dsn" not in bot_config:
-        log.info("Adding default Sentry DSN to bot config section")
-        bot_config["sentry_dsn"] = ""
-
-
-def upgrade_v6(config: Config) -> None:
-    bot_config: BotConfig = config["bot"]
-
-    if "response_mode" not in bot_config:
-        log.info("Setting response mode to default 'edit'")
-        bot_config["response_mode"] = "edit"
-
-
-def upgrade_v7(config: Config) -> None:
-    bot_config: BotConfig = config["bot"]
-
-    if "redact_responses" not in bot_config:
-        log.info("Enabling response redaction by default")
-        bot_config["redact_responses"] = True
-
-
-def upgrade_v8(config: Config) -> None:
-    if "asyncio" not in config:
-        config["asyncio"] = {}
-
-    asyncio_config: AsyncIOConfig = config["asyncio"]
-
-    if "use_uvloop" not in asyncio_config:
-        log.info("Enabling uvloop usage by default")
-        asyncio_config["use_uvloop"] = True
-
-
-def upgrade_v9(config: Config) -> None:
-    asyncio_config: AsyncIOConfig = config["asyncio"]
-
-    if "debug" not in asyncio_config:
-        log.info("Disabling asyncio debug mode by default")
-        asyncio_config["debug"] = False
-
-
-# Old version -> function to perform migration to new version
-upgrade_funcs = [
-    upgrade_v2,
-    upgrade_v3,
-    upgrade_v4,
-    upgrade_v5,
-    upgrade_v6,
-    upgrade_v7,
-    upgrade_v8,
-    upgrade_v9,
+# Functions or dicts to merge to migrate each version
+upgrade_methods = [
+    upgrade_v2,  # Session rename
+    upgrade_v3,  # Large config->DB migration
+    {"version": 4, "bot": {"report_errors": True, "report_username": False}},
+    {"version": 5, "bot": {"sentry_dsn": ""}},
+    {"version": 6, "bot": {"response_mode": "edit"}},
+    {"version": 7, "bot": {"redact_responses": True}},
+    {"version": 8, "asyncio": {"use_uvloop": True}},
+    {"version": 9, "asyncio": {"debug": False}},
 ]
 
 
@@ -125,14 +83,24 @@ def upgrade(config: Config, path: str) -> None:
     cur_version: int = config["version"] if "version" in config else 1
 
     # Already at latest version; nothing to do
-    if cur_version == len(upgrade_funcs) + 1:
+    if cur_version == len(upgrade_methods) + 1:
         return
 
     # Upgrade each version sequentially
-    for upgrader in upgrade_funcs[cur_version - 1 :]:
+    for upgrader in upgrade_methods[cur_version - 1 :]:
+        # Deduce and log target version
         target_version = cur_version + 1
         log.info(f"Upgrading config to version {target_version}")
-        upgrader(config)
+
+        # Perform upgrade
+        if callable(upgrader):
+            upgrader(config)
+        elif isinstance(upgrader, dict):
+            recursive_update(config, upgrader)
+        else:
+            raise TypeError(f"Unrecognized upgrader type {type(upgrader)} for version {target_version}")
+
+        # Account for the upgrade
         cur_version = target_version
         config["version"] = target_version
 
