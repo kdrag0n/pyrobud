@@ -1,7 +1,6 @@
 import asyncio
 import io
 import os
-import subprocess
 from datetime import datetime
 from pathlib import Path
 from typing import ClassVar, Optional, Set, Tuple
@@ -351,24 +350,18 @@ class StickerModule(module.Module):
 
         # Invoke external 'corrupter' program to glitch the image
         # Source code: https://github.com/r00tman/corrupter
-        cmdline = ["corrupter", "-boffset", str(offset), "-"]
         try:
-            proc = await util.run_sync(
-                subprocess.run,
-                cmdline,
-                input=png_bytes,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                check=True,
-                timeout=15,
+            stdout, stderr, ret = await util.system.run_command(
+                "corrupter", "-boffset", str(offset), "-", stderr=asyncio.subprocess.PIPE, input=png_bytes, timeout=15,
             )
-        except subprocess.TimeoutExpired:
+        except asyncio.TimeoutError:
             return "🕑 `corrupter` failed to finish within 15 seconds."
-        except subprocess.CalledProcessError as err:
-            return f"⚠️ `corrupter` failed with return code {err.returncode}. Error: ```{err.stderr}```"
         except FileNotFoundError:
             return "❌ The `corrupter` [program](https://github.com/r00tman/corrupter) must be installed on the host system."
 
-        glitched_bytes = proc.stdout
+        if ret != 0:
+            return f"⚠️ `corrupter` failed with return code {ret}. Error: ```{stderr.decode()}```"
+
+        glitched_bytes = stdout
         await ctx.respond(file=glitched_bytes, mode="repost")
         return None

@@ -1,5 +1,5 @@
+import asyncio
 import os
-import subprocess
 import sys
 from typing import ClassVar, Optional
 
@@ -30,8 +30,8 @@ class SystemModule(module.Module):
         before = util.time.usec()
 
         try:
-            proc = await util.system.run_command(snip, shell=True, timeout=120)
-        except subprocess.TimeoutExpired:
+            stdout, _, ret = await util.system.run_command_shell(snip, timeout=120)
+        except asyncio.TimeoutError:
             return "🕑 Snippet failed to finish within 2 minutes."
 
         after = util.time.usec()
@@ -39,13 +39,13 @@ class SystemModule(module.Module):
         el_us = after - before
         el_str = f"\nTime: {util.time.format_duration_us(el_us)}"
 
-        cmd_out = proc.stdout.strip()
+        cmd_out = stdout.decode().strip()
         if not cmd_out:
             cmd_out = "(no output)"
         elif cmd_out[-1:] != "\n":
             cmd_out += "\n"
 
-        err = f"⚠️ Return code: {proc.returncode}" if proc.returncode != 0 else ""
+        err = f"⚠️ Return code: {ret}" if ret != 0 else ""
         return f"```{cmd_out}```{err}{el_str}"
 
     @command.desc("Get information about the host system")
@@ -54,14 +54,14 @@ class SystemModule(module.Module):
         await ctx.respond("Collecting system information...")
 
         try:
-            proc = await util.system.run_command(["neofetch", "--stdout"], timeout=10)
-        except subprocess.TimeoutExpired:
+            stdout, _, ret = await util.system.run_command("neofetch", "--stdout", timeout=10)
+        except asyncio.TimeoutError:
             return "🕑 `neofetch` failed to finish within 10 seconds."
         except FileNotFoundError:
             return "❌ [neofetch](https://github.com/dylanaraps/neofetch) must be installed on the host system."
 
-        err = f"⚠️ Return code: {proc.returncode}" if proc.returncode != 0 else ""
-        sysinfo = "\n".join(proc.stdout.strip().split("\n")[2:]) if proc.returncode == 0 else proc.stdout.strip()
+        err = f"⚠️ Return code: {ret}" if ret != 0 else ""
+        sysinfo = "\n".join(stdout.decode().strip().split("\n")[2:]) if ret == 0 else stdout.strip()
 
         return f"```{sysinfo}```{err}"
 
