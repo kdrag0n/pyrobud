@@ -1,5 +1,7 @@
 import inspect
+import os
 import re
+import sys
 import traceback
 from typing import Any, ClassVar, Optional, Tuple
 
@@ -23,8 +25,30 @@ class DebugModule(module.Module):
             async def send(*args: Any, **kwargs: Any) -> tg.custom.Message:
                 return await ctx.msg.respond(*args, **kwargs)
 
+            vars = {
+                # Contextual info
+                "self": self,
+                "ctx": ctx,
+                "bot": self.bot,
+                "loop": self.bot.loop,
+                # Helper functions
+                "send": send,
+                # Built-in modules
+                "inspect": inspect,
+                "os": os,
+                "re": re,
+                "sys": sys,
+                "traceback": traceback,
+                # Third-party modules
+                "tg": tg,
+                # Custom modules
+                "command": command,
+                "module": module,
+                "util": util,
+            }
+
             try:
-                return "", await meval(code, globals(), send=send, self=self, ctx=ctx)
+                return "", await meval(code, globals(), **vars)
             except Exception as e:
                 # Find first traceback frame involving the snippet
                 first_snip_idx = -1
