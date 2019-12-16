@@ -1,4 +1,6 @@
+import asyncio
 import logging
+import sys
 
 import aiorun
 import tomlkit
@@ -11,20 +13,24 @@ log = logging.getLogger("launch")
 aiorun.logger.disabled = True
 
 
-def get_use_uvloop(config: util.config.Config) -> bool:
+def setup_asyncio(config: util.config.Config) -> asyncio.AbstractEventLoop:
     asyncio_config: util.config.AsyncIOConfig = config["asyncio"]
 
-    # Initialize uvloop if enabled, available, and working
-    if asyncio_config["use_uvloop"]:
+    if sys.platform == "win32":
+        # Force ProactorEventLoop on Windows for subprocess support
+        loop = asyncio.ProactorEventLoop()
+        asyncio.set_event_loop(loop)
+    elif asyncio_config["use_uvloop"]:
+        # Initialize uvloop if available and working
         try:
+            # noinspection PyUnresolvedReferences
             import uvloop
 
-            return True
+            uvloop.install()
         except ImportError:
             log.warning("Unable to load uvloop; falling back to default asyncio event loop")
-            return False
-    else:
-        return False
+
+    return asyncio.get_event_loop()
 
 
 def main(*, config_path: str = DEFAULT_CONFIG_PATH) -> None:
@@ -41,8 +47,9 @@ def main(*, config_path: str = DEFAULT_CONFIG_PATH) -> None:
 
     util.config.upgrade(config, config_path)
 
-    use_uvloop = get_use_uvloop(config)
+    loop = setup_asyncio(config)
+
     log.info("Initializing bot")
     bot = Bot(config)
 
-    aiorun.run(bot.run(), use_uvloop=use_uvloop)
+    aiorun.run(bot.run(), loop=loop)
