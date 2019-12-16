@@ -30,7 +30,10 @@ def setup_asyncio(config: util.config.Config) -> asyncio.AbstractEventLoop:
             log.warning("Unable to load uvloop; falling back to default asyncio event loop")
 
     loop = asyncio.get_event_loop()
-    loop.set_debug(asyncio_config["debug"])
+    if asyncio_config["debug"]:
+        log.warning("Enabling asyncio debug mode")
+        loop.set_debug(True)
+
     return loop
 
 
