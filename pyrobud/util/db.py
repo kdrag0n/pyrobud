@@ -20,38 +20,19 @@ def decode(value: bytes) -> Any:
 class AsyncDB:
     """Simplified asyncio wrapper for plyvel that only supports string keys."""
 
-    db: plyvel.DB
+    _db: plyvel.DB
     prefix: Optional[str]
 
     def __init__(self, db: plyvel.DB) -> None:
-        self.db = db
+        self._db = db
 
         # Inherit PrefixedDB's prefix attribute if applicable
         self.prefix = getattr(db, "prefix", None)
 
     # Core operations
-    def put_sync(self, key: str, value: Any, **kwargs: Any) -> None:
-        value = encode(value)
-        return self.db.put(key.encode("utf-8"), value, **kwargs)
-
     async def put(self, key: str, value: Any, **kwargs: Any) -> None:
-        return await run_sync(self.put_sync, key, value, **kwargs)
-
-    @overload
-    def get_sync(self, key: str, **kwargs: Any) -> Optional[Value]:
-        pass
-
-    @overload
-    def get_sync(self, key: str, default: Value, **kwargs: Any) -> Value:
-        pass
-
-    def get_sync(self, key: str, default: Optional[Value] = None, **kwargs: Any) -> Optional[Value]:
-        value: Optional[bytes] = self.db.get(key.encode("utf-8"), **kwargs)
-        if value is None:
-            # We re-implement this to disambiguate types
-            return default
-
-        return decode(value)
+        value = encode(value)
+        return await run_sync(self._db.put, key.encode("utf-8"), value, **kwargs)
 
     @overload
     async def get(self, key: str, **kwargs: Any) -> Optional[Value]:
@@ -62,55 +43,39 @@ class AsyncDB:
         pass
 
     async def get(self, key: str, default: Optional[Value] = None, **kwargs: Any) -> Optional[Value]:
-        return await run_sync(self.get_sync, key, default, **kwargs)
+        value: Optional[bytes] = await run_sync(self._db.get, key.encode("utf-8"), **kwargs)
+        if value is None:
+            # We re-implement this to disambiguate types
+            return default
 
-    def delete_sync(self, key: str, **kwargs: Any) -> None:
-        return self.db.delete(key.encode("utf-8"), **kwargs)
+        return decode(value)
 
     async def delete(self, key: str, **kwargs: Any) -> None:
-        return await run_sync(self.delete_sync, key, **kwargs)
-
-    def close_sync(self) -> None:
-        return self.db.close()
+        return await run_sync(self._db.delete, key.encode("utf-8"), **kwargs)
 
     async def close(self) -> None:
-        return await run_sync(self.close_sync)
+        return await run_sync(self._db.close)
 
     # Extensions
-    def snapshot_sync(self) -> "AsyncDB":
-        return AsyncDB(self.db.snapshot())
-
     async def snapshot(self) -> "AsyncDB":
-        return await run_sync(self.snapshot_sync)
+        ss = await run_sync(self._db.snapshot)
+        return AsyncDB(ss)
 
     def prefixed_db(self, prefix: str) -> "AsyncDB":
-        prefixed_db = self.db.prefixed_db(prefix.encode("utf-8"))
+        prefixed_db = self._db.prefixed_db(prefix.encode("utf-8"))
         return AsyncDB(prefixed_db)
 
-    def inc_sync(self, key: str, delta: int = 1) -> None:
-        old_value: int = self.get_sync(key, 0)
-        return self.put_sync(key, old_value + delta)
-
     async def inc(self, key: str, delta: int = 1) -> None:
-        return await run_sync(self.inc_sync, key, delta)
-
-    def dec_sync(self, key: str, delta: int = 1) -> None:
-        old_value: int = self.get_sync(key, 0)
-        return self.put_sync(key, old_value - delta)
+        old_value: int = await self.get(key, 0)
+        return await self.put(key, old_value + delta)
 
     async def dec(self, key: str, delta: int = 1) -> None:
-        return await run_sync(self.dec_sync, key, delta)
-
-    def has_sync(self, key: str, **kwargs: Any) -> bool:
-        value: Optional[Any] = self.db.get(key.encode("utf-8"), **kwargs)
-        return value is not None
+        old_value: int = await self.get(key, 0)
+        return await self.put(key, old_value - delta)
 
     async def has(self, key: str, **kwargs: Any) -> bool:
-        return await run_sync(self.has_sync, key, **kwargs)
-
-    def clear_sync(self, **kwargs: Any) -> None:
-        for key, _ in self.db:
-            self.db.delete(key, **kwargs)
+        value: Optional[Any] = await run_sync(self._db.get, key.encode("utf-8"), **kwargs)
+        return value is not None
 
     async def clear(self, **kwargs: Any) -> None:
         async for key, _ in self:
@@ -125,21 +90,13 @@ class AsyncDB:
     ) -> None:
         await self.close()
 
-    def __enter__(self) -> "AsyncDB":
-        return self
-
-    def __exit__(
-        self, typ: Optional[Type[BaseException]], value: Optional[BaseException], tb: Optional[TracebackType],
-    ) -> None:
-        self.close_sync()
-
     # Iterator support
     def iterator(self, *args: Any, **kwargs: Union[bool, str, bytes]) -> "AsyncDBIterator":
         for key, value in kwargs.items():
             if isinstance(value, str):
                 kwargs[key] = value.encode("utf-8")
 
-        iterator = self.db.iterator(*args, **kwargs)
+        iterator = self._db.iterator(*args, **kwargs)
         return AsyncDBIterator(iterator)
 
     def __aiter__(self) -> "AsyncDBIterator":

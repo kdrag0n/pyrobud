@@ -15,9 +15,10 @@ class SnippetsModule(module.Module):
         self.db = self.bot.get_db("snippets")
 
     def snip_repl(self, m: Match[str]) -> str:
-        replacement: Optional[str] = self.db.get_sync(m.group(1))
+        fut = asyncio.run_coroutine_threadsafe(self.db.get(m.group(1)), self.bot.loop)
+        replacement: Optional[str] = fut.result()
         if replacement is not None:
-            self.bot.dispatch_event_nowait("stat_event", "replaced")
+            asyncio.run_coroutine_threadsafe(self.bot.dispatch_event("stat_event", "replaced"), self.bot.loop)
             return replacement
 
         return m.group(0)
