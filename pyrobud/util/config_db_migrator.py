@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 log = logging.getLogger("migrate")
 
 
-def upgrade_v3(config: "Config") -> None:
+async def upgrade_v3(config: "Config") -> None:
     bot_config: "BotConfig" = config["bot"]
 
     if "default_prefix" not in bot_config:
@@ -24,14 +24,14 @@ def upgrade_v3(config: "Config") -> None:
         log.info("Adding default database path 'main.db' to bot config section")
         bot_config["db_path"] = "main.db"
 
-    with AsyncDB(plyvel.DB(config["bot"]["db_path"], create_if_missing=True)) as db:
-        migrate_antibot(config, db)
-        migrate_snippets(config, db)
-        migrate_stats(config, db)
-        migrate_stickers(config, db)
+    async with AsyncDB(plyvel.DB(config["bot"]["db_path"], create_if_missing=True)) as db:
+        await migrate_antibot(config, db)
+        await migrate_snippets(config, db)
+        await migrate_stats(config, db)
+        await migrate_stickers(config, db)
 
 
-def migrate_antibot(config: "Config", db: AsyncDB) -> None:
+async def migrate_antibot(config: "Config", db: AsyncDB) -> None:
     if "antibot" not in config:
         return
 
@@ -40,46 +40,46 @@ def migrate_antibot(config: "Config", db: AsyncDB) -> None:
     mdb = db.prefixed_db("antibot.")
 
     if mcfg["threshold_time"] != 30:
-        mdb.put_sync("threshold_time", mcfg["threshold_time"])
+        await mdb.put("threshold_time", mcfg["threshold_time"])
 
     if isinstance(mcfg["group_ids"], List):
         group_db = mdb.prefixed_db("groups.")
         for gid in mcfg["group_ids"]:
-            group_db.put_sync(f"{gid}.enabled", True)
-            group_db.put_sync(f"{gid}.enable_time", now_sec())
+            await group_db.put(f"{gid}.enabled", True)
+            await group_db.put(f"{gid}.enable_time", now_sec())
 
     del config["antibot"]
 
 
-def migrate_snippets(config: "Config", db: AsyncDB) -> None:
+async def migrate_snippets(config: "Config", db: AsyncDB) -> None:
     if "snippets" in config:
         log.info("Migrating snippets to database")
         mdb = db.prefixed_db("snippets.")
 
         for snip, repl in config["snippets"].items():
-            mdb.put_sync(snip, repl)
+            await mdb.put(snip, repl)
 
         del config["snippets"]
 
 
-def migrate_stats(config: "Config", db: AsyncDB) -> None:
+async def migrate_stats(config: "Config", db: AsyncDB) -> None:
     if "stats" in config:
         log.info("Migrating stats to database")
         mdb = db.prefixed_db("stats.")
 
         for stat, value in config["stats"].items():
-            mdb.put_sync(stat, value)
+            await mdb.put(stat, value)
 
         del config["stats"]
 
 
-def migrate_stickers(config: "Config", db: AsyncDB) -> None:
+async def migrate_stickers(config: "Config", db: AsyncDB) -> None:
     if "stickers" in config:
         log.info("Migrating stickers to database")
         mdb = db.prefixed_db("stickers.")
 
         for sticker, value in config["stickers"].items():
-            mdb.put_sync(sticker, value)
+            await mdb.put(sticker, value)
 
         del config["stickers"]
 
@@ -89,6 +89,6 @@ def migrate_stickers(config: "Config", db: AsyncDB) -> None:
         mdb = db.prefixed_db("sticker_settings.")
 
         if "kang_pack" in mcfg:
-            mdb.put_sync("kang_pack", mcfg["kang_pack"])
+            await mdb.put("kang_pack", mcfg["kang_pack"])
 
         del config["user"]

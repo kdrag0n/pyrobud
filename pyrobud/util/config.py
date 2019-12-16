@@ -7,6 +7,7 @@ from typing import Any, Mapping, MutableMapping, Union
 import tomlkit
 import tomlkit.toml_document
 
+from .async_helpers import run_sync
 from .config_db_migrator import upgrade_v3
 
 Config = MutableMapping[str, Any]
@@ -48,7 +49,7 @@ def recursive_update(d: MutableMapping, u: Mapping) -> MutableMapping:  # source
     return d
 
 
-def upgrade_v2(config: Config) -> None:
+async def upgrade_v2(config: Config) -> None:
     tg_config: MutableMapping[str, str] = config["telegram"]
 
     if "session_name" not in tg_config:
@@ -57,11 +58,11 @@ def upgrade_v2(config: Config) -> None:
 
         sess_db = Path("anon.session")
         sess_db_journal = Path("anon.session-journal")
-        if sess_db.exists():
+        if await run_sync(sess_db.exists):
             log.info("Renaming 'anon' session to 'main'")
-            sess_db.rename("main.session")
-        if sess_db_journal.exists():
-            sess_db_journal.rename("main.session-journal")
+            await run_sync(sess_db.rename, "main.session")
+        if await run_sync(sess_db_journal.exists):
+            await run_sync(sess_db_journal.rename, "main.session-journal")
 
 
 # Functions or dicts to merge to migrate each version
@@ -78,7 +79,7 @@ upgrade_methods = [
 
 
 # Master upgrade function
-def upgrade(config: Config, path: str) -> None:
+async def upgrade(config: Config, path: str) -> None:
     # Get current version
     cur_version: int = config["version"] if "version" in config else 1
 
@@ -94,7 +95,7 @@ def upgrade(config: Config, path: str) -> None:
 
         # Perform upgrade
         if callable(upgrader):
-            upgrader(config)
+            await upgrader(config)
         elif isinstance(upgrader, dict):
             recursive_update(config, upgrader)
         else:
@@ -105,4 +106,4 @@ def upgrade(config: Config, path: str) -> None:
         config["version"] = target_version
 
         # Save config ASAP to prevent an inconsistent state if the next upgrade fails
-        save(config, path)
+        await run_sync(save, config, path)

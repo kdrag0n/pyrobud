@@ -18,23 +18,32 @@ def setup_asyncio(config: util.config.Config) -> asyncio.AbstractEventLoop:
 
     if sys.platform == "win32":
         # Force ProactorEventLoop on Windows for subprocess support
-        asyncio.set_event_loop(asyncio.ProactorEventLoop())
+        loop = asyncio.ProactorEventLoop()
     elif asyncio_config["use_uvloop"]:
         # Initialize uvloop if available and working
         try:
             # noinspection PyUnresolvedReferences
             import uvloop
 
-            uvloop.install()
+            loop = uvloop.new_event_loop()
         except ImportError:
             log.warning("Unable to load uvloop; falling back to default asyncio event loop")
+            loop = asyncio.new_event_loop()
+    else:
+        loop = asyncio.new_event_loop()
 
-    loop = asyncio.get_event_loop()
     if asyncio_config["debug"]:
         log.warning("Enabling asyncio debug mode")
         loop.set_debug(True)
 
+    asyncio.set_event_loop(loop)
     return loop
+
+
+async def _upgrade(config: util.config.Config, config_path: str) -> None:
+    await util.config.upgrade(config, config_path)
+    # Hacky way to make aiorun terminate the loop
+    raise KeyboardInterrupt()
 
 
 def main(*, config_path: str = DEFAULT_CONFIG_PATH) -> None:
@@ -49,9 +58,12 @@ def main(*, config_path: str = DEFAULT_CONFIG_PATH) -> None:
         log.info("Initializing Sentry error reporting")
         util.sentry.init()
 
-    util.config.upgrade(config, config_path)
+    # Use preliminary loop for config upgrading
+    aiorun.run(_upgrade(config, config_path), stop_on_unhandled_errors=True)
 
+    # Now that the config has been upgraded, we can construct the actual loop
     loop = setup_asyncio(config)
 
+    # Start bot with new loop
     log.info("Initializing bot")
     aiorun.run(Bot.create_and_run(config), loop=loop)
