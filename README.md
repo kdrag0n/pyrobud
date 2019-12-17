@@ -1,8 +1,8 @@
 # Pyrobud
 
-[![Latest Tag](https://img.shields.io/github/v/tag/kdrag0n/pyrobud?sort=semver)](https://github.com/kdrag0n/pyrobud/releases)
-[![CI Status](https://img.shields.io/github/workflow/status/kdrag0n/pyrobud/Build%20%26%20publish%20bleeding-edge%20Docker%20image)](https://github.com/kdrag0n/pyrobud/actions?query=workflow%3A%22Build+%26+publish+bleeding-edge+Docker+image%22)
-[![Telegram Chat](https://img.shields.io/badge/chat-on%20telegram-blue)](https://t.me/pyrobud)
+[![Latest Tag](https://img.shields.io/github/v/tag/kdrag0n/pyrobud?sort=semver&style=for-the-badge)](https://github.com/kdrag0n/pyrobud/releases)
+[![CI Status](https://img.shields.io/github/workflow/status/kdrag0n/pyrobud/Build%20%26%20publish%20bleeding-edge%20Docker%20image?style=for-the-badge)](https://github.com/kdrag0n/pyrobud/actions?query=workflow%3A%22Build+%26+publish+bleeding-edge+Docker+image%22)
+[![Telegram Chat](https://img.shields.io/badge/chat-on%20telegram-blueviolet?&style=for-the-badge)](https://t.me/pyrobud)
 
 A clean selfbot for Telegram with an emphasis on quality and practicality.
 
