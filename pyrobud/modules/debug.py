@@ -31,6 +31,10 @@ class DebugModule(module.Module):
                 "ctx": ctx,
                 "bot": self.bot,
                 "loop": self.bot.loop,
+                "client": self.bot.client,
+                "commands": self.bot.commands,
+                "listeners": self.bot.listeners,
+                "modules": self.bot.modules,
                 # Helper functions
                 "send": send,
                 # Built-in modules
