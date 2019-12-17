@@ -1,5 +1,5 @@
 import asyncio
-from typing import TYPE_CHECKING, Any, Mapping, Optional, Union
+from typing import TYPE_CHECKING, Any, Mapping, Optional, Type, TypeVar, Union
 
 import sentry_sdk
 import telethon as tg
@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from .bot import Bot
 
 TelegramConfig = Mapping[str, Union[int, str]]
+EventType = TypeVar("EventType", bound=tg.events.common.EventBuilder)
 
 
 class TelegramBot(MixinBase):
@@ -82,17 +83,22 @@ class TelegramBot(MixinBase):
         self.start_time_us = util.time.usec()
         await self.dispatch_event("start", self.start_time_us)
 
-        # Register handlers
-        self.client.add_event_handler(self.on_message, tg.events.NewMessage())
-        self.client.add_event_handler(self.on_message_edit, tg.events.MessageEdited())
+        # Register core handlers
         self.client.add_event_handler(
             self.on_command, tg.events.NewMessage(outgoing=True, func=self.command_predicate),
         )
-        self.client.add_event_handler(self.on_chat_action, tg.events.ChatAction())
+
+        # Register module handlers
+        self.add_module_event_handler("message", tg.events.NewMessage)
+        self.add_module_event_handler("message_edit", tg.events.MessageEdited)
+        self.add_module_event_handler("message_delete", tg.events.MessageDeleted)
+        self.add_module_event_handler("message_read", tg.events.MessageRead)
+        self.add_module_event_handler("chat_action", tg.events.ChatAction)
+        self.add_module_event_handler("user_update", tg.events.UserUpdate)
 
         self.log.info("Bot is ready")
 
-        # Catch up on missed events
+        # Catch up on missed events now that handlers have been registered
         self.log.info("Catching up on missed events")
         await self.client.catch_up()
         self.log.info("Finished catching up")
@@ -111,14 +117,14 @@ class TelegramBot(MixinBase):
         finally:
             await self.stop()
 
-    async def on_message(self: "Bot", event: tg.events.NewMessage.Event) -> None:
-        await self.dispatch_event("message", event)
+    def add_module_event_handler(self: "Bot", name: str, event_type: Type[EventType]) -> None:
+        if name not in self.listeners:
+            return
 
-    async def on_message_edit(self: "Bot", event: tg.events.MessageEdited.Event) -> None:
-        await self.dispatch_event("message_edit", event)
+        async def event_handler(event: EventType) -> None:
+            await self.dispatch_event(name, event)
 
-    async def on_chat_action(self: "Bot", event: tg.events.ChatAction.Event) -> None:
-        await self.dispatch_event("chat_action", event)
+        self.client.add_event_handler(event_handler, event_type())
 
     # Flexible response function with filtering, truncation, redaction, etc.
     async def respond(
