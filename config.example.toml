@@ -40,7 +40,7 @@ report_username = false
 sentry_dsn = ""
 # How the bot responds to commands.
 # Valid options: edit, reply, repost
-response_mode = "reply"
+response_mode = "edit"
 # Whether to redact sensitive information from messages the bot sends/responds to.
 # "Sensitive information" is defined as the Telegram API ID and hash as well as the
 # account's phone number.
