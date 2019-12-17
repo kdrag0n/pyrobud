@@ -245,7 +245,7 @@ class StickerModule(module.Module):
             return "__That sticker doesn't exist.__"
 
         webp_path = Path(_webp_path)
-        if not webp_path.suffix == ".webp":
+        if webp_path.suffix != ".webp":
             return "__That sticker can't be sent as a photo.__"
 
         await ctx.respond("Uploading sticker...")
