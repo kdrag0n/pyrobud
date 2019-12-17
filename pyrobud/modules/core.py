@@ -98,9 +98,9 @@ Expected parameters: {args_desc}"""
     @command.alias("binfo", "bi")
     async def cmd_botinfo(self, ctx: command.Context) -> None:
         # Get tagged version and optionally the Git commit
-        commit = util.version.get_commit()
-        dirty = ", dirty" if util.git.is_dirty() else ""
-        unofficial = ", unofficial" if not util.git.is_official() else ""
+        commit = await util.run_sync(util.version.get_commit)
+        dirty = ", dirty" if await util.run_sync(util.git.is_dirty) else ""
+        unofficial = ", unofficial" if not await util.run_sync(util.git.is_official) else ""
         version = f"{__version__} (<code>{commit}</code>{dirty}{unofficial})" if commit else __version__
 
         # Clean system version
