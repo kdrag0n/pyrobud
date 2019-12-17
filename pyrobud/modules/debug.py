@@ -118,7 +118,7 @@ Time: {el_str}"""
             return "__Reply to a message to get its data.__"
 
         reply_msg = await ctx.msg.get_reply_message()
-        data = reply_msg.stringify()
+        data = util.tg.pretty_print_entity(reply_msg)
 
         return f"```{data}```"
 
@@ -148,7 +148,8 @@ Time: {el_str}"""
         else:
             return "__No entity given via argument or reply.__"
 
-        return f"```{entity.stringify()}```"
+        pretty_printed = util.tg.pretty_print_entity(entity)
+        return f"```{pretty_printed}```"
 
     @command.desc("Get all contextually relevant IDs")
     @command.alias("user", "info")

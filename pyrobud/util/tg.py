@@ -2,6 +2,7 @@ import asyncio
 import os
 from typing import Optional, Tuple, Type, Union
 
+import bprint
 import telethon as tg
 
 from .. import command
@@ -30,6 +31,15 @@ def filter_code_block(inp: str) -> str:
         inp = inp[1:][:-1]
 
     return inp
+
+
+def pretty_print_entity(entity: tg.tl.TLObject) -> str:
+    return bprint.bprint(
+        entity,
+        stream=str,
+        skip_attr_names=("CONSTRUCTOR_ID", "SUBCLASS_OF_ID", "access_hash"),
+        skip_attr_values=(False,),
+    )
 
 
 async def download_file(
