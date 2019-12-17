@@ -18,7 +18,7 @@ class SnippetsModule(module.Module):
         fut = asyncio.run_coroutine_threadsafe(self.db.get(m.group(1)), self.bot.loop)
         replacement: Optional[str] = fut.result()
         if replacement is not None:
-            asyncio.run_coroutine_threadsafe(self.bot.dispatch_event("stat_event", "replaced"), self.bot.loop)
+            asyncio.run_coroutine_threadsafe(self.bot.log_stat("replaced"), self.bot.loop)
             return replacement
 
         return m.group(0)

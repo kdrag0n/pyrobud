@@ -135,7 +135,7 @@ class StickerModule(module.Module):
         sticker_buf.name = "sticker.png"
         status, result = await self.add_sticker(sticker_buf, pack_name, emoji=reply_msg.file.emoji)
         if status:
-            await self.bot.dispatch_event("stat_event", "stickers_created", wait=False)
+            await self.bot.log_stat("stickers_created")
             return f"[Sticker kanged]({result})."
         else:
             return result
@@ -282,7 +282,7 @@ class StickerModule(module.Module):
         png_buf.name = "sticker.png"
         status, result = await self.add_sticker(png_buf, pack_name, emoji=emoji)
         if status:
-            await self.bot.dispatch_event("stat_event", "stickers_created", wait=False)
+            await self.bot.log_stat("stickers_created")
             await ctx.respond(f"[Sticker created]({result}). Preview:")
 
             webp_buf.seek(0)
@@ -316,7 +316,7 @@ class StickerModule(module.Module):
         await util.image.img_to_sticker(sticker_buf, {"webp": path})
 
         await self.db.put(name, str(path))
-        await self.bot.dispatch_event("stat_event", "stickers_created", wait=False)
+        await self.bot.log_stat("stickers_created")
         return f"Sticker saved to disk as `{name}`."
 
     @command.desc("Glitch an image")

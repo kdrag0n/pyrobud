@@ -73,3 +73,6 @@ class EventDispatcher(MixinBase):
         self.log.debug(f"Dispatching event '{event}' with data {args}")
         if wait:
             await asyncio.wait(tasks)
+
+    async def log_stat(self: "Bot", stat: str) -> None:
+        await self.dispatch_event("stat_event", stat, wait=False)

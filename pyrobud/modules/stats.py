@@ -55,18 +55,18 @@ class StatsModule(module.Module):
 
     async def on_message(self, msg: tg.events.NewMessage.Event) -> None:
         stat = "sent" if msg.out else "received"
-        await self.bot.dispatch_event("stat_event", stat)
+        await self.bot.log_stat(stat)
 
         if msg.sticker:
             sticker_stat = stat + "_stickers"
-            await self.bot.dispatch_event("stat_event", sticker_stat)
+            await self.bot.log_stat(sticker_stat)
 
     async def on_message_edit(self, msg: tg.events.MessageEdited.Event) -> None:
         stat = "sent" if msg.out else "received"
-        await self.bot.dispatch_event("stat_event", stat + "_edits")
+        await self.bot.log_stat(stat + "_edits")
 
     async def on_command(self, cmd: command.Command, msg: tg.events.MessageEdited.Event) -> None:
-        await self.bot.dispatch_event("stat_event", "processed")
+        await self.bot.log_stat("processed")
 
     async def on_stat_event(self, key: str) -> None:
         await self.db.inc(key)
