@@ -70,7 +70,7 @@ class EventDispatcher(MixinBase):
             task = self.loop.create_task(lst.func(*args, **kwargs))
             tasks.add(task)
 
-        self.log.debug(f"Dispatching event '{event}' with data {args}")
+        self.log.debug("Dispatching event '%s' with data %s", event, args)
         if wait:
             await asyncio.wait(tasks)
 
