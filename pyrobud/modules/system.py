@@ -95,12 +95,12 @@ class SystemModule(module.Module):
 
         return status
 
-    @command.desc("Stop the bot")
+    @command.desc("Stop this bot")
     async def cmd_stop(self, ctx: command.Context) -> None:
         await ctx.respond("Stopping bot...")
         await self.bot.client.disconnect()
 
-    @command.desc("Restart the bot")
+    @command.desc("Restart this bot")
     @command.alias("re", "rst")
     async def cmd_restart(self, ctx: command.Context) -> None:
         resp_msg = await ctx.respond("Restarting bot...")
@@ -144,7 +144,7 @@ class SystemModule(module.Module):
             self.log.info("Starting new bot instance...\n")
             os.execv(sys.argv[0], sys.argv)
 
-    @command.desc("Update the bot from Git and restart")
+    @command.desc("Update this bot from Git and restart")
     @command.usage("[remote name?]", optional=True)
     @command.alias("up", "upd")
     async def cmd_update(self, ctx: command.Context) -> Optional[str]:
@@ -184,7 +184,7 @@ class SystemModule(module.Module):
         for change in old_commit.diff():
             if change.a_path == "poetry.lock":
                 self.update_restart_pending = True
-                return "Successfully pulled updates. Dependencies have changed, so please update them __before__ restarting the bot by re-running the `update` or `restart` command."
+                return "Successfully pulled updates. Dependencies have changed, so please update them __before__ restarting this bot by re-running the `update` or `restart` command."
 
         # Restart after updating
         await self.cmd_restart(ctx)

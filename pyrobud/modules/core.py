@@ -72,12 +72,12 @@ Expected parameters: {args_desc}"""
 
         return "\n".join(sections)
 
-    @command.desc("Get how long the bot has been up for")
+    @command.desc("Get how long this bot has been up for")
     async def cmd_uptime(self, ctx: command.Context) -> str:
         delta_us = util.time.usec() - self.bot.start_time_us
         return f"Uptime: {util.time.format_duration_us(delta_us)}"
 
-    @command.desc("Get or change the bot prefix")
+    @command.desc("Get or change this bot prefix")
     @command.usage("[new prefix?]", optional=True)
     async def cmd_prefix(self, ctx: command.Context) -> str:
         new_prefix = ctx.input
