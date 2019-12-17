@@ -45,7 +45,7 @@ class StatsModule(module.Module):
         # Migrate old stop_time_usec + uptime timekeeping format to new start_time_usec
         uptime = await self.db.get("uptime")
         if uptime is not None:
-            await self.db.put("start_time_usec", util.time.usec() - uptime)
+            await self.db.put("start_time_usec", self.bot.start_time_usec - uptime)
             await self.db.delete("uptime")
 
     async def on_start(self, time_us: int) -> None:
@@ -70,6 +70,9 @@ class StatsModule(module.Module):
 
     async def on_stat_event(self, key: str) -> None:
         await self.db.inc(key)
+
+    async def get_start_time(self) -> int:
+        return await self.db.get("start_time_usec") or self.bot.start_time_usec
 
     @command.desc("Show chat stats (pass `reset` to reset stats)")
     @command.usage('["reset" to reset stats?]', optional=True)

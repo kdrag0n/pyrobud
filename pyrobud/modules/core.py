@@ -1,6 +1,7 @@
+import platform
 from typing import ClassVar, Dict, List
 
-from .. import command, module, util
+from .. import __version__, command, module, util
 
 OFFICIAL_SUPPORT_LINK = "https://t.me/pyrobud"
 
@@ -92,3 +93,53 @@ Expected parameters: {args_desc}"""
     @command.desc("Get the link to the official bot support group")
     async def cmd_support(self, ctx: command.Context) -> str:
         return f"[Join the official bot support group for help.]({OFFICIAL_SUPPORT_LINK})"
+
+    @command.desc("Get information about this bot instance")
+    @command.alias("binfo", "bi")
+    async def cmd_botinfo(self, ctx: command.Context) -> None:
+        # Get tagged version and optionally the Git commit
+        commit = util.version.get_commit()
+        dirty = ", dirty" if util.git.is_dirty() else ""
+        unofficial = ", unofficial" if not util.git.is_official() else ""
+        version = f"{__version__} (<code>{commit}</code>{dirty}{unofficial})" if commit else __version__
+
+        # Clean system version
+        sys_ver = platform.release()
+        try:
+            sys_ver = sys_ver[: sys_ver.index("-")]
+        except ValueError:
+            pass
+
+        # Get current uptime
+        now = util.time.usec()
+        uptime = util.time.format_duration_us(now - self.bot.start_time_us)
+
+        # Get total uptime from stats module (if loaded)
+        stats_module = self.bot.modules.get("Stats", None)
+        get_start_time = getattr(stats_module, "get_start_time", None)
+        if stats_module is not None and callable(get_start_time):
+            stats_start_time = await get_start_time()
+            total_uptime = f"""
+    \u2022 <b>Total uptime</b>: {util.time.format_duration_us(now - stats_start_time)}"""
+        else:
+            total_uptime = ""
+
+        # Get total number of chats, including PMs
+        num_chats = (await self.bot.client.get_dialogs(limit=0)).total
+
+        await ctx.respond(
+            f"""<b><a href="https://github.com/kdrag0n/pyrobud">Pyrobud</a> info:</b>
+    \u2022 <b>Version</b>: {version}
+    \u2022 <b>Python</b>: {platform.python_implementation()} {platform.python_version()}
+    \u2022 <b>System</b>: {platform.system()} {sys_ver}
+    \u2022 <b>Uptime</b>: {uptime}{total_uptime}
+
+    \u2022 <b>Commands loaded</b>: {len(self.bot.commands)}
+    \u2022 <b>Modules loaded</b>: {len(self.bot.modules)}
+    \u2022 <b>Listeners loaded</b>: {sum(len(evt) for evt in self.bot.listeners.values())}
+    \u2022 <b>Events activated</b>: {self.bot.events_activated}
+
+    \u2022 <b>Chats</b>: {num_chats}""",
+            # We use the HTML parse mode to be able to send bolded links
+            parse_mode="html",
+        )

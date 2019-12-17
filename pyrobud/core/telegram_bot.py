@@ -136,6 +136,10 @@ class TelegramBot(MixinBase):
         self.update_module_event("chat_action", tg.events.ChatAction)
         self.update_module_event("user_update", tg.events.UserUpdate)
 
+    @property
+    def events_activated(self: "Bot") -> int:
+        return len(self._mevent_handlers)
+
     # Flexible response function with filtering, truncation, redaction, etc.
     async def respond(
         self: "Bot",

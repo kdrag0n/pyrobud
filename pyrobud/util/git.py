@@ -51,6 +51,15 @@ def get_current_remote() -> "Optional[git.Remote]":
     return repo.remote(remote_ref.remote_name)
 
 
+def is_dirty() -> bool:
+    # Assume non-Git instances are clean, e.g. when installed with pip
+    repo = get_repo()
+    if not repo:
+        return False
+
+    return repo.is_dirty()
+
+
 def is_official() -> bool:
     # Assume non-Git instances are official, e.g. when installed with pip
     repo = get_repo()
