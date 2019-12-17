@@ -1,5 +1,5 @@
 import asyncio
-from typing import TYPE_CHECKING, Any, Mapping, Optional, Type, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Callable, Coroutine, Mapping, MutableMapping, Optional, Tuple, Type, Union
 
 import sentry_sdk
 import telethon as tg
@@ -11,12 +11,14 @@ if TYPE_CHECKING:
     from .bot import Bot
 
 TelegramConfig = Mapping[str, Union[int, str]]
-EventType = TypeVar("EventType", bound=tg.events.common.EventBuilder)
+EventType: Any = tg.events.common.EventBuilder
+TgEventHandler = Callable[[EventType], Coroutine[Any, Any, None]]
 
 
 class TelegramBot(MixinBase):
     # Initialized during instantiation
     tg_config: TelegramConfig
+    _mevent_handlers: MutableMapping[str, Tuple[TgEventHandler, EventType]]
 
     # Initialized during startup
     client: tg.TelegramClient
@@ -27,13 +29,14 @@ class TelegramBot(MixinBase):
     start_time_us: int
 
     def __init__(self: "Bot", **kwargs: Any) -> None:
+        self.tg_config = self.config["telegram"]
+        self._mevent_handlers = {}
+
         # Propagate initialization to other mixins
         super().__init__(**kwargs)
 
     async def init_client(self: "Bot") -> None:
         # Get Telegram parameters from config and check types
-        self.tg_config = self.config["telegram"]
-
         session_name = self.tg_config["session_name"]
         if not isinstance(session_name, str):
             raise TypeError("Session name must be a string")
@@ -59,6 +62,11 @@ class TelegramBot(MixinBase):
         # Load prefix
         self.prefix = await self.db.get("prefix", self.config["bot"]["default_prefix"])
 
+        # Register core command handler
+        self.client.add_event_handler(
+            self.on_command, tg.events.NewMessage(outgoing=True, func=self.command_predicate),
+        )
+
         # Load modules
         self.load_all_modules()
         await self.dispatch_event("load")
@@ -83,19 +91,6 @@ class TelegramBot(MixinBase):
         self.start_time_us = util.time.usec()
         await self.dispatch_event("start", self.start_time_us)
 
-        # Register core handlers
-        self.client.add_event_handler(
-            self.on_command, tg.events.NewMessage(outgoing=True, func=self.command_predicate),
-        )
-
-        # Register module handlers
-        self.add_module_event_handler("message", tg.events.NewMessage)
-        self.add_module_event_handler("message_edit", tg.events.MessageEdited)
-        self.add_module_event_handler("message_delete", tg.events.MessageDeleted)
-        self.add_module_event_handler("message_read", tg.events.MessageRead)
-        self.add_module_event_handler("chat_action", tg.events.ChatAction)
-        self.add_module_event_handler("user_update", tg.events.UserUpdate)
-
         self.log.info("Bot is ready")
 
         # Catch up on missed events now that handlers have been registered
@@ -117,14 +112,29 @@ class TelegramBot(MixinBase):
         finally:
             await self.stop()
 
-    def add_module_event_handler(self: "Bot", name: str, event_type: Type[EventType]) -> None:
-        if name not in self.listeners:
-            return
+    def update_module_event(self: "Bot", name: str, event_type: Type[EventType]) -> None:
+        if name in self.listeners:
+            # Add if there ARE listeners and it's NOT already registered
+            if name not in self._mevent_handlers:
 
-        async def event_handler(event: EventType) -> None:
-            await self.dispatch_event(name, event)
+                async def event_handler(event: EventType) -> None:
+                    await self.dispatch_event(name, event)
 
-        self.client.add_event_handler(event_handler, event_type())
+                handler_info = (event_handler, event_type())
+                self.client.add_event_handler(*handler_info)
+                self._mevent_handlers[name] = handler_info
+        elif name in self._mevent_handlers:
+            # Remove if there are NO listeners and it's ALREADY registered
+            self.client.remove_event_handler(*self._mevent_handlers[name])
+            del self._mevent_handlers[name]
+
+    def update_module_events(self: "Bot") -> None:
+        self.update_module_event("message", tg.events.NewMessage)
+        self.update_module_event("message_edit", tg.events.MessageEdited)
+        self.update_module_event("message_delete", tg.events.MessageDeleted)
+        self.update_module_event("message_read", tg.events.MessageRead)
+        self.update_module_event("chat_action", tg.events.ChatAction)
+        self.update_module_event("user_update", tg.events.UserUpdate)
 
     # Flexible response function with filtering, truncation, redaction, etc.
     async def respond(

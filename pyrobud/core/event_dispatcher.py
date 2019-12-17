@@ -29,11 +29,15 @@ class EventDispatcher(MixinBase):
         else:
             self.listeners[event] = [listener]
 
+        self.update_module_events()
+
     def unregister_listener(self: "Bot", listener: Listener) -> None:
         self.listeners[listener.event].remove(listener)
         # Remove list if empty
         if not self.listeners[listener.event]:
             del self.listeners[listener.event]
+
+        self.update_module_events()
 
     def register_listeners(self: "Bot", mod: module.Module) -> None:
         for event, func in util.find_prefixed_funcs(mod, "on_"):
