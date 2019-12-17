@@ -183,7 +183,7 @@ class AntibotModule(module.Module):
         await event.reply(
             f"❯❯ **Kicked auto-detected spambot** with ID `{user.id}`", schedule=timedelta(seconds=10),
         )
-        self.bot.dispatch_event_nowait("stat_event", "spambots_banned")
+        await self.bot.dispatch_event("stat_event", "spambots_banned", wait=False)
 
         # Delete the spam message just in case
         await event.delete()

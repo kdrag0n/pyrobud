@@ -55,7 +55,7 @@ class EventDispatcher(MixinBase):
         for listener in to_unreg:
             self.unregister_listener(listener)
 
-    async def dispatch_event(self: "Bot", event: str, *args: Any, **kwargs: Any) -> None:
+    async def dispatch_event(self: "Bot", event: str, *args: Any, wait: bool = True, **kwargs: Any) -> None:
         tasks = set()
 
         try:
@@ -71,7 +71,5 @@ class EventDispatcher(MixinBase):
             tasks.add(task)
 
         self.log.debug(f"Dispatching event '{event}' with data {args}")
-        await asyncio.wait(tasks)
-
-    def dispatch_event_nowait(self: "Bot", event: str, *args: Any, **kwargs: Any) -> None:
-        self.loop.create_task(self.dispatch_event(event, *args, **kwargs))
+        if wait:
+            await asyncio.wait(tasks)
