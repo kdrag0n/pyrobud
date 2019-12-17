@@ -25,7 +25,7 @@ class DebugModule(module.Module):
             async def send(*args: Any, **kwargs: Any) -> tg.custom.Message:
                 return await ctx.msg.respond(*args, **kwargs)
 
-            vars = {
+            eval_vars = {
                 # Contextual info
                 "self": self,
                 "ctx": ctx,
@@ -48,7 +48,7 @@ class DebugModule(module.Module):
             }
 
             try:
-                return "", await meval(code, globals(), **vars)
+                return "", await meval(code, globals(), **eval_vars)
             except Exception as e:
                 # Find first traceback frame involving the snippet
                 first_snip_idx = -1
