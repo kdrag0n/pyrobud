@@ -41,15 +41,14 @@ such support are welcome.
 
 ### Using `pip`
 
-Run `pip3 install -r requirements.txt` to install all the dependencies. After
-that, you can choose to either install the bot as a package using `pip3 install .`
-and invoke it using the `pyrobud` command, or run the bot in-place (which is
-described in the Usage section).
+Run `pip3 install .` to install the bot along with all of its dependencies. After
+that, you can choose to either invoke it using the `pyrobud` command, or run the bot
+in-place (which is described later in the Usage section).
 
-It is recommended to install everything inside a virtual environment to minimize
-contamination of the system Python install, since many of the bot's dependencies
-are not typically packaged by Linux distributions. Such environments can be
-created easily using the following command: `python3 -m venv [target directory]`
+It is highly recommended to install everything inside a virtual environment to
+minimize contamination of the system Python install, since many of the bot's
+dependencies are not typically packaged by Linux distributions. Such environments
+can easily be created using the following command: `python3 -m venv [target directory]`
 
 They can then be activated using `source [target directory]/bin/activate` or the
 equivalent command and script for your shell of choice.
@@ -62,7 +61,7 @@ cause trouble down the road and errors when upgrading conflicting packages.
 
 ## Configuration
 
-Copy `config.toml.sample` to `config.toml` and edit the settings as desired.
+Copy `config.example.toml` to `config.toml` and edit the settings as desired.
 Each and every setting is documented by the comments above it.
 
 Obtain the API ID and hash from [Telegram's website](https://my.telegram.org/apps).
