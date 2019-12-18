@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import sys
+from pathlib import Path
 
 import aiorun
 import tomlkit
@@ -47,8 +48,7 @@ async def _upgrade(config: util.config.Config, config_path: str) -> None:
 
 def main(*, config_path: str = DEFAULT_CONFIG_PATH) -> None:
     log.info("Loading config")
-    with open(config_path, "r") as f:
-        config_data = f.read()
+    config_data = Path(config_path).read_text()
     config: util.config.Config = tomlkit.loads(config_data)
 
     # Initialize Sentry reporting here to exempt config syntax errors and query
