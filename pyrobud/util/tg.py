@@ -37,7 +37,15 @@ def pretty_print_entity(entity: tg.tl.TLObject) -> str:
     return bprint.bprint(
         entity,
         stream=str,
-        skip_attr_names=("CONSTRUCTOR_ID", "SUBCLASS_OF_ID", "access_hash"),
+        skip_attr_names=(
+            "CONSTRUCTOR_ID",
+            "SUBCLASS_OF_ID",
+            "access_hash",
+            "message",
+            "raw_text",
+            "photo_big",
+            "photo_small",
+        ),
         skip_attr_values=(False,),
     )
 
