@@ -29,7 +29,11 @@ async def _get_proc_output(
     try:
         stdout, stderr = await asyncio.wait_for(proc.communicate(input), timeout)
     except asyncio.TimeoutError:
-        proc.kill()
+        try:
+            proc.kill()
+        except ProcessLookupError:
+            pass
+
         raise
     return stdout, stderr, proc.returncode
 
