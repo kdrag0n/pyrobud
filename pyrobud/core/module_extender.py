@@ -23,10 +23,7 @@ class ModuleExtender(MixinBase):
         super().__init__(**kwargs)
 
     def load_module(self: "Bot", cls: Type[module.Module], *, comment: Optional[str] = None) -> None:
-        _comment = comment + " " if comment else ""
-        self.log.info(
-            f"Loading {_comment}module '{cls.name}' ({cls.__name__}) from '{os.path.relpath(inspect.getfile(cls))}'"
-        )
+        self.log.info(f"Loading {cls.format_desc(comment)}")
 
         if cls.name in self.modules:
             old = type(self.modules[cls.name])
@@ -39,11 +36,8 @@ class ModuleExtender(MixinBase):
         self.modules[cls.name] = mod
 
     def unload_module(self: "Bot", mod: module.Module) -> None:
-        _comment = mod.comment + " " if mod.comment else ""
-
         cls = type(mod)
-        path = os.path.relpath(inspect.getfile(cls))
-        self.log.info(f"Unloading {_comment}module '{cls.name}' ({cls.__name__}) from '{path}'")
+        self.log.info(f"Unloading {mod.format_desc(mod.comment)}")
 
         self.unregister_listeners(mod)
         self.unregister_commands(mod)
@@ -57,7 +51,10 @@ class ModuleExtender(MixinBase):
                 for sym in dir(module_mod):
                     cls = getattr(module_mod, sym)
                     if inspect.isclass(cls) and issubclass(cls, module.Module):
-                        self.load_module(cls, comment=comment)
+                        if cls.disabled:
+                            self.log.info(f"Ignoring disabled {cls.format_desc(comment)}")
+                        else:
+                            self.load_module(cls, comment=comment)
 
     # noinspection PyTypeChecker,PyTypeChecker
     def load_all_modules(self: "Bot") -> None:
