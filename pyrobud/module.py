@@ -1,4 +1,6 @@
+import inspect
 import logging
+import os.path
 from typing import TYPE_CHECKING, ClassVar, Optional, Type
 
 if TYPE_CHECKING:
@@ -20,6 +22,14 @@ class Module:
         self.bot = bot
         self.log = logging.getLogger(type(self).name.lower().replace(" ", "_"))
         self.comment = None
+
+    @classmethod
+    def format_desc(cls, comment: Optional[str] = None):
+        _comment = comment + " " if comment else ""
+        return f"{_comment}module '{cls.name}' ({cls.__name__}) from '{os.path.relpath(inspect.getfile(cls))}'"
+
+    def __repr__(self):
+        return "<" + self.format_desc(self.comment) + ">"
 
 
 class ModuleLoadError(Exception):
