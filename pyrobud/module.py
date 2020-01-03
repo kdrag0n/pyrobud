@@ -7,7 +7,11 @@ if TYPE_CHECKING:
 
 
 class Module:
+    # Class variables
     name: ClassVar[str] = "Unnamed"
+    disabled: ClassVar[bool] = False
+
+    # Instance variables
     bot: "Bot"
     log: logging.Logger
     comment: Optional[str]
