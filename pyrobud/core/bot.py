@@ -15,7 +15,7 @@ class Bot(TelegramBot, ModuleExtender, CommandDispatcher, DatabaseProvider, Even
     # Initialized during instantiation
     config: Config
     log: logging.Logger
-    http_session: aiohttp.ClientSession
+    http: aiohttp.ClientSession
     client: tg.TelegramClient
 
     def __init__(self, config: Config):
@@ -24,7 +24,7 @@ class Bot(TelegramBot, ModuleExtender, CommandDispatcher, DatabaseProvider, Even
 
         # Initialize other objects
         self.log = logging.getLogger("bot")
-        self.http_session = aiohttp.ClientSession()
+        self.http = aiohttp.ClientSession()
 
         # Initialize mixins
         super().__init__()
@@ -38,7 +38,7 @@ class Bot(TelegramBot, ModuleExtender, CommandDispatcher, DatabaseProvider, Even
     async def stop(self) -> None:
         self.log.info("Stopping")
         await self.dispatch_event("stop")
-        await self.http_session.close()
+        await self.http.close()
         await self._db.close()
 
         self.log.info("Running post-stop hooks")

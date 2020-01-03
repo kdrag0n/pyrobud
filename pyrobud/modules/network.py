@@ -33,7 +33,7 @@ class NetworkModule(module.Module):
 
         await ctx.respond("Uploading text to [Dogbin](https://del.dog/)...")
 
-        async with self.bot.http_session.post("https://del.dog/documents", data=text) as resp:
+        async with self.bot.http.post("https://del.dog/documents", data=text) as resp:
             try:
                 resp_data = await resp.json()
             except aiohttp.ContentTypeError:
@@ -70,7 +70,7 @@ class NetworkModule(module.Module):
 
         await ctx.respond("Uploading file to [file.io](https://file.io/)...")
 
-        async with self.bot.http_session.post(f"https://file.io/?expires={expires}", data={"file": data}) as resp:
+        async with self.bot.http.post(f"https://file.io/?expires={expires}", data={"file": data}) as resp:
             resp_data = await resp.json()
 
             if not resp_data["success"]:
@@ -92,7 +92,7 @@ class NetworkModule(module.Module):
         await ctx.respond("Uploading file to [transfer.sh](https://transfer.sh/)...")
 
         filename = reply_msg.file.name
-        async with self.bot.http_session.put(f"https://transfer.sh/{filename}", data=data) as resp:
+        async with self.bot.http.put(f"https://transfer.sh/{filename}", data=data) as resp:
             if resp.status != 200:
                 return f"__Error uploading file — status code {resp.status}__"
 
