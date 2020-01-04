@@ -104,6 +104,31 @@ for val in values:
     print(val)
 ```
 
+## Whitespace
+
+Split discrete logical sections of single *block* (indentation level) of code by
+a single blank line. Do so sparingly, however, as to avoid *excessive* whitespace
+which is counterproductive and makes the code harder to read.
+
+Example:
+
+```python
+def get_processed_image():
+    # Get the image
+    url = get_url()
+    token = get_token()
+    image_data = get_image(url, token)
+
+    # Process the image
+    image = Image(img_data)
+    image.invert()
+    image.tint(Color.RED)
+    image.flip()
+
+    # Return final result
+    return image.to_bytes()
+```
+
 ## Common Sense
 
 Use your common sense while writing code. For example, do not combine multiple
