@@ -11,7 +11,7 @@ jobs:
       - uses: actions/checkout@master
 
       - name: Build and publish to registry
-        uses: elgohr/Publish-Docker-Github-Action@master
+        uses: elgohr/Publish-Docker-Github-Action@a72734e15780689886c6518c4dc2e17876d05d4e
         with:
           name: kdrag0n/pyrobud:unstable
           username: ${{ secrets.DOCKER_USERNAME }}
