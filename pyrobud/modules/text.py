@@ -90,9 +90,9 @@ class TextModule(module.Module):
                 preview = False
 
             # Render the line and only show the character if safe
-            line = "`U+%04X` %s" % (ord(char), name)
+            line = f"`U+{ord(char):04X}` {name}"
             if preview:
-                line += " `%c`" % char
+                line += f" `{char}`"
 
             chars.append(line)
 

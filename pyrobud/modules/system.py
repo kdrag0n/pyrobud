@@ -76,19 +76,19 @@ class SystemModule(module.Module):
         await ctx.respond(status)
         server = await util.run_sync(st.get_best_server)
         status += f" {server['sponsor']} ({server['name']})\n"
-        status += "Ping: %.2f ms\n" % server["latency"]
+        status += f"Ping: {server['latency']:.2f} ms\n"
 
         status += "Performing download test..."
         await ctx.respond(status)
         dl_bits = await util.run_sync(st.download)
         dl_mbit = dl_bits / 1000 / 1000
-        status += " %.2f Mbps\n" % dl_mbit
+        status += f" {dl_mbit:.2f} Mbps\n"
 
         status += "Performing upload test..."
         await ctx.respond(status)
         ul_bits = await util.run_sync(st.upload)
         ul_mbit = ul_bits / 1000 / 1000
-        status += " %.2f Mbps\n" % ul_mbit
+        status += f" {ul_mbit:.2f} Mbps\n"
 
         delta = util.time.usec() - before
         status += f"\nTime elapsed: {util.time.format_duration_us(delta)}"

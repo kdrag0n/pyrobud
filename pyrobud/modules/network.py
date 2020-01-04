@@ -17,7 +17,7 @@ class NetworkModule(module.Module):
         await ctx.respond("Calculating response time...")
         after = util.time.msec()
 
-        return "Request response time: %d ms" % (after - before)
+        return f"Request response time: {after - before:.0f} ms"
 
     @command.desc("Paste message text to Dogbin")
     @command.usage("[text to paste?, or upload/reply to message or file]", optional=True)
