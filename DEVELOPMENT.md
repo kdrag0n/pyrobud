@@ -64,6 +64,28 @@ Example usage:
 self.log.info(f"User ID: {self.bot.uid}")
 ```
 
+## Database
+
+The bot uses a key-value database backed by LevelDB (using the [`plyvel`](https://plyvel.readthedocs.io/en/latest/api.html)
+library) as its data store. Modules should never use the central bot database
+directly without a prefix; instead they should call `bot.get_db` to get a
+prefixed slice of the database to operate on.
+
+Example database usage:
+
+```python
+# Get prefixed database slice
+self.db = self.bot.get_db("module_name")
+
+# Perform operation
+value = await self.db.get("current_value", 1)  # Default to 1
+result = value * 9
+await self.db.put("current_value", result)
+
+# Increment operation counter
+await self.db.inc("operations_performed")
+```
+
 ## Event Handlers
 
 You can subscribe to any event by defining a coroutine named `on_[event_name]`
@@ -82,6 +104,15 @@ There are several Telegram events available:
 
 All of them provide exactly one argument: the Telethon event object associated
 with the event.
+
+Below is an example of a simple message handler that logs the message and
+increments a database counter:
+
+```python
+async def on_message(self, event: tg.events.NewMessage.Event) -> None:
+    self.log.info(f"Received message: {event.message}")
+    await self.db.inc("messages_received")
+```
 
 ### Bot Events
 
@@ -138,6 +169,20 @@ There are several internal bot events that are not directly from Telegram:
     - [`telethon.events.NewMessage.Event`](https://telethon.readthedocs.io/en/latest/modules/events.html#telethon.events.newmessage.NewMessage.Event)
       object containing the message that invoked the command (same as the
       `message` event)
+
+Below is an example of a `load` event handler:
+
+```python
+async def on_load(self) -> None:
+    # Get prefixed database slice
+    self.db = self.bot.get_db("example")
+
+    # Perform database migration
+    if await self.db.has("old_key"):
+        old_value = await self.db.get("old_key")
+        await self.db.put("new_key", old_value)
+        await self.db.delete("old_key")
+```
 
 ## Commands
 
