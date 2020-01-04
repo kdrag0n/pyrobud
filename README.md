@@ -112,6 +112,17 @@ such as systemd, also support limiting resources and and imposing restrictions f
 security. A shell script that invokes Python in a `while` loop is not a replacement
 for a proper supervisor.
 
+## Contributing
+
+See the [Contribution Guidelines](https://github.com/kdrag0n/pyrobud/blob/master/CONTRIBUTING.md)
+for more information.
+
+## Module Development
+
+You can easily develop custom modules! See the
+[Module Development Handbook](https://github.com/kdrag0n/pyrobud/blob/master/DEVELOPMENT.md)
+for more information.
+
 ## Support
 
 Feel free to join the [official support group](https://t.me/pyrobud) on Telegram
