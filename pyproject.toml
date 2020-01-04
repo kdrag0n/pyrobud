@@ -55,7 +55,7 @@ speedtest-cli = "^2.1.2"
 # Debug module
 meval = "^2.5"
 aiorun = "^2019.11.1"
-beauty-print = {git = "https://github.com/kdrag0n/bprint.git", branch = "attr-skip-lists"}
+beauty-print = {git = "https://github.com/kdrag0n/bprint.git", branch = "attr-skip-predicate"}
 
 [tool.poetry.extras]
 fast = ["uvloop"]

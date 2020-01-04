@@ -1,6 +1,6 @@
 import asyncio
 import os
-from typing import Optional, Tuple, Type, Union
+from typing import Any, Optional, Tuple, Type, Union
 
 import bprint
 import telethon as tg
@@ -8,6 +8,17 @@ import telethon as tg
 from .. import command
 
 TRUNCATION_SUFFIX = "... (truncated)"
+
+SKIP_ATTR_NAMES = (
+    "CONSTRUCTOR_ID",
+    "SUBCLASS_OF_ID",
+    "access_hash",
+    "message",
+    "raw_text",
+    "phone",
+)
+SKIP_ATTR_VALUES = (False,)
+SKIP_ATTR_TYPES = (tg.types.FileLocationToBeDeprecated,)
 
 
 def mention_user(user: tg.types.User) -> str:
@@ -33,21 +44,17 @@ def filter_code_block(inp: str) -> str:
     return inp
 
 
-def pretty_print_entity(entity: tg.tl.TLObject) -> str:
-    return bprint.bprint(
-        entity,
-        stream=str,
-        skip_attr_names=(
-            "CONSTRUCTOR_ID",
-            "SUBCLASS_OF_ID",
-            "access_hash",
-            "message",
-            "raw_text",
-            "photo_big",
-            "photo_small",
-        ),
-        skip_attr_values=(False,),
+def bprint_skip_predicate(name: str, value: Any) -> bool:
+    return (
+        bprint.default_skip_predicate(name, value)
+        or name in SKIP_ATTR_NAMES
+        or value in SKIP_ATTR_VALUES
+        or type(value) in SKIP_ATTR_TYPES
     )
+
+
+def pretty_print_entity(entity: tg.tl.TLObject) -> str:
+    return bprint.bprint(entity, stream=str, skip_predicate=bprint_skip_predicate)
 
 
 async def download_file(

@@ -85,7 +85,7 @@ python-versions = ">=3.6"
 version = "0.5.1"
 
 [package.source]
-reference = "11faa0c7197e1d54d52814d10b3a2e6653d0eb04"
+reference = "eedb2a27a492942e732a694fd3093da00041c265"
 type = "git"
 url = "https://github.com/kdrag0n/bprint.git"
 [[package]]
@@ -619,7 +619,7 @@ testing = ["pathlib2", "contextlib2", "unittest2"]
 fast = ["uvloop"]
 
 [metadata]
-content-hash = "2affbdb80c1e668676f755edbef6912b3c15586860779197ee717ba56bff9e4f"
+content-hash = "19c12da9ba07af3a141b5296a5f4febc0d4f450aeaafaba3442c7b970193bba8"
 python-versions = "^3.6"
 
 [metadata.files]
