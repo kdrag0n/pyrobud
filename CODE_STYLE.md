@@ -55,6 +55,9 @@ from .event_dispatcher import EventDispatcher
 This import style is enforced using the [isort](https://github.com/timothycrosley/isort)
 tool.
 
+The [`telethon`](https://telethon.readthedocs.io/en/latest/) package should
+always be imported as `tg` as seen in the example above.
+
 ## Line Length
 
 No lines of Python code should exceed 120 characters in length. This is 50% longer
