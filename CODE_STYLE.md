@@ -125,9 +125,17 @@ def get_processed_image():
     image.tint(Color.RED)
     image.flip()
 
-    # Return final result
     return image.to_bytes()
 ```
+
+## Comments
+
+Hard-to-understand or otherwise unclear pieces of code should be commented, as
+seen in the example above. Use comments sparingly, however, because the best
+code is self-documenting. Too many comments are counterproductive and can make
+the code harder to read.
+
+When in doubt, comment — too many comments are still better than none.
 
 ## Common Sense
 
