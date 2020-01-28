@@ -1,4 +1,5 @@
 import inspect
+import io
 import os
 import re
 import sys
@@ -19,11 +20,20 @@ class DebugModule(module.Module):
     @command.alias("ev", "exec")
     async def cmd_eval(self, ctx: command.Context) -> str:
         code = util.tg.filter_code_block(ctx.input)
+        out_buf = io.StringIO()
 
         async def _eval() -> Tuple[str, str]:
             # Message sending helper for convenience
             async def send(*args: Any, **kwargs: Any) -> tg.custom.Message:
                 return await ctx.msg.respond(*args, **kwargs)
+
+            # Print wrapper to capture output
+            # We don't override sys.stdout to avoid interfering with other output
+            def _print(*args: Any, **kwargs: Any) -> None:
+                if "file" not in kwargs:
+                    kwargs["file"] = out_buf
+
+                return print(*args, **kwargs)
 
             eval_vars = {
                 # Contextual info
@@ -35,8 +45,10 @@ class DebugModule(module.Module):
                 "commands": self.bot.commands,
                 "listeners": self.bot.listeners,
                 "modules": self.bot.modules,
+                "stdout": out_buf,
                 # Helper functions
                 "send": send,
+                "print": _print,
                 # Built-in modules
                 "inspect": inspect,
                 "os": os,
@@ -76,14 +88,23 @@ class DebugModule(module.Module):
         prefix, result = await _eval()
         after = util.time.usec()
 
+        # Always write result if no output has been collected thus far
+        if not out_buf.getvalue() or result is not None:
+            print(result, file=out_buf)
+
         el_us = after - before
         el_str = util.time.format_duration_us(el_us)
+
+        out = out_buf.getvalue()
+        # Strip only ONE final newline to compensate for our message formatting
+        if out.endswith("\n"):
+            out = out[:-1]
 
         return f"""{prefix}**In**:
 ```{code}```
 
 **Out**:
-```{str(result)}```
+```{out}```
 
 Time: {el_str}"""
 
