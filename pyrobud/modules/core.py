@@ -95,8 +95,8 @@ Expected parameters: {args_desc}"""
         return f"[Join the official bot support group for help.]({OFFICIAL_SUPPORT_LINK})"
 
     @command.desc("Get information about this bot instance")
-    @command.alias("binfo", "bi")
-    async def cmd_botinfo(self, ctx: command.Context) -> None:
+    @command.alias("botinfo", "binfo", "bi", "i")
+    async def cmd_info(self, ctx: command.Context) -> None:
         # Get tagged version and optionally the Git commit
         commit = await util.run_sync(util.version.get_commit)
         dirty = ", dirty" if await util.run_sync(util.git.is_dirty) else ""

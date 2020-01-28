@@ -156,7 +156,7 @@ Time: {el_str}"""
         return f"```{pretty_printed}```"
 
     @command.desc("Get all contextually relevant IDs")
-    @command.alias("user", "info")
+    @command.alias("user")
     async def cmd_id(self, ctx: command.Context) -> str:
         lines = []
 
