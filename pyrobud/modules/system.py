@@ -142,7 +142,7 @@ class SystemModule(module.Module):
         # Restart the bot if applicable
         if self.restart_pending:
             self.log.info("Starting new bot instance...\n")
-            os.execv(sys.argv[0], sys.argv)
+            os.execv(sys.executable, (sys.executable, *sys.argv))
 
     @command.desc("Update this bot from Git and restart")
     @command.usage("[remote name?]", optional=True)
