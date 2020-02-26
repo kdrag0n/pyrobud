@@ -37,9 +37,9 @@ class CoreModule(module.Module):
                 # Show info card
                 return f"""`{cmd.name}`: **{cmd.desc if cmd.desc else '__No description provided.__'}**
 
-Module: {cmd.module.name}
-Aliases: {aliases}
-Expected parameters: {args_desc}"""
+    Module: {cmd.module.name}
+    Aliases: {aliases}
+    Expected parameters: {args_desc}"""
             else:
                 return "__That filter didn't match any commands or modules.__"
 
@@ -66,9 +66,10 @@ Expected parameters: {args_desc}"""
 
             lines[mod_name].append(f"**{cmd.name}**: {desc}{aliases}")
 
-        sections = []
-        for mod, ln in sorted(lines.items()):
-            sections.append(f"**{mod}**:\n    \u2022 " + "\n    \u2022 ".join(ln) + "\n")
+        sections = [
+            f"**{mod}**:\n    \u2022 " + "\n    \u2022 ".join(ln) + "\n"
+            for mod, ln in sorted(lines.items())
+        ]
 
         return "\n".join(sections)
 

@@ -147,15 +147,11 @@ class AntibotModule(module.Module):
             return True
 
         join_time_sec = int(participant.date.replace(tzinfo=timezone.utc).timestamp())
-        if join_time_sec > await self.group_db.get(f"{msg.chat_id}.enable_time", 0):
-            # We started tracking first messages in this group before the user
-            # joined, so we can run the first message check
-            if not await self.user_db.get(f"{sender.id}.has_spoken_in_{msg.chat_id}", False):
-                # Suspicious message was the user's first message in this group
-                return True
-
-        # Allow this message
-        return False
+        return join_time_sec > await self.group_db.get(
+            f"{msg.chat_id}.enable_time", 0
+        ) and not await self.user_db.get(
+            f"{sender.id}.has_spoken_in_{msg.chat_id}", False
+        )
 
     @staticmethod
     def profile_check_invite(user: tg.types.User) -> bool:
