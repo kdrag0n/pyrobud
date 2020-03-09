@@ -51,9 +51,7 @@ class ModuleExtender(MixinBase):
                 for sym in dir(module_mod):
                     cls = getattr(module_mod, sym)
                     if inspect.isclass(cls) and issubclass(cls, module.Module):
-                        if cls.disabled:
-                            self.log.info(f"Ignoring disabled {cls.format_desc(comment)}")
-                        else:
+                        if not cls.disabled:
                             self.load_module(cls, comment=comment)
 
     # noinspection PyTypeChecker,PyTypeChecker
