@@ -63,7 +63,7 @@ fast = ["uvloop"]
 [tool.poetry.dev-dependencies]
 black = "^19.10b0"
 isort = {version = "^4.3.21", extras = ["pyproject"]}
-mypy = "^0.750"
+mypy = "^0.770"
 pre-commit = "^1.21.0"
 
 [tool.poetry.scripts]
