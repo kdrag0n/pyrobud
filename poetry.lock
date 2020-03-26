@@ -30,7 +30,7 @@ description = "Boilerplate for asyncio applications"
 name = "aiorun"
 optional = false
 python-versions = ">=3.5"
-version = "2019.11.1"
+version = "2020.2.1"
 
 [package.extras]
 dev = ["pytest", "pytest-cov"]
@@ -633,7 +633,7 @@ testing = ["jaraco.itertools", "func-timeout"]
 fast = ["uvloop"]
 
 [metadata]
-content-hash = "a081dfac15f734a934cfe1c851ef0f3c1cbad9cee6ced732679d09a5a0027239"
+content-hash = "af0ccbe8615ea8998938076d186401d882a2ac3f7bf08aa4c70cee09da3ff817"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -652,8 +652,8 @@ aiohttp = [
     {file = "aiohttp-3.6.2.tar.gz", hash = "sha256:259ab809ff0727d0e834ac5e8a283dc5e3e0ecc30c4d80b3cd17a4139ce1f326"},
 ]
 aiorun = [
-    {file = "aiorun-2019.11.1-py3-none-any.whl", hash = "sha256:625074ae213796bea07637e238f472f0947c4485a305f0c9d11c40c4b6cd47b6"},
-    {file = "aiorun-2019.11.1.tar.gz", hash = "sha256:27e10f0e7a45faa816fed85a516b0a19074723e4a07d8d024ed56977075b919a"},
+    {file = "aiorun-2020.2.1-py3-none-any.whl", hash = "sha256:7e9f5960b919efb6e5c147a3e75cf8a693f0d8245c12361d1e4e08c9b2d1b15e"},
+    {file = "aiorun-2020.2.1.tar.gz", hash = "sha256:2c0410edb7d26c27ef38653078ad6d3ee6985b77f379254210c2dd703f7d76d6"},
 ]
 appdirs = [
     {file = "appdirs-1.4.3-py2.py3-none-any.whl", hash = "sha256:d8b24664561d0d34ddfaec54636d502d7cea6e29c3eaf68f3df6180863e2166e"},
