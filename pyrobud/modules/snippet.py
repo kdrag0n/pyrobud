@@ -24,6 +24,10 @@ class SnippetsModule(module.Module):
         return m.group(0)
 
     async def on_message(self, msg: tg.events.NewMessage.Event) -> None:
+        # Don't process snippets from inline bots
+        if msg.via_bot_id:
+            return
+
         if msg.out and msg.text:
             orig_text = msg.text
 
