@@ -85,6 +85,10 @@ class CommandDispatcher(MixinBase):
     async def on_command(self: "Bot", msg: tg.events.NewMessage.Event) -> None:
         cmd = None
 
+        # Don't process commands from inline bots
+        if msg.via_bot_id:
+            return
+
         try:
             # Attempt to get command info
             try:
