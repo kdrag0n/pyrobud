@@ -38,7 +38,7 @@ Note that the official Docker image only supports Linux x86_64. Other operating
 systems and architectures are not supported. However, pull requests contributing
 such support are welcome.
 
-### Using `pip`
+### Using pip
 
 Run `pip3 install .` to install the bot along with all of its dependencies. After
 that, you can choose to either invoke it using the `pyrobud` command, or run the bot
@@ -57,6 +57,15 @@ but please be aware of the potential issues when doing so. The installed package
 may conflict with the system package manager's installed packages, which can
 cause trouble down the road and errors when upgrading conflicting packages.
 **You have been warned.**
+
+#### Error: `Directory '.' is not installable. File 'setup.py' not found.`
+
+This common error is caused by an outdated version of pip. We use the Poetry
+package manager to make things easier to maintain, which works with pip through
+PEP-517. This is a relatively new standard, so a newer version of pip is necessary
+to make it work.
+
+Upgrade to pip 19 to fix this issue: `pip3 install -U pip`
 
 ## Configuration
 
