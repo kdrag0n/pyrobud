@@ -7,6 +7,7 @@ import telethon as tg
 
 from .. import command
 
+MESSAGE_CHAR_LIMIT = 4096
 TRUNCATION_SUFFIX = "... (truncated)"
 
 SKIP_ATTR_NAMES = (
@@ -83,8 +84,8 @@ async def download_file(
 
 
 def truncate(text: str) -> str:
-    if len(text) > 4096:
-        return text[: 4096 - len(TRUNCATION_SUFFIX)] + TRUNCATION_SUFFIX
+    if len(text) > MESSAGE_CHAR_LIMIT:
+        return text[: MESSAGE_CHAR_LIMIT - len(TRUNCATION_SUFFIX)] + TRUNCATION_SUFFIX
     else:
         return text
 
