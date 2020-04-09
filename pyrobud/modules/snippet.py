@@ -67,15 +67,12 @@ class SnippetsModule(module.Module):
     @command.desc("Show all snippets")
     @command.alias("sl", "snl", "spl", "snips", "snippets")
     async def cmd_sniplist(self, ctx: command.Context) -> str:
-        out = "Snippet list:"
+        snippets = [f"**{key}**" async for key, _ in self.db]
 
-        async for key, _ in self.db:
-            out += f"\n    \u2022 **{key}**"
-
-        if out == "Snippet list:":
+        if snippets:
+            return util.text.join_list(("Snippet list:", *snippets))
+        else:
             return "__No snippets saved.__"
-
-        return out
 
     @command.desc("Delete a snippet")
     @command.usage("[snippet name]")

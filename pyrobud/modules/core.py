@@ -64,11 +64,12 @@ Expected parameters: {args_desc}"""
             if mod_name not in lines:
                 lines[mod_name] = []
 
-            lines[mod_name].append(f"**{cmd.name}**: {desc}{aliases}")
+            lines[mod_name].append(f"**{cmd.name}:** {desc}{aliases}")
 
         sections = []
         for mod, ln in sorted(lines.items()):
-            sections.append(f"**{mod}**:\n    \u2022 " + "\n    \u2022 ".join(ln) + "\n")
+            section = util.text.join_list((f"**{mod}:**", *ln))
+            sections.append(section + "\n")
 
         return "\n".join(sections)
 
@@ -117,29 +118,32 @@ Expected parameters: {args_desc}"""
         # Get total uptime from stats module (if loaded)
         stats_module = self.bot.modules.get("Stats", None)
         get_start_time = getattr(stats_module, "get_start_time", None)
+        total_uptime = None
         if stats_module is not None and callable(get_start_time):
             stats_start_time = await get_start_time()
-            total_uptime = f"""
-    \u2022 <b>Total uptime</b>: {util.time.format_duration_us(now - stats_start_time)}"""
+            total_uptime = util.time.format_duration_us(now - stats_start_time) + "\n"
         else:
-            total_uptime = ""
+            uptime += "\n"
 
         # Get total number of chats, including PMs
         num_chats = (await self.bot.client.get_dialogs(limit=0)).total
 
-        await ctx.respond(
-            f"""<b><a href="https://github.com/kdrag0n/pyrobud">Pyrobud</a> info:</b>
-    \u2022 <b>Version</b>: {version}
-    \u2022 <b>Python</b>: {platform.python_implementation()} {platform.python_version()}
-    \u2022 <b>System</b>: {platform.system()} {sys_ver}
-    \u2022 <b>Uptime</b>: {uptime}{total_uptime}
-
-    \u2022 <b>Commands loaded</b>: {len(self.bot.commands)}
-    \u2022 <b>Modules loaded</b>: {len(self.bot.modules)}
-    \u2022 <b>Listeners loaded</b>: {sum(len(evt) for evt in self.bot.listeners.values())}
-    \u2022 <b>Events activated</b>: {self.bot.events_activated}
-
-    \u2022 <b>Chats</b>: {num_chats}""",
-            # We use the HTML parse mode to be able to send bolded links
+        response = util.text.join_map(
+            {
+                "Version": version,
+                "Python": f"{platform.python_implementation()} {platform.python_version()}",
+                "System": f"{platform.system()} {sys_ver}",
+                "Uptime": uptime,
+                **({"Total uptime": total_uptime} if total_uptime else {}),
+                "Commands loaded": len(self.bot.commands),
+                "Modules loaded": len(self.bot.modules),
+                "Listeners loaded": sum(len(evt) for evt in self.bot.listeners.values()),
+                "Events activated": f"{self.bot.events_activated}\n",
+                "Chats": num_chats,
+            },
+            heading='<a href="https://github.com/kdrag0n/pyrobud">Pyrobud</a> info',
             parse_mode="html",
         )
+
+        # HTML allows us to send a bolded link (nested entities)
+        await ctx.respond(response, parse_mode="html")

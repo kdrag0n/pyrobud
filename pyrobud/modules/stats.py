@@ -101,12 +101,16 @@ class StatsModule(module.Module):
         ab_kicked: int = await self.db.get("spambots_banned", 0)
         stickers: int = await self.db.get("stickers_created", 0)
 
-        return f"""**Stats since last reset**:
-    • **Total time elapsed**: {util.time.format_duration_us(uptime)}
-    • **Messages received**: {recv} ({calc_ph(recv, uptime)}/h) • {calc_pct(recv_stickers, recv)}% are stickers • {calc_pct(recv_edits, recv)}% were edited
-    • **Messages sent**: {sent} ({calc_ph(sent, uptime)}/h) • {calc_pct(sent_stickers, sent)}% are stickers • {calc_pct(sent_edits, sent)}% were edited
-    • **Total messages sent**: {calc_pct(sent, sent + recv)}% of all accounted messages
-    • **Commands processed**: {processed} ({calc_ph(processed, uptime)}/h) • {calc_pct(processed, sent)}% of sent messages
-    • **Snippets replaced**: {replaced} ({calc_ph(replaced, uptime)}/h) • {calc_pct(replaced, sent)}% of sent messages
-    • **Spambots kicked**: {ab_kicked} ({calc_pd(ab_kicked, uptime)}/day)
-    • **Stickers created**: {stickers} ({calc_pd(stickers, uptime)}/day)"""
+        return util.text.join_map(
+            {
+                "Total time elapsed": util.time.format_duration_us(uptime),
+                "Messages received": f"{recv} ({calc_ph(recv, uptime)}/h) • {calc_pct(recv_stickers, recv)}% are stickers • {calc_pct(recv_edits, recv)}% were edited",
+                "Messages sent": f"{sent} ({calc_ph(sent, uptime)}/h) • {calc_pct(sent_stickers, sent)}% are stickers • {calc_pct(sent_edits, sent)}% were edited",
+                "Total messages sent": f"{calc_pct(sent, sent + recv)}% of all accounted messages",
+                "Commands processed": f"{processed} ({calc_ph(processed, uptime)}/h) • {calc_pct(processed, sent)}% of sent messages",
+                "Snippets replaced": f"{replaced} ({calc_ph(replaced, uptime)}/h) • {calc_pct(replaced, sent)}% of sent messages",
+                "Spambots kicked": f"{ab_kicked} ({calc_pd(ab_kicked, uptime)}/day)",
+                "Stickers created": f"{stickers} ({calc_pd(stickers, uptime)}/day)",
+            },
+            heading="Stats since last reset",
+        )

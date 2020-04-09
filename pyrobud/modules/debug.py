@@ -100,10 +100,10 @@ class DebugModule(module.Module):
         if out.endswith("\n"):
             out = out[:-1]
 
-        return f"""{prefix}**In**:
+        return f"""{prefix}**In:**
 ```{code}```
 
-**Out**:
+**Out:**
 ```{out}```
 
 Time: {el_str}"""

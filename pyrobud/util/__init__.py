@@ -2,7 +2,7 @@ import os
 import traceback
 from typing import Any, Callable, List, Optional, Sequence, Tuple
 
-from . import async_helpers, config, db, git, image, sentry, system, tg, time, version
+from . import async_helpers, config, db, git, image, sentry, system, text, tg, time, version
 
 INPUT_YES = (
     "y",

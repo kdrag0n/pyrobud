@@ -183,7 +183,7 @@ class StickerModule(module.Module):
 
     @command.desc("List saved stickers")
     async def cmd_stickers(self, ctx: command.Context) -> str:
-        out = ["**Stickers saved**:"]
+        out = ["**Stickers saved:**"]
 
         key: str
         value: str
@@ -194,11 +194,11 @@ class StickerModule(module.Module):
         if len(out) == 1:
             return "__No stickers saved.__"
 
-        return "\n    \u2022 ".join(out)
+        return util.text.join_list(out)
 
     @command.desc("List locally saved stickers")
     async def cmd_stickersp(self, ctx: command.Context) -> str:
-        out = ["**Stickers saved**:"]
+        out = ["**Stickers saved:**"]
 
         key: str
         value: str
@@ -209,7 +209,7 @@ class StickerModule(module.Module):
         if len(out) == 1:
             return "__No stickers saved.__"
 
-        return "\n    \u2022 ".join(out)
+        return util.text.join_list(out)
 
     @command.desc("Delete a saved sticker")
     @command.usage("[sticker name]")

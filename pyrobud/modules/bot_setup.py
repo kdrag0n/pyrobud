@@ -70,7 +70,7 @@ GitHub = "https://github.com/"```
         else:
             cfg = tomlkit.document()
 
-        rule_str = "\n    • ".join(rules)
+        rule_str = util.text.join_list(rules)
         button_links = [f"[{name}](buttonurl://{dest})" for name, dest in button_map.items()]
         button_str = "\n".join(button_links)
 

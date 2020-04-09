@@ -71,7 +71,7 @@ class ModerationModule(module.Module):
         if single_user:
             lines = []
         else:
-            lines = [f"Banned {len(user_ids)} users:"]
+            lines = [f"**Banned {len(user_ids)} users:**"]
             await ctx.respond(f"Banning {len(user_ids)} users...")
 
         for user_id in user_ids:
@@ -81,7 +81,7 @@ class ModerationModule(module.Module):
                 if single_user:
                     lines.append(f"__Unable to find user__ `{user_id}`.")
                 else:
-                    lines.append(f"    \u2022 Unable to find user `{user_id}`")
+                    lines.append(f"Unable to find user `{user_id}`")
 
                 continue
 
@@ -90,10 +90,11 @@ class ModerationModule(module.Module):
                 lines.append(f"Skipped {ent_type} object (`{user_id}`)")
                 continue
 
+            user_spec = f"{util.tg.mention_user(user)} (`{user_id}`)"
             if single_user:
-                lines.append(f"**Banned** {util.tg.mention_user(user)} (`{user_id}`)")
+                lines.append(f"**Banned** {user_spec}")
             else:
-                lines.append(f"    \u2022 {util.tg.mention_user(user)} (`{user_id}`)")
+                lines.append(user_spec)
 
             rights = tg.tl.types.ChatBannedRights(until_date=None, view_messages=True)
             ban_request = tg.tl.functions.channels.EditBannedRequest(chat, user, rights)
@@ -103,7 +104,7 @@ class ModerationModule(module.Module):
             except tg.errors.ChatAdminRequiredError:
                 return "__I need permission to ban users in this chat.__"
 
-        return "\n".join(lines)
+        return util.text.join_list(lines)
 
     @command.desc("Prune deleted members in this group or the specified group")
     @command.usage("[target chat ID/username/...?]", optional=True)
