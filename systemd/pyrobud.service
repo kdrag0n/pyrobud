@@ -15,7 +15,7 @@ WorkingDirectory=/home/pyrobud/pyrobud
 ExecStart=/home/pyrobud/venv/bin/python -O /home/pyrobud/pyrobud/main.py
 
 # Limit damage in case something goes awry
-MemoryLimit=256M
+MemoryLimit=512M
 CPUQuota=200%
 
 # Security
