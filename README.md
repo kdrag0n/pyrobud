@@ -21,18 +21,13 @@ gotten it working so I can add it here.
 
 It is also possible to run the bot on a smartphone. On Android it can be done
 with the [Termux](https://wiki.termux.com/wiki/Main_Page) app, and on iOS it
-should be possible using the [iSH](https://ish.app/) app. Note that I have only
-tested the Android solution, so try it on iOS at your own risk.
-
-I do not endorse abuse of free cloud web hosting services (such as Heroku) to run
-the bot. Please do not ask me for assistance with such endeavors — you are on
-your own if you insist on running the bot that way.
+should be possible using the [iSH](https://ish.app/) app.
 
 ## Installation
 
 ### Using Docker
 
-Simply run `docker run --rm -v "$PWD/data:/data" kdrag0n/pyrobud` to run the
+Simply run `docker run --rm -itv "$PWD/data:/data" kdrag0n/pyrobud` to run the
 latest stable version with the data directory set to `data` in the current
 working directory. Feel free to customize the data directory as you wish, as
 long as you create `config.toml` in your chosen data directory using the
@@ -104,6 +99,9 @@ that the bot will run under an independent user named `pyrobud` with a virtual
 environment located at `/home/pyrobud/venv` and a Git clone of the bot located
 at `/home/pyrobud/pyrobud`. This setup avoids tainting the system's Python install
 with unmanaged packages and allows the bot to self-update using Git.
+
+If you're using Docker to run the bot, use [pyrobud-docker.service](https://github.com/kdrag0n/pyrobud/blob/master/systemd/pyrobud-docker.service)
+instead.
 
 `tmux` or `screen` should never be used to run the bot in production. A supervisor,
 unlike a terminal multiplexer, contains a plethora of features crucial for proper

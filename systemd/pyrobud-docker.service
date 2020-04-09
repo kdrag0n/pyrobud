@@ -1,0 +1,27 @@
+[Unit]
+Description=Pyrobud Telegram selfbot
+After=multi-user.target
+
+[Service]
+# Base settings
+Type=simple
+Restart=always
+RestartSec=10
+
+# Clean up old container before starting
+ExecStartPre=-/usr/bin/docker container kill pyrobud
+ExecStartPre=-/usr/bin/docker container rm pyrobud
+
+# Start new container
+ExecStart=/usr/bin/docker run --name pyrobud \
+    -v "/srv/pyrobud:/data" \
+    --cpus=2 \
+    --memory=512m \
+    kdrag0n/pyrobud
+
+# Clean up after stopping
+ExecStop=-/usr/bin/docker container kill pyrobud
+ExecStop=-/usr/bin/docker container rm pyrobud
+
+[Install]
+WantedBy=multi-user.target
