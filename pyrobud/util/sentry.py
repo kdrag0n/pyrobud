@@ -4,6 +4,7 @@ import traceback
 from pathlib import Path
 from typing import Any, Dict, Optional, Type
 
+import plyvel
 import ratelimit
 import sentry_sdk
 
@@ -45,6 +46,7 @@ def _send_filter(event: Event, hint: EventHint) -> Optional[Event]:
                 ConnectionError,
                 IOError,
                 sqlite3.OperationalError,
+                plyvel.IOError,
             ):
                 return None
 
@@ -55,9 +57,11 @@ def _send_filter(event: Event, hint: EventHint) -> Optional[Event]:
                 return None
 
             # Telegram connection errors
-            if exc_msg.startswith(
-                "Automatic reconnection failed"
-            ) or exc_msg.startswith("Request was unsuccessful"):
+            if (
+                exc_msg.startswith("Automatic reconnection failed")
+                or exc_msg.startswith("Request was unsuccessful")
+                or "Connection to Telegram failed" in exc_msg
+            ):
                 return None
 
             # Check involved files
