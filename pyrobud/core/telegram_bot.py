@@ -1,4 +1,3 @@
-import asyncio
 from typing import TYPE_CHECKING, Any, Callable, Coroutine, Mapping, MutableMapping, Optional, Tuple, Type, Union
 
 import sentry_sdk
@@ -22,7 +21,6 @@ class TelegramBot(MixinBase):
 
     # Initialized during startup
     client: tg.TelegramClient
-    loop: asyncio.AbstractEventLoop
     prefix: str
     user: tg.types.User
     uid: int
@@ -55,9 +53,6 @@ class TelegramBot(MixinBase):
     async def start(self: "Bot") -> None:
         self.log.info("Starting")
         await self.init_client()
-
-        # Get and store current event loop, since this is the first coroutine that runs
-        self.loop = asyncio.get_event_loop()
 
         # Load prefix
         self.prefix = await self.db.get("prefix", self.config["bot"]["default_prefix"])
@@ -99,17 +94,19 @@ class TelegramBot(MixinBase):
         self.log.info("Finished catching up")
 
     async def run(self: "Bot") -> None:
-        # Start client
         try:
-            await self.start()
-        except KeyboardInterrupt:
-            self.log.warning("Received interrupt while connecting")
+            # Start client
+            try:
+                await self.start()
+            except KeyboardInterrupt:
+                self.log.warning("Received interrupt while connecting")
+                return
 
-        # Request updates, then idle until disconnected and stop when done
-        try:
+            # Request updates, then idle until disconnected
             # noinspection PyProtectedMember
             await self.client._run_until_disconnected()
         finally:
+            # Make sure we stop when done
             await self.stop()
 
     def update_module_event(self: "Bot", name: str, event_type: Type[EventType]) -> None:

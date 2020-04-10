@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 import aiohttp
@@ -17,25 +18,36 @@ class Bot(TelegramBot, ModuleExtender, CommandDispatcher, DatabaseProvider, Even
     log: logging.Logger
     http: aiohttp.ClientSession
     client: tg.TelegramClient
+    loop: asyncio.AbstractEventLoop
+    stopping: bool
 
     def __init__(self, config: Config):
-        # Save reference to config
         self.config = config
-
-        # Initialize other objects
         self.log = logging.getLogger("bot")
-        self.http = aiohttp.ClientSession()
+        self.loop = asyncio.get_event_loop()
+        self.stopping = False
 
         # Initialize mixins
         super().__init__()
 
+        # Initialize aiohttp session last in case another mixin fails
+        self.http = aiohttp.ClientSession()
+
     @classmethod
     async def create_and_run(cls, config: Config) -> "Bot":
-        bot = cls(config)
-        await bot.run()
-        return bot
+        bot = None
+
+        try:
+            bot = cls(config)
+            await bot.run()
+            return bot
+        finally:
+            if bot is None or (bot is not None and not bot.stopping):
+                asyncio.get_event_loop().stop()
 
     async def stop(self) -> None:
+        self.stopping = True
+
         self.log.info("Stopping")
         await self.dispatch_event("stop")
         await self.http.close()
