@@ -82,7 +82,7 @@ class DebugModule(module.Module):
 
                 # Return formatted stripped traceback
                 stripped_tb = tb[first_snip_idx:]
-                formatted_tb = util.format_exception(e, tb=stripped_tb)
+                formatted_tb = util.error.format_exception(e, tb=stripped_tb)
                 return "⚠️ Error executing snippet\n\n", formatted_tb
 
         before = util.time.usec()

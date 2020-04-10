@@ -46,7 +46,7 @@ class EventDispatcher(MixinBase):
         self.update_module_events()
 
     def register_listeners(self: "Bot", mod: module.Module) -> None:
-        for event, func in util.find_prefixed_funcs(mod, "on_"):
+        for event, func in util.misc.find_prefixed_funcs(mod, "on_"):
             done = True
             try:
                 self.register_listener(

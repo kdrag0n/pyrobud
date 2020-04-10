@@ -48,7 +48,7 @@ class CommandDispatcher(MixinBase):
                 continue
 
     def register_commands(self: "Bot", mod: module.Module) -> None:
-        for name, func in util.find_prefixed_funcs(mod, "cmd_"):
+        for name, func in util.misc.find_prefixed_funcs(mod, "cmd_"):
             done = False
 
             try:
@@ -138,7 +138,7 @@ class CommandDispatcher(MixinBase):
             except Exception as e:
                 cmd.module.log.error(f"Error in command '{cmd.name}'", exc_info=e)
                 await ctx.respond(
-                    f"⚠️ Error executing command:\n```{util.format_exception(e)}```"
+                    f"⚠️ Error executing command:\n```{util.error.format_exception(e)}```"
                 )
 
             await self.dispatch_event("command", cmd, msg)
@@ -148,5 +148,5 @@ class CommandDispatcher(MixinBase):
 
             await self.respond(
                 msg.message,
-                f"⚠️ Error in command handler:\n```{util.format_exception(e)}```",
+                f"⚠️ Error in command handler:\n```{util.error.format_exception(e)}```",
             )

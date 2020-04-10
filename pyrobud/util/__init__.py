@@ -1,13 +1,11 @@
-import os
-import traceback
-from typing import Any, Callable, List, Optional, Sequence, Tuple
-
 from . import (
     async_helpers,
     config,
     db,
+    error,
     git,
     image,
+    misc,
     sentry,
     system,
     text,
@@ -30,42 +28,3 @@ INPUT_YES = (
 )
 
 run_sync = async_helpers.run_sync
-
-
-def find_prefixed_funcs(obj: Any, prefix: str) -> Sequence[Tuple[str, Callable]]:
-    """Finds functions with symbol names matching the prefix on the given object."""
-
-    results = []
-
-    for sym in dir(obj):
-        if sym.startswith(prefix):
-            name = sym[len(prefix) :]
-            func = getattr(obj, sym)
-            if not callable(func):
-                continue
-
-            results.append((name, func))
-
-    return results
-
-
-def format_exception(
-    exp: BaseException, tb: Optional[List[traceback.FrameSummary]] = None
-) -> str:
-    """Formats an exception traceback as a string, similar to the Python interpreter."""
-
-    if tb is None:
-        tb = traceback.extract_tb(exp.__traceback__)
-
-    # Replace absolute paths with relative paths
-    cwd = os.getcwd()
-    for frame in tb:
-        if cwd in frame.filename:
-            frame.filename = os.path.relpath(frame.filename)
-
-    stack = "".join(traceback.format_list(tb))
-    msg = str(exp)
-    if msg:
-        msg = ": " + msg
-
-    return f"Traceback (most recent call last):\n{stack}{type(exp).__name__}{msg}"
