@@ -50,7 +50,7 @@ class TelegramBot(MixinBase):
             raise TypeError("API hash must be a string")
 
         # Initialize Telegram client with gathered parameters
-        self.client = tg.TelegramClient(session_name, api_id, api_hash)
+        self.client = tg.TelegramClient(session_name, api_id, api_hash, connection_retries=10, retry_delay=5)
 
     async def start(self: "Bot") -> None:
         self.log.info("Starting")
