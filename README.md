@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://raw.githubusercontent.com/kdrag0n/pyrobud/master/assets/logo.svg">
+    <img width="200" height="200" src="https://raw.githubusercontent.com/kdrag0n/pyrobud/master/assets/logo.png">
 </p>
 
 <h1 align="center">Pyrobud</h1>
