@@ -101,15 +101,32 @@ class Context:
 
     # Convenience alias for Bot.respond()
     async def respond(
-        self, text: Optional[str] = None, *, mode: Optional[str] = None, redact: Optional[bool] = None, **kwargs: Any
+        self,
+        text: Optional[str] = None,
+        *,
+        mode: Optional[str] = None,
+        redact: Optional[bool] = None,
+        msg: Optional[tg.custom.Message] = None,
+        reuse_response: bool = False,
+        **kwargs: Any,
     ) -> tg.custom.Message:
         self.response = await self.bot.respond(
-            self.msg,
+            msg or self.msg,
             text,
             mode=mode,
             redact=redact,
-            response=self.response if mode == self.response_mode else None,
+            response=self.response if reuse_response and mode == self.response_mode else None,
             **kwargs,
         )
         self.response_mode = mode
         return self.response
+
+    async def respond_multi(self, *args: Any, **kwargs: Any) -> tg.custom.Message:
+        # First response is the same
+        if self.response:
+            # After that, force a reply to the previous response
+            kwargs.setdefault("mode", "reply")
+            kwargs.setdefault("msg", self.response)
+            kwargs.setdefault("reuse_response", False)
+
+        return await self.respond(*args, **kwargs)
