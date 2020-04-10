@@ -32,6 +32,19 @@ should be possible using the [iSH](https://ish.app/) app.
 
 ## Installation
 
+### Native dependencies
+
+Pyrobud uses the native LevelDB library for its database, so you'll need to
+install that first. Below are instructions for some common operating systems:
+
+| OS/Distro    | Command                      |
+| ------------ | ---------------------------- |
+| Arch Linux   | `pacman -S leveldb`          |
+| Ubuntu       | `apt install libleveldb-dev` |
+| macOS        | `brew install leveldb`       |
+| Termux       | `apt install leveldb`        |
+| FreeBSD      | `pkg install leveldb`        |
+
 ### Using Docker
 
 Simply run `docker run --rm -itv "$PWD/data:/data" kdrag0n/pyrobud` to run the
