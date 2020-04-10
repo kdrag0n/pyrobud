@@ -47,7 +47,9 @@ def filter_code_block(inp: str) -> str:
 
 def bprint_skip_predicate(name: str, value: Any) -> bool:
     return (
-        bprint.default_skip_predicate(name, value)
+        name.startswith("_")
+        or value is None
+        or callable(value)
         or name in SKIP_ATTR_NAMES
         or value in SKIP_ATTR_VALUES
         or type(value) in SKIP_ATTR_TYPES
