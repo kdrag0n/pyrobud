@@ -3,18 +3,26 @@ from typing import Union
 
 
 def usec() -> int:
+    """Returns the current time in microseconds since the Unix epoch."""
+
     return int(time.time() * 1000000)
 
 
 def msec() -> int:
+    """Returns the current time in milliseconds since the Unix epoch."""
+
     return int(usec() / 1000)
 
 
 def sec() -> int:
+    """Returns the current time in seconds since the Unix epoch."""
+
     return int(time.time())
 
 
 def format_duration_us(t_us: Union[int, float]) -> str:
+    """Formats the given microsecond duration as a string."""
+
     t_us = int(t_us)
 
     t_ms = t_us / 1000

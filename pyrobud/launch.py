@@ -15,6 +15,8 @@ aiorun.logger.disabled = True
 
 
 def setup_asyncio(config: util.config.Config) -> asyncio.AbstractEventLoop:
+    """Returns a new asyncio event loop with settings from the given config."""
+
     asyncio_config: util.config.AsyncIOConfig = config["asyncio"]
 
     if sys.platform == "win32":
@@ -47,6 +49,8 @@ async def _upgrade(config: util.config.Config, config_path: str) -> None:
 
 
 def main(*, config_path: str = DEFAULT_CONFIG_PATH) -> None:
+    """Main entry point for the default bot launcher."""
+
     log.info("Loading config")
     config_data = Path(config_path).read_text()
     config: util.config.Config = tomlkit.loads(config_data)

@@ -24,7 +24,7 @@ def _ratelimit() -> None:
     pass
 
 
-def send_filter(event: Event, hint: EventHint) -> Optional[Event]:
+def _send_filter(event: Event, hint: EventHint) -> Optional[Event]:
     # Discard event if ratelimit is exceeded
     try:
         _ratelimit()
@@ -62,6 +62,8 @@ def send_filter(event: Event, hint: EventHint) -> Optional[Event]:
 
 
 def init() -> None:
+    """Initializes automatic Sentry error reporting."""
+
     # Use Git commit if possible, otherwise fall back to the version number
     release = version.get_commit()
     if release is None:
@@ -73,4 +75,4 @@ def init() -> None:
         return
 
     # Initialize the Sentry SDK using the public client key
-    sentry_sdk.init(PUBLIC_CLIENT_KEY, release=release, before_send=send_filter)
+    sentry_sdk.init(PUBLIC_CLIENT_KEY, release=release, before_send=_send_filter)

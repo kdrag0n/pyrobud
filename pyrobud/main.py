@@ -17,6 +17,8 @@ log.info("Loading code...")
 
 
 def main():
+    """Main entry point for the default bot command."""
+
     launch.main(config_path=args.config_path)
 
 

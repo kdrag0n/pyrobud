@@ -5,6 +5,8 @@ Decorator = Callable[[ListenerFunc], ListenerFunc]
 
 
 def priority(_prio: int) -> Decorator:
+    """Sets priority on the given listener function."""
+
     def prio_decorator(func: ListenerFunc) -> ListenerFunc:
         setattr(func, "_listener_priority", _prio)
         return func

@@ -12,6 +12,8 @@ Decorator = Callable[[CommandFunc], CommandFunc]
 
 
 def desc(_desc: str) -> Decorator:
+    """Sets description on a command function."""
+
     def desc_decorator(func: CommandFunc) -> CommandFunc:
         setattr(func, "_cmd_description", _desc)
         return func
@@ -20,6 +22,8 @@ def desc(_desc: str) -> Decorator:
 
 
 def usage(_usage: str, optional: bool = False, reply: bool = False) -> Decorator:
+    """Sets argument usage help on a command function."""
+
     def usage_decorator(func: CommandFunc) -> CommandFunc:
         setattr(func, "_cmd_usage", _usage)
         setattr(func, "_cmd_usage_optional", optional)
@@ -30,6 +34,8 @@ def usage(_usage: str, optional: bool = False, reply: bool = False) -> Decorator
 
 
 def alias(*aliases: str) -> Decorator:
+    """Sets aliases on a command function."""
+
     def alias_decorator(func: CommandFunc) -> CommandFunc:
         setattr(func, "_cmd_aliases", aliases)
         return func

@@ -1,8 +1,6 @@
 import sys
 from pathlib import Path
-
-# DeepSource doesn't understand lazily-evaluated type hints. skipcq: PYL-W0611
-from typing import Optional
+from typing import Optional  # skipcq: PYL-W0611
 
 try:
     import git
@@ -42,10 +40,14 @@ _repo = LazyRepo()
 
 
 def get_repo() -> "Optional[git.Repo]":
+    """Returns the current Git repository, if available."""
+
     return _repo.get()
 
 
 def get_current_remote() -> "Optional[git.Remote]":
+    """Returns the current Git branch's default remote."""
+
     repo = get_repo()
     if not repo:
         return None
@@ -58,6 +60,8 @@ def get_current_remote() -> "Optional[git.Remote]":
 
 
 def is_dirty() -> bool:
+    """Returns whether the current bot instance has a dirty Git working tree."""
+
     # Assume non-Git instances are clean, e.g. when installed with pip
     repo = get_repo()
     if not repo:
@@ -67,6 +71,8 @@ def is_dirty() -> bool:
 
 
 def is_official() -> bool:
+    """Returns whether the current bot instance is running unmodified official code."""
+
     # Assume non-Git instances are official, e.g. when installed with pip
     repo = get_repo()
     if not repo:

@@ -9,11 +9,11 @@ from .async_helpers import run_sync
 Value = TypeVar("Value")
 
 
-def encode(value: Any) -> bytes:
+def _encode(value: Any) -> bytes:
     return msgpack.packb(value, use_bin_type=True)
 
 
-def decode(value: bytes) -> Any:
+def _decode(value: bytes) -> Any:
     return msgpack.unpackb(value, raw=False)
 
 
@@ -31,7 +31,7 @@ class AsyncDB:
 
     # Core operations
     async def put(self, key: str, value: Any, **kwargs: Any) -> None:
-        value = encode(value)
+        value = _encode(value)
         return await run_sync(self._db.put, key.encode("utf-8"), value, **kwargs)
 
     @overload
@@ -48,7 +48,7 @@ class AsyncDB:
             # We re-implement this to disambiguate types
             return default
 
-        return decode(value)
+        return _decode(value)
 
     async def delete(self, key: str, **kwargs: Any) -> None:
         return await run_sync(self._db.delete, key.encode("utf-8"), **kwargs)
@@ -121,7 +121,7 @@ class AsyncDBIterator:
                 raise StopAsyncIteration
 
         tup = await run_sync(_next)
-        return tup[0].decode("utf-8"), decode(tup[1])
+        return tup[0].decode("utf-8"), _decode(tup[1])
 
     # Context manager support
     async def __aenter__(self) -> "AsyncDBIterator":

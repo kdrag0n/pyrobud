@@ -21,6 +21,8 @@ run_sync = async_helpers.run_sync
 
 
 def find_prefixed_funcs(obj: Any, prefix: str) -> Sequence[Tuple[str, Callable]]:
+    """Finds functions with symbol names matching the prefix on the given object."""
+
     results = []
 
     for sym in dir(obj):
@@ -36,6 +38,8 @@ def find_prefixed_funcs(obj: Any, prefix: str) -> Sequence[Tuple[str, Callable]]
 
 
 def format_exception(exp: BaseException, tb: Optional[List[traceback.FrameSummary]] = None) -> str:
+    """Formats an exception traceback as a string, similar to the Python interpreter."""
+
     if tb is None:
         tb = traceback.extract_tb(exp.__traceback__)
 

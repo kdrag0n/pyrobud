@@ -10,6 +10,8 @@ FormatMap = Mapping[str, FileLike]
 
 
 async def img_to_png(src: FileLike, dest: Optional[FileLike] = None) -> FileLike:
+    """Coverts the given image to a PNG using Pillow."""
+
     if dest is None:
         dest = src
 
@@ -24,6 +26,8 @@ async def img_to_png(src: FileLike, dest: Optional[FileLike] = None) -> FileLike
 
 
 async def img_to_sticker(src: FileLike, formats: FormatMap) -> FormatMap:
+    """Coverts the given image to a Telegram WebP sticker PNG using Pillow."""
+
     def _img_to_sticker() -> None:
         im = Image.open(src).convert("RGBA")
 

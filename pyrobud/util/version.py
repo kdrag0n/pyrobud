@@ -7,6 +7,8 @@ log = logging.getLogger(__name__)
 
 
 def get_commit() -> Optional[str]:
+    """Returns the current Git commit hash, if available."""
+
     if git.have_git:
         repo = git.get_repo()
         if not repo:

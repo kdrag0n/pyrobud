@@ -18,6 +18,8 @@ log = logging.getLogger("migrate")
 
 
 def save(config: Config, _path: str) -> None:
+    """Saves the given config to the given path as a TOML file."""
+
     if not isinstance(config, tomlkit.toml_document.TOMLDocument):
         raise TypeError("Only tomlkit saving is supported for now")
 
@@ -40,16 +42,16 @@ def save(config: Config, _path: str) -> None:
 
 
 # Source: https://stackoverflow.com/a/3233356
-def recursive_update(d: MutableMapping, u: Mapping) -> MutableMapping:  # sourcery off
+def _recursive_update(d: MutableMapping, u: Mapping) -> MutableMapping:  # sourcery off
     for k, v in u.items():
         if isinstance(v, collections.abc.Mapping):
-            d[k] = recursive_update(d.get(k, {}), v)
+            d[k] = _recursive_update(d.get(k, {}), v)
         else:
             d[k] = v
     return d
 
 
-async def upgrade_v2(config: Config) -> None:
+async def _upgrade_v2(config: Config) -> None:
     tg_config: MutableMapping[str, str] = config["telegram"]
 
     if "session_name" not in tg_config:
@@ -67,7 +69,7 @@ async def upgrade_v2(config: Config) -> None:
 
 # Functions or dicts to merge to migrate each version
 upgrade_methods = [
-    upgrade_v2,  # Session rename
+    _upgrade_v2,  # Session rename
     upgrade_v3,  # Large config->DB migration
     {"version": 4, "bot": {"report_errors": True, "report_username": False}},
     {"version": 5, "bot": {"sentry_dsn": ""}},
@@ -80,6 +82,8 @@ upgrade_methods = [
 
 # Master upgrade function
 async def upgrade(config: Config, path: str) -> None:
+    """Upgrades given config until it's completely up to date."""
+
     # Get current version
     cur_version: int = config["version"] if "version" in config else 1
 
@@ -97,7 +101,7 @@ async def upgrade(config: Config, path: str) -> None:
         if callable(upgrader):
             await upgrader(config)
         elif isinstance(upgrader, dict):
-            recursive_update(config, upgrader)
+            _recursive_update(config, upgrader)
         else:
             raise TypeError(f"Unrecognized upgrader type {type(upgrader)} for version {target_version}")
 

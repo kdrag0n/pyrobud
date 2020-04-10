@@ -13,6 +13,8 @@ log = logging.getLogger("migrate")
 
 
 async def upgrade_v3(config: "Config") -> None:
+    """Converts the given legacy config into the new config + LevelDB storage scheme."""
+
     bot_config: "BotConfig" = config["bot"]
 
     if "default_prefix" not in bot_config:
@@ -25,13 +27,13 @@ async def upgrade_v3(config: "Config") -> None:
         bot_config["db_path"] = "main.db"
 
     async with AsyncDB(plyvel.DB(config["bot"]["db_path"], create_if_missing=True)) as db:
-        await migrate_antibot(config, db)
-        await migrate_snippets(config, db)
-        await migrate_stats(config, db)
-        await migrate_stickers(config, db)
+        await _migrate_antibot(config, db)
+        await _migrate_snippets(config, db)
+        await _migrate_stats(config, db)
+        await _migrate_stickers(config, db)
 
 
-async def migrate_antibot(config: "Config", db: AsyncDB) -> None:
+async def _migrate_antibot(config: "Config", db: AsyncDB) -> None:
     if "antibot" not in config:
         return
 
@@ -51,7 +53,7 @@ async def migrate_antibot(config: "Config", db: AsyncDB) -> None:
     del config["antibot"]
 
 
-async def migrate_snippets(config: "Config", db: AsyncDB) -> None:
+async def _migrate_snippets(config: "Config", db: AsyncDB) -> None:
     if "snippets" in config:
         log.info("Migrating snippets to database")
         mdb = db.prefixed_db("snippets.")
@@ -62,7 +64,7 @@ async def migrate_snippets(config: "Config", db: AsyncDB) -> None:
         del config["snippets"]
 
 
-async def migrate_stats(config: "Config", db: AsyncDB) -> None:
+async def _migrate_stats(config: "Config", db: AsyncDB) -> None:
     if "stats" in config:
         log.info("Migrating stats to database")
         mdb = db.prefixed_db("stats.")
@@ -73,7 +75,7 @@ async def migrate_stats(config: "Config", db: AsyncDB) -> None:
         del config["stats"]
 
 
-async def migrate_stickers(config: "Config", db: AsyncDB) -> None:
+async def _migrate_stickers(config: "Config", db: AsyncDB) -> None:
     if "stickers" in config:
         log.info("Migrating stickers to database")
         mdb = db.prefixed_db("stickers.")

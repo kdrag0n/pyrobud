@@ -23,6 +23,8 @@ SKIP_ATTR_TYPES = (tg.types.FileLocationToBeDeprecated,)
 
 
 def mention_user(user: tg.types.User) -> str:
+    """Returns a string that mentions the given user, regardless of whether they have a username."""
+
     if user.username:
         # Use username mention if possible
         name = f"@{user.username}"
@@ -37,6 +39,8 @@ def mention_user(user: tg.types.User) -> str:
 
 
 def filter_code_block(inp: str) -> str:
+    """Returns the content inside the given Markdown code block or inline code."""
+
     if inp.startswith("```") and inp.endswith("```"):
         inp = inp[3:][:-3]
     elif inp.startswith("`") and inp.endswith("`"):
@@ -45,7 +49,7 @@ def filter_code_block(inp: str) -> str:
     return inp
 
 
-def bprint_skip_predicate(name: str, value: Any) -> bool:
+def _bprint_skip_predicate(name: str, value: Any) -> bool:
     return (
         name.startswith("_")
         or value is None
@@ -57,7 +61,9 @@ def bprint_skip_predicate(name: str, value: Any) -> bool:
 
 
 def pretty_print_entity(entity: tg.tl.TLObject) -> str:
-    return bprint.bprint(entity, stream=str, skip_predicate=bprint_skip_predicate)
+    """Pretty-prints the given Telegram entity with recursive details."""
+
+    return bprint.bprint(entity, stream=str, skip_predicate=_bprint_skip_predicate)
 
 
 async def download_file(
@@ -66,6 +72,8 @@ async def download_file(
     dest: Union[tg.hints.FileLike, os.PathLike, Type[bytes]] = bytes,
     file_type: str = "file",
 ) -> Union[str, bytes, None]:
+    """Downloads the file embedded in the given message with live progress updates."""
+
     last_percent = -5
 
     def prog_func(current_bytes: int, total_bytes: int) -> None:
@@ -86,6 +94,8 @@ async def download_file(
 
 
 def truncate(text: str) -> str:
+    """Truncates the given text to fit in one Telegram message."""
+
     if len(text) > MESSAGE_CHAR_LIMIT:
         return text[: MESSAGE_CHAR_LIMIT - len(TRUNCATION_SUFFIX)] + TRUNCATION_SUFFIX
 
@@ -93,6 +103,8 @@ def truncate(text: str) -> str:
 
 
 async def get_text_input(ctx: command.Context, input_arg: Optional[str]) -> Tuple[bool, Optional[Union[str, bytes]]]:
+    """Returns input text from various sources in the given command context."""
+
     if ctx.msg.is_reply:
         reply_msg = await ctx.msg.get_reply_message()
 

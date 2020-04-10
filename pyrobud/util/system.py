@@ -46,6 +46,8 @@ async def run_command(
     timeout: int = 0,
     **kwargs: Any
 ) -> Tuple[bytes, bytes, Optional[int]]:
+    """Runs the given command (with optional input) using asyncio subprocesses."""
+
     proc = await _spawn_exec(cmdline, in_data, stdout, stderr, **kwargs)
     return await _get_proc_output(proc, in_data, timeout)
 
@@ -58,5 +60,7 @@ async def run_command_shell(
     timeout: int = 0,
     **kwargs: Any
 ) -> Tuple[bytes, bytes, Optional[int]]:
+    """Runs the given command (with optional input) in a shell using asyncio subprocesses."""
+
     proc = await _spawn_shell(cmdline, in_data, stdout, stderr, **kwargs)
     return await _get_proc_output(proc, in_data, timeout)

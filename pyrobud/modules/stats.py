@@ -8,19 +8,19 @@ USEC_PER_HOUR = 60 * 60 * 1000000
 USEC_PER_DAY = USEC_PER_HOUR * 24
 
 
-def calc_pct(num1: int, num2: int) -> str:
+def _calc_pct(num1: int, num2: int) -> str:
     if not num2:
         return "0"
 
     return "{:.1f}".format((num1 / num2) * 100).rstrip("0").rstrip(".")
 
 
-def calc_ph(stat: int, uptime: int) -> str:
+def _calc_ph(stat: int, uptime: int) -> str:
     up_hr = max(1, uptime) / USEC_PER_HOUR
     return "{:.1f}".format(stat / up_hr).rstrip("0").rstrip(".")
 
 
-def calc_pd(stat: int, uptime: int) -> str:
+def _calc_pd(stat: int, uptime: int) -> str:
     up_day = max(1, uptime) / USEC_PER_DAY
     return "{:.1f}".format(stat / up_day).rstrip("0").rstrip(".")
 
@@ -104,13 +104,13 @@ class StatsModule(module.Module):
         return util.text.join_map(
             {
                 "Total time elapsed": util.time.format_duration_us(uptime),
-                "Messages received": f"{recv} ({calc_ph(recv, uptime)}/h) • {calc_pct(recv_stickers, recv)}% are stickers • {calc_pct(recv_edits, recv)}% were edited",
-                "Messages sent": f"{sent} ({calc_ph(sent, uptime)}/h) • {calc_pct(sent_stickers, sent)}% are stickers • {calc_pct(sent_edits, sent)}% were edited",
-                "Total messages sent": f"{calc_pct(sent, sent + recv)}% of all accounted messages",
-                "Commands processed": f"{processed} ({calc_ph(processed, uptime)}/h) • {calc_pct(processed, sent)}% of sent messages",
-                "Snippets replaced": f"{replaced} ({calc_ph(replaced, uptime)}/h) • {calc_pct(replaced, sent)}% of sent messages",
-                "Spambots kicked": f"{ab_kicked} ({calc_pd(ab_kicked, uptime)}/day)",
-                "Stickers created": f"{stickers} ({calc_pd(stickers, uptime)}/day)",
+                "Messages received": f"{recv} ({_calc_ph(recv, uptime)}/h) • {_calc_pct(recv_stickers, recv)}% are stickers • {_calc_pct(recv_edits, recv)}% were edited",
+                "Messages sent": f"{sent} ({_calc_ph(sent, uptime)}/h) • {_calc_pct(sent_stickers, sent)}% are stickers • {_calc_pct(sent_edits, sent)}% were edited",
+                "Total messages sent": f"{_calc_pct(sent, sent + recv)}% of all accounted messages",
+                "Commands processed": f"{processed} ({_calc_ph(processed, uptime)}/h) • {_calc_pct(processed, sent)}% of sent messages",
+                "Snippets replaced": f"{replaced} ({_calc_ph(replaced, uptime)}/h) • {_calc_pct(replaced, sent)}% of sent messages",
+                "Spambots kicked": f"{ab_kicked} ({_calc_pd(ab_kicked, uptime)}/day)",
+                "Stickers created": f"{stickers} ({_calc_pd(stickers, uptime)}/day)",
             },
             heading="Stats since last reset",
         )
