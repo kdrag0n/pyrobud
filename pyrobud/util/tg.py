@@ -86,7 +86,9 @@ async def download_file(
         percent = int((current_bytes / total_bytes) * 100)
         if abs(percent - last_percent) >= 5:
             loop = asyncio.get_event_loop()
-            loop.create_task(ctx.respond(f"Downloading {file_type}... {percent}% complete"))
+            loop.create_task(
+                ctx.respond(f"Downloading {file_type}... {percent}% complete")
+            )
 
         last_percent = percent
 
@@ -102,7 +104,9 @@ def truncate(text: str) -> str:
     return text
 
 
-async def get_text_input(ctx: command.Context, input_arg: Optional[str]) -> Tuple[bool, Optional[Union[str, bytes]]]:
+async def get_text_input(
+    ctx: command.Context, input_arg: Optional[str]
+) -> Tuple[bool, Optional[Union[str, bytes]]]:
     """Returns input text from various sources in the given command context."""
 
     if ctx.msg.is_reply:
@@ -113,7 +117,10 @@ async def get_text_input(ctx: command.Context, input_arg: Optional[str]) -> Tupl
         elif reply_msg.text:
             text = filter_code_block(reply_msg.text)
         else:
-            return False, "__Reply to a message with text or a text file, or provide text in command.__"
+            return (
+                False,
+                "__Reply to a message with text or a text file, or provide text in command.__",
+            )
     else:
         if ctx.msg.document:
             text = await download_file(ctx, ctx.msg)

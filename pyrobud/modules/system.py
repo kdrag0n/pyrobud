@@ -54,14 +54,20 @@ class SystemModule(module.Module):
         await ctx.respond("Collecting system information...")
 
         try:
-            stdout, _, ret = await util.system.run_command("neofetch", "--stdout", timeout=10)
+            stdout, _, ret = await util.system.run_command(
+                "neofetch", "--stdout", timeout=10
+            )
         except asyncio.TimeoutError:
             return "🕑 `neofetch` failed to finish within 10 seconds."
         except FileNotFoundError:
             return "❌ [neofetch](https://github.com/dylanaraps/neofetch) must be installed on the host system."
 
         err = f"⚠️ Return code: {ret}" if ret != 0 else ""
-        sysinfo = "\n".join(stdout.decode().strip().split("\n")[2:]) if ret == 0 else stdout.strip()
+        sysinfo = (
+            "\n".join(stdout.decode().strip().split("\n")[2:])
+            if ret == 0
+            else stdout.strip()
+        )
 
         return f"```{sysinfo}```{err}"
 
@@ -121,7 +127,9 @@ class SystemModule(module.Module):
         if rs_time is not None:
             # Fetch status message info
             rs_chat_id: Optional[int] = await self.db.get("restart_status_chat_id")
-            rs_message_id: Optional[int] = await self.db.get("restart_status_message_id")
+            rs_message_id: Optional[int] = await self.db.get(
+                "restart_status_message_id"
+            )
 
             # Delete DB keys first in case message editing fails
             await self.db.delete("restart_time")
@@ -135,7 +143,9 @@ class SystemModule(module.Module):
             # Calculate and show duration
             duration = util.time.format_duration_us(util.time.usec() - rs_time)
             self.log.info(f"Bot restarted in {duration}")
-            status_msg = await self.bot.client.get_messages(rs_chat_id, ids=rs_message_id)
+            status_msg = await self.bot.client.get_messages(
+                rs_chat_id, ids=rs_message_id
+            )
             await self.bot.respond(status_msg, f"Bot restarted in {duration}.")
 
     async def on_stopped(self) -> None:

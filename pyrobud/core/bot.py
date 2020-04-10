@@ -12,7 +12,9 @@ from .module_extender import ModuleExtender
 from .telegram_bot import TelegramBot
 
 
-class Bot(TelegramBot, ModuleExtender, CommandDispatcher, DatabaseProvider, EventDispatcher):
+class Bot(
+    TelegramBot, ModuleExtender, CommandDispatcher, DatabaseProvider, EventDispatcher
+):
     # Initialized during instantiation
     config: Config
     log: logging.Logger

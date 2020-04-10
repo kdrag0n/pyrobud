@@ -21,7 +21,13 @@ class EventDispatcher(MixinBase):
         # Propagate initialization to other mixins
         super().__init__(**kwargs)
 
-    def register_listener(self: "Bot", mod: module.Module, event: str, func: ListenerFunc, priority: int = 100) -> None:
+    def register_listener(
+        self: "Bot",
+        mod: module.Module,
+        event: str,
+        func: ListenerFunc,
+        priority: int = 100,
+    ) -> None:
         listener = Listener(event, func, mod, priority)
 
         if event in self.listeners:
@@ -43,7 +49,9 @@ class EventDispatcher(MixinBase):
         for event, func in util.find_prefixed_funcs(mod, "on_"):
             done = True
             try:
-                self.register_listener(mod, event, func, priority=getattr(func, "_listener_priority", 100))
+                self.register_listener(
+                    mod, event, func, priority=getattr(func, "_listener_priority", 100)
+                )
                 done = True
             finally:
                 if not done:
@@ -62,7 +70,9 @@ class EventDispatcher(MixinBase):
         for listener in to_unreg:
             self.unregister_listener(listener)
 
-    async def dispatch_event(self: "Bot", event: str, *args: Any, wait: bool = True, **kwargs: Any) -> None:
+    async def dispatch_event(
+        self: "Bot", event: str, *args: Any, wait: bool = True, **kwargs: Any
+    ) -> None:
         tasks = set()
 
         try:

@@ -13,7 +13,9 @@ class BotSetupModule(module.Module):
     name: ClassVar[str] = "Bot Setup"
 
     @staticmethod
-    def parse_config(chat_id: int, input_cfg: str) -> Union[str, Tuple[str, str, str, TOMLDocument]]:
+    def parse_config(
+        chat_id: int, input_cfg: str
+    ) -> Union[str, Tuple[str, str, str, TOMLDocument]]:
         target = "MissRose_bot"
         rules = [
             "Rules:",
@@ -71,7 +73,9 @@ GitHub = "https://github.com/"```
             cfg = tomlkit.document()
 
         rule_str = util.text.join_list(rules)
-        button_links = [f"[{name}](buttonurl://{dest})" for name, dest in button_map.items()]
+        button_links = [
+            f"[{name}](buttonurl://{dest})" for name, dest in button_map.items()
+        ]
         button_str = "\n".join(button_links)
 
         return target, rule_str, button_str, cfg
@@ -102,9 +106,13 @@ Please read the rules _before_ participating.
         ]
 
     async def promote_bot(self, chat: tg.types.InputPeerChannel, username: str) -> None:
-        rights = tg.tl.types.ChatAdminRights(delete_messages=True, ban_users=True, invite_users=True, pin_messages=True)
+        rights = tg.tl.types.ChatAdminRights(
+            delete_messages=True, ban_users=True, invite_users=True, pin_messages=True
+        )
 
-        request = tg.tl.functions.channels.EditAdminRequest(chat, username, rights, "bot")
+        request = tg.tl.functions.channels.EditAdminRequest(
+            chat, username, rights, "bot"
+        )
         await self.bot.client(request)
 
     @staticmethod
@@ -153,7 +161,9 @@ Please read the rules _before_ participating.
             try:
                 await self.promote_bot(input_chat, target)
             except Exception as e:
-                status_header += f"\n**WARNING**: Unable to promote @{target}: `{str(e)}`"
+                status_header += (
+                    f"\n**WARNING**: Unable to promote @{target}: `{str(e)}`"
+                )
                 await ctx.respond(status_header)
 
         async with self.bot.client.conversation(target) as conv:
@@ -179,7 +189,9 @@ Commands issued:
                 # Wait for both the rate-limit and the bot's response
                 try:
                     # pylint: disable=unused-variable
-                    done, pending = await asyncio.wait((reply_and_ack(), asyncio.sleep(0.25)))
+                    done, pending = await asyncio.wait(
+                        (reply_and_ack(), asyncio.sleep(0.25))
+                    )
 
                     # Raise all exceptions
                     for future in done:

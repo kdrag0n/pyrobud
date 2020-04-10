@@ -100,7 +100,9 @@ Expected parameters: {args_desc}"""
 
     @command.desc("Get the link to the official bot support group")
     async def cmd_support(self, ctx: command.Context) -> str:
-        return f"[Join the official bot support group for help.]({OFFICIAL_SUPPORT_LINK})"
+        return (
+            f"[Join the official bot support group for help.]({OFFICIAL_SUPPORT_LINK})"
+        )
 
     @command.desc("Get information about this bot instance")
     @command.alias("botinfo", "binfo", "bi", "i")
@@ -108,8 +110,14 @@ Expected parameters: {args_desc}"""
         # Get tagged version and optionally the Git commit
         commit = await util.run_sync(util.version.get_commit)
         dirty = ", dirty" if await util.run_sync(util.git.is_dirty) else ""
-        unofficial = ", unofficial" if not await util.run_sync(util.git.is_official) else ""
-        version = f"{__version__} (<code>{commit}</code>{dirty}{unofficial})" if commit else __version__
+        unofficial = (
+            ", unofficial" if not await util.run_sync(util.git.is_official) else ""
+        )
+        version = (
+            f"{__version__} (<code>{commit}</code>{dirty}{unofficial})"
+            if commit
+            else __version__
+        )
 
         # Clean system version
         sys_ver = platform.release()
@@ -144,7 +152,9 @@ Expected parameters: {args_desc}"""
                 **({"Total uptime": total_uptime} if total_uptime else {}),
                 "Commands loaded": len(self.bot.commands),
                 "Modules loaded": len(self.bot.modules),
-                "Listeners loaded": sum(len(evt) for evt in self.bot.listeners.values()),
+                "Listeners loaded": sum(
+                    len(evt) for evt in self.bot.listeners.values()
+                ),
                 "Events activated": f"{self.bot.events_activated}\n",
                 "Chats": num_chats,
             },

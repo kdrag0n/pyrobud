@@ -1,4 +1,15 @@
-from typing import TYPE_CHECKING, Any, Callable, Coroutine, Mapping, MutableMapping, Optional, Tuple, Type, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Coroutine,
+    Mapping,
+    MutableMapping,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+)
 
 import sentry_sdk
 import telethon as tg
@@ -48,7 +59,9 @@ class TelegramBot(MixinBase):
             raise TypeError("API hash must be a string")
 
         # Initialize Telegram client with gathered parameters
-        self.client = tg.TelegramClient(session_name, api_id, api_hash, connection_retries=10, retry_delay=5)
+        self.client = tg.TelegramClient(
+            session_name, api_id, api_hash, connection_retries=10, retry_delay=5
+        )
 
     async def start(self: "Bot") -> None:
         self.log.info("Starting")
@@ -59,7 +72,8 @@ class TelegramBot(MixinBase):
 
         # Register core command handler
         self.client.add_event_handler(
-            self.on_command, tg.events.NewMessage(outgoing=True, func=self.command_predicate),
+            self.on_command,
+            tg.events.NewMessage(outgoing=True, func=self.command_predicate),
         )
 
         # Load modules
@@ -108,7 +122,9 @@ class TelegramBot(MixinBase):
             # Make sure we stop when done
             await self.stop()
 
-    def update_module_event(self: "Bot", name: str, event_type: Type[EventType]) -> None:
+    def update_module_event(
+        self: "Bot", name: str, event_type: Type[EventType]
+    ) -> None:
         if name in self.listeners:
             # Add if there ARE listeners and it's NOT already registered
             if name not in self._mevent_handlers:

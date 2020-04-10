@@ -20,7 +20,9 @@ class NetworkModule(module.Module):
         return f"Request response time: {after - before:.0f} ms"
 
     @command.desc("Paste message text to Dogbin")
-    @command.usage("[text to paste?, or upload/reply to message or file]", optional=True)
+    @command.usage(
+        "[text to paste?, or upload/reply to message or file]", optional=True
+    )
     async def cmd_dog(self, ctx: command.Context) -> str:
         input_text = ctx.input
 
@@ -70,7 +72,9 @@ class NetworkModule(module.Module):
 
         await ctx.respond("Uploading file to [file.io](https://file.io/)...")
 
-        async with self.bot.http.post(f"https://file.io/?expires={expires}", data={"file": data}) as resp:
+        async with self.bot.http.post(
+            f"https://file.io/?expires={expires}", data={"file": data}
+        ) as resp:
             resp_data = await resp.json()
 
             if not resp_data["success"]:
@@ -92,7 +96,9 @@ class NetworkModule(module.Module):
         await ctx.respond("Uploading file to [transfer.sh](https://transfer.sh/)...")
 
         filename = reply_msg.file.name
-        async with self.bot.http.put(f"https://transfer.sh/{filename}", data=data) as resp:
+        async with self.bot.http.put(
+            f"https://transfer.sh/{filename}", data=data
+        ) as resp:
             if resp.status != 200:
                 return f"__Error uploading file — status code {resp.status}__"
 
@@ -111,7 +117,10 @@ class NetworkModule(module.Module):
             reply_msg = await ctx.msg.get_reply_message()
 
             for entity, text in reply_msg.get_entities_text():
-                if isinstance(entity, (tg.tl.types.MessageEntityUrl, tg.tl.types.MessageEntityTextUrl)):
+                if isinstance(
+                    entity,
+                    (tg.tl.types.MessageEntityUrl, tg.tl.types.MessageEntityTextUrl),
+                ):
                     link = text
 
         if not link:
@@ -136,7 +145,9 @@ class NetworkModule(module.Module):
                 await ctx.respond(f"Updated embed for link: {link}", link_preview=True)
             else:
                 # Failed for some reason, send the error
-                await ctx.respond(f"Error updating embed for [link]({link}): `{response.raw_text}`")
+                await ctx.respond(
+                    f"Error updating embed for [link]({link}): `{response.raw_text}`"
+                )
 
         return None
 

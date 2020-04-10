@@ -25,9 +25,7 @@ IMAGE_TOO_BIG_ERROR = (
     "Sorry, the file is too big.",
     "Sticker creation failed because the processed image exceeds 512 KiB in size.",
 )
-TIMEOUT_ERROR = (
-    "Sticker creation failed after {0} seconds because [the bot](https://t.me/{1}) failed to respond within 1 minute."
-)
+TIMEOUT_ERROR = "Sticker creation failed after {0} seconds because [the bot](https://t.me/{1}) failed to respond within 1 minute."
 
 
 class LengthMismatchError(Exception):
@@ -44,7 +42,12 @@ class StickerModule(module.Module):
         self.settings_db = self.bot.get_db("sticker_settings")
 
     async def add_sticker(
-        self, sticker_data: tg.hints.FileLike, pack_name: str, emoji: str = "❓", *, target: str = STICKER_BOT_USERNAME
+        self,
+        sticker_data: tg.hints.FileLike,
+        pack_name: str,
+        emoji: str = "❓",
+        *,
+        target: str = STICKER_BOT_USERNAME,
     ) -> Tuple[bool, str]:
         commands = [
             ("text", "/cancel"),
@@ -133,7 +136,9 @@ class StickerModule(module.Module):
 
         sticker_buf.seek(0)
         sticker_buf.name = "sticker.png"
-        status, result = await self.add_sticker(sticker_buf, pack_name, emoji=reply_msg.file.emoji)
+        status, result = await self.add_sticker(
+            sticker_buf, pack_name, emoji=reply_msg.file.emoji
+        )
         if status:
             await self.bot.log_stat("stickers_created")
             return f"[Sticker kanged]({result})."
@@ -174,7 +179,9 @@ class StickerModule(module.Module):
             return "__That message isn't a sticker.__"
 
         f_path = Path("stickers") / f"{name}.webp"
-        path = await util.tg.download_file(ctx, reply_msg, dest=f_path, file_type="sticker")
+        path = await util.tg.download_file(
+            ctx, reply_msg, dest=f_path, file_type="sticker"
+        )
         if not path:
             return "__Error downloading sticker__"
 
@@ -292,7 +299,9 @@ class StickerModule(module.Module):
 
         return result
 
-    @command.desc("Create a sticker from an image and save it to disk under the given name")
+    @command.desc(
+        "Create a sticker from an image and save it to disk under the given name"
+    )
     @command.usage("[new sticker name]")
     async def cmd_qstick(self, ctx: command.Context) -> str:
         name = ctx.input
@@ -352,7 +361,13 @@ class StickerModule(module.Module):
         # Source code: https://github.com/r00tman/corrupter
         try:
             stdout, stderr, ret = await util.system.run_command(
-                "corrupter", "-boffset", str(offset), "-", stderr=asyncio.subprocess.PIPE, input=png_bytes, timeout=15,
+                "corrupter",
+                "-boffset",
+                str(offset),
+                "-",
+                stderr=asyncio.subprocess.PIPE,
+                input=png_bytes,
+                timeout=15,
             )
         except asyncio.TimeoutError:
             return "🕑 `corrupter` failed to finish within 15 seconds."

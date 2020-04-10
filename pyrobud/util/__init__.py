@@ -2,7 +2,19 @@ import os
 import traceback
 from typing import Any, Callable, List, Optional, Sequence, Tuple
 
-from . import async_helpers, config, db, git, image, sentry, system, text, tg, time, version
+from . import (
+    async_helpers,
+    config,
+    db,
+    git,
+    image,
+    sentry,
+    system,
+    text,
+    tg,
+    time,
+    version,
+)
 
 INPUT_YES = (
     "y",
@@ -37,7 +49,9 @@ def find_prefixed_funcs(obj: Any, prefix: str) -> Sequence[Tuple[str, Callable]]
     return results
 
 
-def format_exception(exp: BaseException, tb: Optional[List[traceback.FrameSummary]] = None) -> str:
+def format_exception(
+    exp: BaseException, tb: Optional[List[traceback.FrameSummary]] = None
+) -> str:
     """Formats an exception traceback as a string, similar to the Python interpreter."""
 
     if tb is None:

@@ -41,7 +41,9 @@ class ExistingModuleError(ModuleLoadError):
     new_module: Type[Module]
 
     def __init__(self, old_module: Type[Module], new_module: Type[Module]) -> None:
-        super().__init__(f"Module '{old_module.name}' ({old_module.__name__}) already exists")
+        super().__init__(
+            f"Module '{old_module.name}' ({old_module.__name__}) already exists"
+        )
 
         self.old_module = old_module
         self.new_module = new_module
@@ -52,7 +54,9 @@ class ExistingCommandError(ModuleLoadError):
     new_cmd: "Command"
     alias: bool
 
-    def __init__(self, old_cmd: "Command", new_cmd: "Command", alias: bool = False) -> None:
+    def __init__(
+        self, old_cmd: "Command", new_cmd: "Command", alias: bool = False
+    ) -> None:
         al_str = "alias of " if alias else ""
         old_name = type(old_cmd.module).__name__
         new_name = type(new_cmd.module).__name__

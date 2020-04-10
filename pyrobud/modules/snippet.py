@@ -18,7 +18,9 @@ class SnippetsModule(module.Module):
         fut = asyncio.run_coroutine_threadsafe(self.db.get(m.group(1)), self.bot.loop)
         replacement: Optional[str] = fut.result()
         if replacement is not None:
-            asyncio.run_coroutine_threadsafe(self.bot.log_stat("replaced"), self.bot.loop)
+            asyncio.run_coroutine_threadsafe(
+                self.bot.log_stat("replaced"), self.bot.loop
+            )
             return replacement
 
         return m.group(0)
@@ -31,7 +33,9 @@ class SnippetsModule(module.Module):
         if msg.out and msg.text:
             orig_text = msg.text
 
-            text = await util.run_sync(lambda: re.sub(r"/([^ ]+?)/", self.snip_repl, orig_text))
+            text = await util.run_sync(
+                lambda: re.sub(r"/([^ ]+?)/", self.snip_repl, orig_text)
+            )
             text = util.tg.truncate(text)
 
             if text != orig_text:
@@ -76,7 +80,9 @@ class SnippetsModule(module.Module):
 
     @command.desc("Delete a snippet")
     @command.usage("[snippet name]")
-    @command.alias("ds", "sd", "snd", "spd", "rms", "srm", "rs", "sr", "rmsnip", "delsnip")
+    @command.alias(
+        "ds", "sd", "snd", "spd", "rms", "srm", "rs", "sr", "rmsnip", "delsnip"
+    )
     async def cmd_snipdel(self, ctx: command.Context) -> str:
         name = ctx.input
 

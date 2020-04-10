@@ -45,10 +45,14 @@ class ModerationModule(module.Module):
     @command.usage("[comment?]", optional=True)
     @command.alias("adm", "@admin")
     async def cmd_admin(self, ctx: command.Context) -> Optional[str]:
-        return await self.cmd_everyone(ctx, tag="admin", user_filter=tg.tl.types.ChannelParticipantsAdmins)
+        return await self.cmd_everyone(
+            ctx, tag="admin", user_filter=tg.tl.types.ChannelParticipantsAdmins
+        )
 
     @command.desc("Ban user(s) from the current chat by ID or reply")
-    @command.usage("[ID(s) of the user(s) to ban?, or reply to user's message]", optional=True)
+    @command.usage(
+        "[ID(s) of the user(s) to ban?, or reply to user's message]", optional=True
+    )
     async def cmd_ban(self, ctx: command.Context) -> str:
         input_ids = ctx.args
 
@@ -136,10 +140,16 @@ class ModerationModule(module.Module):
             if user.deleted:
                 ban_request: tg.tl.TLRequest
                 if isinstance(chat, tg.types.Chat):
-                    ban_request = tg.tl.functions.messages.DeleteChatUserRequest(chat.id, user)
+                    ban_request = tg.tl.functions.messages.DeleteChatUserRequest(
+                        chat.id, user
+                    )
                 else:
-                    rights = tg.tl.types.ChatBannedRights(until_date=None, view_messages=True)
-                    ban_request = tg.tl.functions.channels.EditBannedRequest(chat, user, rights)
+                    rights = tg.tl.types.ChatBannedRights(
+                        until_date=None, view_messages=True
+                    )
+                    ban_request = tg.tl.functions.channels.EditBannedRequest(
+                        chat, user, rights
+                    )
 
                 await self.bot.client(ban_request)
                 pruned_count += 1

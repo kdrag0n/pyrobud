@@ -30,7 +30,9 @@ def setup_asyncio(config: util.config.Config) -> asyncio.AbstractEventLoop:
 
             loop = uvloop.new_event_loop()
         except ImportError:
-            log.warning("Unable to load uvloop; falling back to default asyncio event loop")
+            log.warning(
+                "Unable to load uvloop; falling back to default asyncio event loop"
+            )
             loop = asyncio.new_event_loop()
     else:
         loop = asyncio.new_event_loop()

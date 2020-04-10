@@ -6,7 +6,8 @@ if TYPE_CHECKING:
     from .core import Bot
 
 CommandFunc = Union[
-    Callable[..., Coroutine[Any, Any, None]], Callable[..., Coroutine[Any, Any, Optional[str]]],
+    Callable[..., Coroutine[Any, Any, None]],
+    Callable[..., Coroutine[Any, Any, Optional[str]]],
 ]
 Decorator = Callable[[CommandFunc], CommandFunc]
 
@@ -78,7 +79,9 @@ class Context:
     parsed_input: str
     args: Sequence[str]
 
-    def __init__(self, bot: "Bot", msg: tg.custom.Message, segments: Sequence[str], cmd_len: int) -> None:
+    def __init__(
+        self, bot: "Bot", msg: tg.custom.Message, segments: Sequence[str], cmd_len: int
+    ) -> None:
         self.bot = bot
         self.msg = msg
         self.segments = segments
@@ -98,7 +101,9 @@ class Context:
         if name == "args":
             return self._get_args()
 
-        raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+        raise AttributeError(
+            f"'{type(self).__name__}' object has no attribute '{name}'"
+        )
 
     # Argument segments
     def _get_args(self) -> Sequence[str]:
@@ -121,7 +126,9 @@ class Context:
             text,
             mode=mode,
             redact=redact,
-            response=self.response if reuse_response and mode == self.response_mode else None,
+            response=self.response
+            if reuse_response and mode == self.response_mode
+            else None,
             **kwargs,
         )
         self.response_mode = mode

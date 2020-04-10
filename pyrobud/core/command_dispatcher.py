@@ -20,7 +20,9 @@ class CommandDispatcher(MixinBase):
         # Propagate initialization to other mixins
         super().__init__(**kwargs)
 
-    def register_command(self: "Bot", mod: module.Module, name: str, func: command.CommandFunc) -> None:
+    def register_command(
+        self: "Bot", mod: module.Module, name: str, func: command.CommandFunc
+    ) -> None:
         cmd = command.Command(name, mod, func)
 
         if name in self.commands:
@@ -97,7 +99,12 @@ class CommandDispatcher(MixinBase):
                 return
 
             # Construct invocation context
-            ctx = command.Context(self, msg.message, msg.segments, len(self.prefix) + len(msg.segments[0]) + 1)
+            ctx = command.Context(
+                self,
+                msg.message,
+                msg.segments,
+                len(self.prefix) + len(msg.segments[0]) + 1,
+            )
 
             # Ensure specified argument needs are met
             if not (cmd.usage is None or cmd.usage_optional or ctx.input):
@@ -110,7 +117,9 @@ class CommandDispatcher(MixinBase):
                             ctx.input = reply_msg.text
                             ctx.parsed_input = reply_msg.raw_text
                         else:
-                            await ctx.respond(f"{err_base}\n__The message you replied to doesn't contain text.__")
+                            await ctx.respond(
+                                f"{err_base}\n__The message you replied to doesn't contain text.__"
+                            )
                             return
                     else:
                         await ctx.respond(f"{err_base} (replying is also supported)")
@@ -128,11 +137,16 @@ class CommandDispatcher(MixinBase):
                     await ctx.respond(ret)
             except Exception as e:
                 cmd.module.log.error(f"Error in command '{cmd.name}'", exc_info=e)
-                await ctx.respond(f"⚠️ Error executing command:\n```{util.format_exception(e)}```")
+                await ctx.respond(
+                    f"⚠️ Error executing command:\n```{util.format_exception(e)}```"
+                )
 
             await self.dispatch_event("command", cmd, msg)
         except Exception as e:
             if cmd is not None:
                 cmd.module.log.error("Error in command handler", exc_info=e)
 
-            await self.respond(msg.message, f"⚠️ Error in command handler:\n```{util.format_exception(e)}```")
+            await self.respond(
+                msg.message,
+                f"⚠️ Error in command handler:\n```{util.format_exception(e)}```",
+            )

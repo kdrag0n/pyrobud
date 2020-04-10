@@ -26,7 +26,9 @@ async def upgrade_v3(config: "Config") -> None:
         log.info("Adding default database path 'main.db' to bot config section")
         bot_config["db_path"] = "main.db"
 
-    async with AsyncDB(plyvel.DB(config["bot"]["db_path"], create_if_missing=True)) as db:
+    async with AsyncDB(
+        plyvel.DB(config["bot"]["db_path"], create_if_missing=True)
+    ) as db:
         await _migrate_antibot(config, db)
         await _migrate_snippets(config, db)
         await _migrate_stats(config, db)

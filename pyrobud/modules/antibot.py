@@ -51,11 +51,15 @@ class AntibotModule(module.Module):
         # Migrate message tracking start times to the new per-group format
         fmsg_start_time = await self.db.get("first_msg_start_time")
         if fmsg_start_time is not None:
-            self.log.info("Migrating message tracking start times to the new per-group format")
+            self.log.info(
+                "Migrating message tracking start times to the new per-group format"
+            )
 
             async for key, value in self.group_db:
                 if key.endswith(".enabled") and value:
-                    await self.group_db.put(key.replace(".enabled", ".enable_time"), fmsg_start_time)
+                    await self.group_db.put(
+                        key.replace(".enabled", ".enable_time"), fmsg_start_time
+                    )
 
             await self.db.delete("first_msg_start_time")
 
@@ -64,7 +68,9 @@ class AntibotModule(module.Module):
             return False
 
         # Messages containing certain entities are more likely to be spam
-        return any(type(entity) in type(self).suspicious_entities for entity in msg.entities)
+        return any(
+            type(entity) in type(self).suspicious_entities for entity in msg.entities
+        )
 
     def msg_has_suspicious_keyword(self, msg: tg.custom.Message) -> bool:
         if not msg.raw_text:
@@ -76,7 +82,9 @@ class AntibotModule(module.Module):
 
     def msg_content_suspicious(self, msg: tg.custom.Message) -> bool:
         # Consolidate message content checks
-        return self.msg_has_suspicious_entity(msg) or self.msg_has_suspicious_keyword(msg)
+        return self.msg_has_suspicious_entity(msg) or self.msg_has_suspicious_keyword(
+            msg
+        )
 
     @staticmethod
     def msg_type_suspicious(msg: tg.custom.Message) -> bool:
@@ -103,11 +111,18 @@ class AntibotModule(module.Module):
                 # This protects users who forward questions with links/images to
                 # various support chats asking for help (arguably, that's spammy,
                 # it's out of the scope of this function)
-                if msg.forward.from_id == sender.id or msg.forward.from_name == tg.utils.get_display_name(sender):
+                if (
+                    msg.forward.from_id == sender.id
+                    or msg.forward.from_name == tg.utils.get_display_name(sender)
+                ):
                     return False
 
                 # Screen forwarded messages more aggressively
-                return msg.photo or self.msg_type_suspicious(msg) or self.msg_content_suspicious(msg)
+                return (
+                    msg.photo
+                    or self.msg_type_suspicious(msg)
+                    or self.msg_content_suspicious(msg)
+                )
 
             # Skip suspicious entity/photo check for non-forwarded messages
             return self.msg_type_suspicious(msg) or self.msg_has_suspicious_keyword(msg)
@@ -130,7 +145,9 @@ class AntibotModule(module.Module):
 
         # Load group-specific user information
         try:
-            ch_participant = await self.bot.client(tg.tl.functions.channels.GetParticipantRequest(chat, sender))
+            ch_participant = await self.bot.client(
+                tg.tl.functions.channels.GetParticipantRequest(chat, sender)
+            )
         except (ValueError, tg.errors.UserNotParticipantError):
             # User was already banned or deleted; we don't need to proceed
             return False
@@ -150,7 +167,9 @@ class AntibotModule(module.Module):
         if join_time_sec > await self.group_db.get(f"{msg.chat_id}.enable_time", 0):
             # We started tracking first messages in this group before the user
             # joined, so we can run the first message check
-            if not await self.user_db.get(f"{sender.id}.has_spoken_in_{msg.chat_id}", False):
+            if not await self.user_db.get(
+                f"{sender.id}.has_spoken_in_{msg.chat_id}", False
+            ):
                 # Suspicious message was the user's first message in this group
                 return True
 
@@ -181,7 +200,8 @@ class AntibotModule(module.Module):
         # Log the event
         self.log.info(f'Kicked spambot with ID {user.id} in group "{chat.title}"')
         await event.reply(
-            f"❯❯ **Kicked auto-detected spambot** with ID `{user.id}`", schedule=timedelta(seconds=10),
+            f"❯❯ **Kicked auto-detected spambot** with ID `{user.id}`",
+            schedule=timedelta(seconds=10),
         )
         await self.bot.log_stat("spambots_banned")
 
@@ -189,7 +209,10 @@ class AntibotModule(module.Module):
         await event.delete()
 
     async def is_enabled(self, event: MessageEvent) -> bool:
-        return bool(event.is_group and await self.group_db.get(f"{event.chat_id}.enabled", False))
+        return bool(
+            event.is_group
+            and await self.group_db.get(f"{event.chat_id}.enabled", False)
+        )
 
     async def on_message(self, msg: tg.events.NewMessage.Event) -> None:
         # Only run in groups where antibot is enabled
@@ -199,7 +222,9 @@ class AntibotModule(module.Module):
                 user = await msg.get_sender()
                 await self.take_action(msg, user)
             else:
-                await self.user_db.put(f"{msg.sender_id}.has_spoken_in_{msg.chat_id}", True)
+                await self.user_db.put(
+                    f"{msg.sender_id}.has_spoken_in_{msg.chat_id}", True
+                )
 
     async def clear_group(self, group_id: int) -> None:
         async for key, _ in self.group_db.iterator(prefix=f"{group_id}."):
@@ -212,7 +237,9 @@ class AntibotModule(module.Module):
     async def on_chat_action(self, action: tg.events.ChatAction.Event) -> None:
         # Remove has-spoken-in flag for departing users
         if action.user_left and await self.is_enabled(action):
-            await self.user_db.delete(f"{action.user_id}.has_spoken_in_{action.chat_id}")
+            await self.user_db.delete(
+                f"{action.user_id}.has_spoken_in_{action.chat_id}"
+            )
 
             # Clean up antibot data if we left the group
             if action.user_id == self.bot.uid:
@@ -251,7 +278,9 @@ class AntibotModule(module.Module):
         if state:
             # Check for required permissions
             chat = await ctx.msg.get_chat()
-            ch_participant = await self.bot.client(tg.tl.functions.channels.GetParticipantRequest(chat, self.bot.user))
+            ch_participant = await self.bot.client(
+                tg.tl.functions.channels.GetParticipantRequest(chat, self.bot.user)
+            )
             ptcp = ch_participant.participant
 
             if isinstance(ptcp, tg.types.ChannelParticipantCreator):
@@ -259,7 +288,9 @@ class AntibotModule(module.Module):
                 pass
             elif isinstance(ptcp, tg.types.ChannelParticipantAdmin):
                 # Check for the required admin permissions
-                if not (ptcp.admin_rights.delete_messages and ptcp.admin_rights.ban_users):
+                if not (
+                    ptcp.admin_rights.delete_messages and ptcp.admin_rights.ban_users
+                ):
                     return "__Antibot requires the **Delete Messages** and **Ban Users** permissions.__"
             else:
                 return "__I must be an admin with the **Delete Messages** and **Ban Users** permissions for antibot to work.__"

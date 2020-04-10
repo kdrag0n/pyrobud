@@ -103,7 +103,9 @@ async def upgrade(config: Config, path: str) -> None:
         elif isinstance(upgrader, dict):
             _recursive_update(config, upgrader)
         else:
-            raise TypeError(f"Unrecognized upgrader type {type(upgrader)} for version {target_version}")
+            raise TypeError(
+                f"Unrecognized upgrader type {type(upgrader)} for version {target_version}"
+            )
 
         # Account for the upgrade
         cur_version = target_version

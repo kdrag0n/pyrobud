@@ -42,8 +42,12 @@ class AsyncDB:
     async def get(self, key: str, default: Value, **kwargs: Any) -> Value:
         pass
 
-    async def get(self, key: str, default: Optional[Value] = None, **kwargs: Any) -> Optional[Value]:
-        value: Optional[bytes] = await run_sync(self._db.get, key.encode("utf-8"), **kwargs)
+    async def get(
+        self, key: str, default: Optional[Value] = None, **kwargs: Any
+    ) -> Optional[Value]:
+        value: Optional[bytes] = await run_sync(
+            self._db.get, key.encode("utf-8"), **kwargs
+        )
         if value is None:
             # We re-implement this to disambiguate types
             return default
@@ -74,7 +78,9 @@ class AsyncDB:
         return await self.put(key, old_value - delta)
 
     async def has(self, key: str, **kwargs: Any) -> bool:
-        value: Optional[Any] = await run_sync(self._db.get, key.encode("utf-8"), **kwargs)
+        value: Optional[Any] = await run_sync(
+            self._db.get, key.encode("utf-8"), **kwargs
+        )
         return value is not None
 
     async def clear(self, **kwargs: Any) -> None:
@@ -86,12 +92,17 @@ class AsyncDB:
         return self
 
     async def __aexit__(
-        self, typ: Optional[Type[BaseException]], value: Optional[BaseException], tb: Optional[TracebackType],
+        self,
+        typ: Optional[Type[BaseException]],
+        value: Optional[BaseException],
+        tb: Optional[TracebackType],
     ) -> None:
         await self.close()
 
     # Iterator support
-    def iterator(self, *args: Any, **kwargs: Union[bool, str, bytes]) -> "AsyncDBIterator":
+    def iterator(
+        self, *args: Any, **kwargs: Union[bool, str, bytes]
+    ) -> "AsyncDBIterator":
         for key, value in kwargs.items():
             if isinstance(value, str):
                 kwargs[key] = value.encode("utf-8")
@@ -128,7 +139,10 @@ class AsyncDBIterator:
         return self
 
     async def __aexit__(
-        self, typ: Optional[Type[BaseException]], value: Optional[BaseException], tb: Optional[TracebackType],
+        self,
+        typ: Optional[Type[BaseException]],
+        value: Optional[BaseException],
+        tb: Optional[TracebackType],
     ) -> None:
         await self.close()
 

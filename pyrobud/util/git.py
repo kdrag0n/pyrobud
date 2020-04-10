@@ -25,7 +25,11 @@ class LazyRepo:
     def get(self) -> "Optional[git.Repo]":
         if not self.initialized:
             try:
-                self.repo = git.Repo(Path(sys.argv[0]).parent, search_parent_directories=True, odbt=git.GitDB)
+                self.repo = git.Repo(
+                    Path(sys.argv[0]).parent,
+                    search_parent_directories=True,
+                    odbt=git.GitDB,
+                )
             # Silence a bogus pylint error
             # pylint: disable=no-member
             except git.exc.InvalidGitRepositoryError:

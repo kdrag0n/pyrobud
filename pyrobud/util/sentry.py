@@ -37,7 +37,12 @@ def _send_filter(event: Event, hint: EventHint) -> Optional[Event]:
         exc_type, exc_value, = hint["exc_info"]
 
         # User-initiated interrupts, network errors, and I/O errors
-        if exc_type in (KeyboardInterrupt, ConnectionError, IOError, sqlite3.OperationalError):
+        if exc_type in (
+            KeyboardInterrupt,
+            ConnectionError,
+            IOError,
+            sqlite3.OperationalError,
+        ):
             return None
 
         exc_msg = str(exc_value)
@@ -47,7 +52,9 @@ def _send_filter(event: Event, hint: EventHint) -> Optional[Event]:
             return None
 
         # Telegram connection errors
-        if exc_msg.startswith("Automatic reconnection failed") or exc_msg.startswith("Request was unsuccessful"):
+        if exc_msg.startswith("Automatic reconnection failed") or exc_msg.startswith(
+            "Request was unsuccessful"
+        ):
             return None
 
         # Check involved files

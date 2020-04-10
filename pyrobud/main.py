@@ -5,7 +5,12 @@ from . import DEFAULT_CONFIG_PATH, __description__, launch, logs
 
 parser = argparse.ArgumentParser(description=__description__)
 parser.add_argument(
-    "-c", "--config-path", metavar="PATH", type=str, default=DEFAULT_CONFIG_PATH, help="config file to use"
+    "-c",
+    "--config-path",
+    metavar="PATH",
+    type=str,
+    default=DEFAULT_CONFIG_PATH,
+    help="config file to use",
 )
 
 args = parser.parse_args()

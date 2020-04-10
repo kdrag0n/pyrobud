@@ -70,7 +70,9 @@ class DebugModule(module.Module):
                 first_snip_idx = -1
                 tb = traceback.extract_tb(e.__traceback__)
                 for i, frame in enumerate(tb):
-                    if frame.filename == "<string>" or frame.filename.endswith("ast.py"):
+                    if frame.filename == "<string>" or frame.filename.endswith(
+                        "ast.py"
+                    ):
                         first_snip_idx = i
                         break
 
@@ -147,7 +149,10 @@ Time: {el_str}"""
         return f"```{data}```"
 
     @command.desc("Get all available information about the given entity")
-    @command.usage('[entity ID/username/... or "chat" for the current chat?, or reply]', optional=True)
+    @command.usage(
+        '[entity ID/username/... or "chat" for the current chat?, or reply]',
+        optional=True,
+    )
     @command.alias("einfo")
     async def cmd_entity(self, ctx: command.Context) -> str:
         entity_ref: tg.hints.EntitiesLike = ctx.input
@@ -195,7 +200,9 @@ Time: {el_str}"""
 
             if reply_msg.forward:
                 if reply_msg.forward.from_id:
-                    lines.append(f"Forwarded message author ID: `{reply_msg.forward.from_id}`")
+                    lines.append(
+                        f"Forwarded message author ID: `{reply_msg.forward.from_id}`"
+                    )
 
                 f_chat_id = None
                 if hasattr(reply_msg.forward.saved_from_peer, "channel_id"):
@@ -208,6 +215,8 @@ Time: {el_str}"""
                     lines.append(f"Forwarded message original ID: `{f_msg_id}`")
 
                 if f_chat_id is not None and f_msg_id is not None:
-                    lines.append(f"[Link to forwarded message](https://t.me/c/{f_chat_id}/{f_msg_id})")
+                    lines.append(
+                        f"[Link to forwarded message](https://t.me/c/{f_chat_id}/{f_msg_id})"
+                    )
 
         return "\n".join(lines)

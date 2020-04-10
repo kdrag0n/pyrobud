@@ -16,7 +16,9 @@ class TextModule(module.Module):
         codepoint = ctx.input
         return chr(int(codepoint, 16))
 
-    @command.desc("Get a character equivalent to a zero-width space that works on Telegram")
+    @command.desc(
+        "Get a character equivalent to a zero-width space that works on Telegram"
+    )
     @command.alias("empty")
     async def cmd_zwsp(self, ctx: command.Context) -> str:
         return "\U000e0020"
@@ -41,7 +43,9 @@ class TextModule(module.Module):
         return "\u0336".join(text) + "\u0336"
 
     @command.desc("Generate fake Google Play-style codes")
-    @command.usage("[number of codes to generate?] [length of each code?]", optional=True)
+    @command.usage(
+        "[number of codes to generate?] [length of each code?]", optional=True
+    )
     @command.alias("genkey", "gencodes", "genkeys")
     async def cmd_gencode(self, ctx: command.Context) -> str:
         count = 10
