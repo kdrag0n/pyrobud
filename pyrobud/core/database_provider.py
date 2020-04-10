@@ -16,7 +16,15 @@ class DatabaseProvider(MixinBase):
 
     def __init__(self: "Bot", **kwargs: Any) -> None:
         # Initialize database
-        self._db = util.db.AsyncDB(plyvel.DB(self.config["bot"]["db_path"], create_if_missing=True))
+        db_path = self.config["bot"]["db_path"]
+        try:
+            self._db = util.db.AsyncDB(plyvel.DB(db_path, create_if_missing=True))
+        except plyvel.IOError as e:
+            if "Resource temporarily unavailable" in str(e):
+                raise OSError(
+                    f"Database '{db_path}' is in use by another process! Make sure no other bot instances are running before starting this again."
+                )
+
         self.db = self.get_db("bot")
 
         # Propagate initialization to other mixins
