@@ -58,7 +58,7 @@ redact_responses = true
 # Whether to use the uvloop event loop replacement if installed.
 # uvloop is generally faster, but might not be desired for debugging or other reasons.
 # This option has no effect if uvloop is not installed.
-use_uvloop = true
+use_uvloop = false
 
 # Whether to enable asyncio's debug mode.
 # This enables several debugging checks to assist development. Examples are logging
