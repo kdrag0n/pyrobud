@@ -69,8 +69,7 @@ class DebugModule(module.Module):
                 # Find first traceback frame involving the snippet
                 first_snip_idx = -1
                 tb = traceback.extract_tb(e.__traceback__)
-                for i in range(len(tb)):
-                    frame = tb[i]
+                for i, frame in enumerate(tb):
                     if frame.filename == "<string>" or frame.filename.endswith("ast.py"):
                         first_snip_idx = i
                         break

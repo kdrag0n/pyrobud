@@ -71,8 +71,8 @@ class SnippetsModule(module.Module):
 
         if snippets:
             return util.text.join_list(("Snippet list:", *snippets))
-        else:
-            return "__No snippets saved.__"
+
+        return "__No snippets saved.__"
 
     @command.desc("Delete a snippet")
     @command.usage("[snippet name]")

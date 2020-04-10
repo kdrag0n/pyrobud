@@ -88,8 +88,8 @@ async def download_file(
 def truncate(text: str) -> str:
     if len(text) > MESSAGE_CHAR_LIMIT:
         return text[: MESSAGE_CHAR_LIMIT - len(TRUNCATION_SUFFIX)] + TRUNCATION_SUFFIX
-    else:
-        return text
+
+    return text
 
 
 async def get_text_input(ctx: command.Context, input_arg: Optional[str]) -> Tuple[bool, Optional[Union[str, bytes]]]:

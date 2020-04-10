@@ -26,15 +26,19 @@ def format_duration_us(t_us: Union[int, float]) -> str:
     if t_d >= 1:
         rem_h = t_h % 24
         return "%dd %dh" % (t_d, rem_h)
-    elif t_h >= 1:
+
+    if t_h >= 1:
         rem_m = t_m % 60
         return "%dh %dm" % (t_h, rem_m)
-    elif t_m >= 1:
+
+    if t_m >= 1:
         rem_s = t_s % 60
         return "%dm %ds" % (t_m, rem_s)
-    elif t_s >= 10:
+
+    if t_s >= 10:
         return "%d sec" % t_s
-    elif t_ms >= 10:
+
+    if t_ms >= 10:
         return "%d ms" % t_ms
-    else:
-        return "%d μs" % t_us
+
+    return "%d μs" % t_us

@@ -89,9 +89,9 @@ class StickerModule(module.Module):
                         response = resp_task.result()
                         if TOO_MANY_STICKERS_ERROR[0] in response.raw_text:
                             return False, TOO_MANY_STICKERS_ERROR[1].format(pack_name)
-                        elif INVALID_FORMAT_ERROR[0] in response.raw_text:
+                        if INVALID_FORMAT_ERROR[0] in response.raw_text:
                             return False, INVALID_FORMAT_ERROR[1]
-                        elif IMAGE_TOO_BIG_ERROR[0] in response.raw_text:
+                        if IMAGE_TOO_BIG_ERROR[0] in response.raw_text:
                             return False, IMAGE_TOO_BIG_ERROR[1]
                     except asyncio.TimeoutError:
                         after = datetime.now()
@@ -137,8 +137,8 @@ class StickerModule(module.Module):
         if status:
             await self.bot.log_stat("stickers_created")
             return f"[Sticker kanged]({result})."
-        else:
-            return result
+
+        return result
 
     @command.desc("Save a sticker with a name (as a reference)")
     @command.usage("[new sticker name]")
@@ -289,8 +289,8 @@ class StickerModule(module.Module):
             webp_buf.name = "sticker.webp"
             await ctx.msg.respond(file=webp_buf)
             return None
-        else:
-            return result
+
+        return result
 
     @command.desc("Create a sticker from an image and save it to disk under the given name")
     @command.usage("[new sticker name]")

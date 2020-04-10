@@ -142,6 +142,7 @@ class SystemModule(module.Module):
         # Restart the bot if applicable
         if self.restart_pending:
             self.log.info("Starting new bot instance...\n")
+            # This is safe because original arguments are reused. skipcq: BAN-B606
             os.execv(sys.executable, (sys.executable, *sys.argv))
 
     @command.desc("Update this bot from Git and restart")

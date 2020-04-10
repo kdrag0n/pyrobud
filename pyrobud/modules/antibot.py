@@ -108,9 +108,9 @@ class AntibotModule(module.Module):
 
                 # Screen forwarded messages more aggressively
                 return msg.photo or self.msg_type_suspicious(msg) or self.msg_content_suspicious(msg)
-            else:
-                # Skip suspicious entity/photo check for non-forwarded messages
-                return self.msg_type_suspicious(msg) or self.msg_has_suspicious_keyword(msg)
+
+            # Skip suspicious entity/photo check for non-forwarded messages
+            return self.msg_type_suspicious(msg) or self.msg_has_suspicious_keyword(msg)
 
         return False
 

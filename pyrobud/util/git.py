@@ -1,5 +1,7 @@
 import sys
 from pathlib import Path
+
+# DeepSource doesn't understand lazily-evaluated type hints. skipcq: PYL-W0611
 from typing import Optional
 
 try:
@@ -10,33 +12,37 @@ except ImportError:
     git = None
     have_git = False
 
-_repo_initialized = False
-_repo: "Optional[git.Repo]" = None
+
+OFFICIAL_REPO = "kdrag0n/pyrobud"
 
 
-def get_repo() -> "git.Repo":
-    global _repo_initialized
-    global _repo
+class LazyRepo:
+    initialized: bool
+    repo: "Optional[git.Repo]"
 
-    if _repo_initialized:
-        return _repo
+    def __init__(self) -> None:
+        self.initialized = not have_git
+        self.repo = None
 
-    # Return None if Git isn't available
-    if not have_git:
-        _repo_initialized = True
-        return _repo
+    def get(self) -> "Optional[git.Repo]":
+        if not self.initialized:
+            try:
+                self.repo = git.Repo(Path(sys.argv[0]).parent, search_parent_directories=True, odbt=git.GitDB)
+            # Silence a bogus pylint error
+            # pylint: disable=no-member
+            except git.exc.InvalidGitRepositoryError:
+                pass
 
-    # Attempt to get a reference to the Git repository
-    try:
-        _repo = git.Repo(Path(sys.argv[0]).parent, search_parent_directories=True, odbt=git.GitDB)
-    # Silence a bogus pylint error
-    # pylint: disable=no-member
-    except git.exc.InvalidGitRepositoryError:
-        # No Git repository
-        pass
+            self.initialized = True
 
-    _repo_initialized = True
-    return _repo
+        return self.repo
+
+
+_repo = LazyRepo()
+
+
+def get_repo() -> "Optional[git.Repo]":
+    return _repo.get()
 
 
 def get_current_remote() -> "Optional[git.Remote]":
@@ -75,4 +81,4 @@ def is_official() -> bool:
     if not remote:
         return False
 
-    return all("kdrag0n/pyrobud" in url for url in remote.urls)
+    return all(OFFICIAL_REPO in url for url in remote.urls)

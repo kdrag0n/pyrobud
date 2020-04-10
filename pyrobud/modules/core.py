@@ -41,8 +41,8 @@ class CoreModule(module.Module):
 Module: {cmd.module.name}
 Aliases: {aliases}
 Expected parameters: {args_desc}"""
-            else:
-                return "__That filter didn't match any commands or modules.__"
+
+            return "__That filter didn't match any commands or modules.__"
 
         # Show full help
         for name, cmd in self.bot.commands.items():

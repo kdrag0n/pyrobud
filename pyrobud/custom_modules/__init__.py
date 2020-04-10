@@ -1,23 +1,9 @@
-import logging
+import importlib
 import pkgutil
-from importlib import reload as _importlib_reload
 from pathlib import Path
-from typing import Sequence
 
-log = logging.getLogger("metamod_custom")
-
-
-def reload() -> None:
-    log.info("Reloading custom module classes")
-    for sym in __all__:
-        module = globals()[sym]
-        _importlib_reload(module)
-
-
-__all__: Sequence[str] = list(info.name for info in pkgutil.iter_modules([str(Path(__file__).parent)]))
-
-from . import *  # isort:skip
-
+current_dir = str(Path(__file__).parent)
+submodules = [importlib.import_module("." + info.name, __name__) for info in pkgutil.iter_modules([current_dir])]
 
 try:
     _reload_flag: bool
@@ -25,6 +11,7 @@ try:
     # noinspection PyUnboundLocalVariable
     if _reload_flag:
         # Module has been reloaded, reload our submodules
-        reload()
+        for module in submodules:
+            importlib.reload(module)
 except NameError:
     _reload_flag = True

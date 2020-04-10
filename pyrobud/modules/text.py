@@ -62,7 +62,7 @@ class TextModule(module.Module):
         codes = []
         alphabet = string.ascii_uppercase + string.digits
         for _ in range(count):
-            code = "".join([random.choice(alphabet) for _ in range(length)])
+            code = "".join(random.choice(alphabet) for _ in range(length))
             codes.append(code)
 
         codes_str = "\n".join(codes)

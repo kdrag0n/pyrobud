@@ -28,8 +28,8 @@ class NetworkModule(module.Module):
         if not status:
             if isinstance(text, str):
                 return text
-            else:
-                return "__Unknown error.__"
+
+            return "__Unknown error.__"
 
         await ctx.respond("Uploading text to [Dogbin](https://del.dog/)...")
 
@@ -51,14 +51,14 @@ class NetworkModule(module.Module):
 
         if expires == "help":
             return "__Expiry format: 1y/12m/52w/365d__"
-        elif expires:
+        if expires:
             if expires[-1] not in ["y", "m", "w", "d"]:
                 return "__Unknown unit. Expiry format: 1y/12m/52w/365d__"
-            else:
-                try:
-                    int(expires[:-1])
-                except ValueError:
-                    return "__Invalid number. Expiry format: 1y/12m/52w/365d__"
+
+            try:
+                int(expires[:-1])
+            except ValueError:
+                return "__Invalid number. Expiry format: 1y/12m/52w/365d__"
         else:
             expires = "2d"
 

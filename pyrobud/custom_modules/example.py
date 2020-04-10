@@ -30,8 +30,8 @@ class ExampleModule(module.Module):
 
         if ctx.input:
             return ctx.input
-        else:
-            return "It works!"
+
+        return "It works!"
 
     async def get_cat(self) -> IO[bytes]:
         # Get the link to a random cat picture

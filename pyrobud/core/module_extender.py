@@ -1,8 +1,7 @@
 import importlib
 import inspect
-import os
 from types import ModuleType
-from typing import TYPE_CHECKING, Any, MutableMapping, Optional, Type
+from typing import TYPE_CHECKING, Any, Iterable, MutableMapping, Optional, Type
 
 from .. import custom_modules, module, modules, util
 from .bot_mixin_base import MixinBase
@@ -43,22 +42,18 @@ class ModuleExtender(MixinBase):
         self.unregister_commands(mod)
         del self.modules[cls.name]
 
-    def _load_modules_from_metamod(self: "Bot", metamod: ModuleType, *, comment: str = None) -> None:
-        for _sym in getattr(metamod, "__all__", ()):
-            module_mod: ModuleType = getattr(metamod, _sym)
-
-            if inspect.ismodule(module_mod):
-                for sym in dir(module_mod):
-                    cls = getattr(module_mod, sym)
-                    if inspect.isclass(cls) and issubclass(cls, module.Module):
-                        if not cls.disabled:
-                            self.load_module(cls, comment=comment)
+    def _load_all_from_metamod(self: "Bot", submodules: Iterable[ModuleType], *, comment: str = None) -> None:
+        for module_mod in submodules:
+            for sym in dir(module_mod):
+                cls = getattr(module_mod, sym)
+                if inspect.isclass(cls) and issubclass(cls, module.Module) and not cls.disabled:
+                    self.load_module(cls, comment=comment)
 
     # noinspection PyTypeChecker,PyTypeChecker
     def load_all_modules(self: "Bot") -> None:
         self.log.info("Loading modules")
-        self._load_modules_from_metamod(modules)
-        self._load_modules_from_metamod(custom_modules, comment="custom")
+        self._load_all_from_metamod(modules.submodules)
+        self._load_all_from_metamod(custom_modules.submodules, comment="custom")
         self.log.info("All modules loaded.")
 
     def unload_all_modules(self: "Bot") -> None:

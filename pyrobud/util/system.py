@@ -7,27 +7,27 @@ ProcessStream = Union[int, IO, None]
 
 async def _spawn_exec(
     cmdline: Sequence[ProcessCmdline],
-    input: Optional[bytes],
+    in_data: Optional[bytes],
     stdout: ProcessStream,
     stderr: ProcessStream,
     **kwargs: Any
 ) -> asyncio.subprocess.Process:
-    stdin = asyncio.subprocess.PIPE if input else None
+    stdin = asyncio.subprocess.PIPE if in_data else None
     return await asyncio.create_subprocess_exec(*cmdline, stdin=stdin, stdout=stdout, stderr=stderr, **kwargs)
 
 
 async def _spawn_shell(
-    cmdline: ProcessCmdline, input: Optional[bytes], stdout: ProcessStream, stderr: ProcessStream, **kwargs: Any
+    cmdline: ProcessCmdline, in_data: Optional[bytes], stdout: ProcessStream, stderr: ProcessStream, **kwargs: Any
 ) -> asyncio.subprocess.Process:
-    stdin = asyncio.subprocess.PIPE if input else None
+    stdin = asyncio.subprocess.PIPE if in_data else None
     return await asyncio.create_subprocess_shell(cmdline, stdin=stdin, stdout=stdout, stderr=stderr, **kwargs)
 
 
 async def _get_proc_output(
-    proc: asyncio.subprocess.Process, input: Optional[bytes], timeout: int
+    proc: asyncio.subprocess.Process, in_data: Optional[bytes], timeout: int
 ) -> Tuple[bytes, bytes, Optional[int]]:
     try:
-        stdout, stderr = await asyncio.wait_for(proc.communicate(input), timeout)
+        stdout, stderr = await asyncio.wait_for(proc.communicate(in_data), timeout)
     except asyncio.TimeoutError:
         try:
             proc.kill()
@@ -40,23 +40,23 @@ async def _get_proc_output(
 
 async def run_command(
     *cmdline: ProcessCmdline,
-    input: Optional[bytes] = None,
+    in_data: Optional[bytes] = None,
     stdout: ProcessStream = asyncio.subprocess.PIPE,
     stderr: ProcessStream = asyncio.subprocess.STDOUT,
     timeout: int = 0,
     **kwargs: Any
 ) -> Tuple[bytes, bytes, Optional[int]]:
-    proc = await _spawn_exec(cmdline, input, stdout, stderr, **kwargs)
-    return await _get_proc_output(proc, input, timeout)
+    proc = await _spawn_exec(cmdline, in_data, stdout, stderr, **kwargs)
+    return await _get_proc_output(proc, in_data, timeout)
 
 
 async def run_command_shell(
     cmdline: ProcessCmdline,
-    input: Optional[bytes] = None,
+    in_data: Optional[bytes] = None,
     stdout: ProcessStream = asyncio.subprocess.PIPE,
     stderr: ProcessStream = asyncio.subprocess.STDOUT,
     timeout: int = 0,
     **kwargs: Any
 ) -> Tuple[bytes, bytes, Optional[int]]:
-    proc = await _spawn_shell(cmdline, input, stdout, stderr, **kwargs)
-    return await _get_proc_output(proc, input, timeout)
+    proc = await _spawn_shell(cmdline, in_data, stdout, stderr, **kwargs)
+    return await _get_proc_output(proc, in_data, timeout)

@@ -91,8 +91,8 @@ class Context:
     def __getattr__(self, name: str) -> Any:
         if name == "args":
             return self._get_args()
-        else:
-            raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
+
+        raise AttributeError(f"'{type(self).__name__}' object has no attribute '{name}'")
 
     # Argument segments
     def _get_args(self) -> Sequence[str]:

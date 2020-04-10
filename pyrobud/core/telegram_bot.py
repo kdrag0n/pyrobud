@@ -103,8 +103,7 @@ class TelegramBot(MixinBase):
                 return
 
             # Request updates, then idle until disconnected
-            # noinspection PyProtectedMember
-            await self.client._run_until_disconnected()
+            await self.client.run_until_disconnected()
         finally:
             # Make sure we stop when done
             await self.stop()
@@ -180,21 +179,23 @@ class TelegramBot(MixinBase):
 
         if mode == "edit":
             return await msg.edit(text=text, **kwargs)
-        elif mode == "reply":
+
+        if mode == "reply":
             if response is not None:
                 # Already replied, so just edit the existing reply to reduce spam
                 return await response.edit(text=text, **kwargs)
-            else:
-                # Reply since we haven't done so yet
-                return await msg.reply(text, **kwargs)
-        elif mode == "repost":
+
+            # Reply since we haven't done so yet
+            return await msg.reply(text, **kwargs)
+
+        if mode == "repost":
             if response is not None:
                 # Already reposted, so just edit the existing reply to reduce spam
                 return await response.edit(text=text, **kwargs)
-            else:
-                # Repost since we haven't done so yet
-                response = await msg.respond(text, reply_to=msg.reply_to_msg_id, **kwargs)
-                await msg.delete()
-                return response
-        else:
-            raise ValueError(f"Unknown response mode '{mode}'")
+
+            # Repost since we haven't done so yet
+            response = await msg.respond(text, reply_to=msg.reply_to_msg_id, **kwargs)
+            await msg.delete()
+            return response
+
+        raise ValueError(f"Unknown response mode '{mode}'")
