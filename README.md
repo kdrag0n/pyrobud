@@ -6,7 +6,7 @@
 
 <p align="center">
     <a href="https://github.com/kdrag0n/pyrobud/releases"><img src="https://img.shields.io/github/v/tag/kdrag0n/pyrobud?sort=semver" alt="Latest tag"></a>
-    <a href="https://github.com/kdrag0n/pyrobud/actions?query=workflow%3A%22Build+%26+publish+bleeding-edge+Docker+image%22"><img src="https://img.shields.io/github/workflow/status/kdrag0n/pyrobud/Build%20%26%20publish%20bleeding-edge%20Docker%20image" alt="CI status"></a>
+    <a href="https://github.com/kdrag0n/pyrobud/actions?query=workflow%3A%22Build+%26+publish+Docker+image%22"><img src="https://img.shields.io/github/workflow/status/kdrag0n/pyrobud/Build%20%26%20publish%20Docker%20image" alt="CI status"></a>
     <a href="https://t.me/pyrobud"><img src="https://img.shields.io/badge/chat-on%20telegram-blueviolet" alt="Telegram chat"></a>
 </p>
 
