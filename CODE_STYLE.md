@@ -60,9 +60,9 @@ always be imported as `tg` as seen in the example above.
 
 ## Line Length
 
-No lines of Python code should exceed 120 characters in length. This is 50% longer
-than the line length recommended by PEP-8 (80 characters), but this was deemed a
-worthwhile tradeoff for the reduced line wrapping at awkward points.
+No lines of Python code should exceed 88 characters in length. This is slightly
+longer than the line length recommended by PEP-8 (80 characters), but it reduces
+unhelpful wrapping by a considerable amount.
 
 In Markdown files, the line length limit is *80-ish* for readability. This means
 that you should generally attempt to stick to 80 characters, but it's fine to go
