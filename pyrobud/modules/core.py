@@ -1,5 +1,6 @@
 import platform
-from typing import ClassVar, Dict, List
+from collections import defaultdict
+from typing import ClassVar, MutableMapping
 
 from .. import __version__, command, module, util
 
@@ -11,9 +12,9 @@ class CoreModule(module.Module):
 
     @command.desc("List the commands")
     @command.usage("[filter: command or module name?]", optional=True)
-    async def cmd_help(self, ctx: command.Context) -> str:
+    async def cmd_help(self, ctx: command.Context):
         filt = ctx.input
-        lines: Dict[str, List[str]] = {}
+        modules: MutableMapping[str, MutableMapping[str, str]] = defaultdict(dict)
 
         # Handle command filters
         if filt and filt not in self.bot.modules:
@@ -61,17 +62,23 @@ Expected parameters: {args_desc}"""
                 aliases = f' (aliases: {", ".join(cmd.aliases)})'
 
             mod_name = type(cmd.module).name
-            if mod_name not in lines:
-                lines[mod_name] = []
+            modules[mod_name][cmd.name] = desc + aliases
 
-            lines[mod_name].append(f"**{cmd.name}:** {desc}{aliases}")
+        response = None
+        for mod_name, commands in sorted(modules.items()):
+            section = util.text.join_map(commands, heading=mod_name)
+            add_len = len(section) + 2
+            if response and (len(response) + add_len > util.tg.MESSAGE_CHAR_LIMIT):
+                await ctx.respond_multi(response)
+                response = None
 
-        sections = []
-        for mod, ln in sorted(lines.items()):
-            section = util.text.join_list((f"**{mod}:**", *ln))
-            sections.append(section + "\n")
+            if response:
+                response += "\n\n" + section
+            else:
+                response = section
 
-        return "\n".join(sections)
+        if response:
+            await ctx.respond_multi(response)
 
     @command.desc("Get how long this bot has been up for")
     async def cmd_uptime(self, ctx: command.Context) -> str:
