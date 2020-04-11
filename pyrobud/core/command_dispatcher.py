@@ -115,7 +115,7 @@ class CommandDispatcher(MixinBase):
                         reply_msg = await msg.get_reply_message()
                         if reply_msg.text:
                             ctx.input = reply_msg.text
-                            ctx.parsed_input = reply_msg.raw_text
+                            ctx.plain_input = reply_msg.raw_text
                         else:
                             await ctx.respond(
                                 f"{err_base}\n__The message you replied to doesn't contain text.__"

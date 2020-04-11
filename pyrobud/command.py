@@ -76,7 +76,7 @@ class Context:
     response: Optional[tg.custom.Message]
     response_mode: Optional[str]
     input: str
-    parsed_input: str
+    plain_input: str
     args: Sequence[str]
 
     def __init__(
@@ -94,7 +94,7 @@ class Context:
         # Single argument string (unparsed, i.e. complete with Markdown formatting symbols)
         self.input = self.msg.text[self.cmd_len :]
         # Single argument string (parsed, i.e. plain text)
-        self.parsed_input = self.msg.raw_text[self.cmd_len :]
+        self.plain_input = self.msg.raw_text[self.cmd_len :]
 
     # Lazily resolve expensive fields
     def __getattr__(self, name: str) -> Any:
