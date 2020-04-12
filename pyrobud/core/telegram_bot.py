@@ -152,6 +152,20 @@ class TelegramBot(MixinBase):
     def events_activated(self: "Bot") -> int:
         return len(self._mevent_handlers)
 
+    def redact_message(self, text: str) -> str:
+        tg_config: Mapping[str, str] = self.config["telegram"]
+        api_id = str(tg_config["api_id"])
+        api_hash = tg_config["api_hash"]
+
+        if api_id in text:
+            text = text.replace(api_id, "[REDACTED]")
+        if api_hash in text:
+            text = text.replace(api_hash, "[REDACTED]")
+        if self.user.phone is not None and self.user.phone in text:
+            text = text.replace(self.user.phone, "[REDACTED]")
+
+        return text
+
     # Flexible response function with filtering, truncation, redaction, etc.
     async def respond(
         self: "Bot",
@@ -171,16 +185,7 @@ class TelegramBot(MixinBase):
         if text is not None:
             # Redact sensitive information if enabled and known
             if redact:
-                tg_config: Mapping[str, str] = self.config["telegram"]
-                api_id = str(tg_config["api_id"])
-                api_hash = tg_config["api_hash"]
-
-                if api_id in text:
-                    text = text.replace(api_id, "[REDACTED]")
-                if api_hash in text:
-                    text = text.replace(api_hash, "[REDACTED]")
-                if self.user.phone is not None and self.user.phone in text:
-                    text = text.replace(self.user.phone, "[REDACTED]")
+                text = self.redact_message(text)
 
             # Truncate messages longer than Telegram's 4096-character length limit
             text = util.tg.truncate(text)
