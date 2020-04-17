@@ -60,7 +60,7 @@ such support are welcome.
 
 ### Using pip
 
-Run `pip3 install .` to install the bot along with all of its dependencies. After
+Run `python3 -m pip install .` to install the bot along with all of its dependencies. After
 that, you can choose to either invoke it using the `pyrobud` command, or run the bot
 in-place (which is described later in the Usage section).
 
