@@ -82,28 +82,6 @@ class NetworkModule(module.Module):
 
             return str(resp_data["link"])
 
-    @command.desc("Upload given file to transfer.sh")
-    async def cmd_transfer(self, ctx: command.Context) -> str:
-        if not ctx.msg.is_reply:
-            return "__Reply to a file to upload it.__"
-
-        reply_msg = await ctx.msg.get_reply_message()
-        if not reply_msg.document:
-            return "__That message doesn't contain a file.__"
-
-        data = await util.tg.download_file(ctx, reply_msg)
-
-        await ctx.respond("Uploading file to [transfer.sh](https://transfer.sh/)...")
-
-        filename = reply_msg.file.name
-        async with self.bot.http.put(
-            f"https://transfer.sh/{filename}", data=data
-        ) as resp:
-            if resp.status != 200:
-                return f"__Error uploading file — status code {resp.status}__"
-
-            return await resp.text()
-
     @command.desc("Update the embed for a link")
     @command.usage("[link?, or reply]", optional=True)
     @command.alias("upde", "updl", "updatelink", "ul", "ulink")
