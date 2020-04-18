@@ -23,17 +23,16 @@ def setup_asyncio(config: util.config.Config) -> asyncio.AbstractEventLoop:
         # Force ProactorEventLoop on Windows for subprocess support
         policy = asyncio.WindowsProactorEventLoopPolicy()
         asyncio.set_event_loop_policy(policy)
-    elif asyncio_config["use_uvloop"]:
-        # Initialize uvloop if available and working
+    elif not asyncio_config["disable_uvloop"]:
+        # Initialize uvloop if available
         try:
             # noinspection PyUnresolvedReferences
             import uvloop
 
             uvloop.install()
+            log.info("Using uvloop event loop")
         except ImportError:
-            log.warning(
-                "Unable to load uvloop; falling back to default asyncio event loop"
-            )
+            pass
 
     loop = asyncio.get_event_loop()
 
@@ -63,13 +62,12 @@ def main(*, config_path: str = DEFAULT_CONFIG_PATH) -> None:
         util.sentry.init()
 
     # Use preliminary loop for config upgrading
-    loop = asyncio.new_event_loop()
+    loop = asyncio.get_event_loop()
     aiorun.run(_upgrade(config, config_path), stop_on_unhandled_errors=True, loop=loop)
     loop.close()
 
-    # Now that the config has been upgraded, we can construct the actual loop
     loop = setup_asyncio(config)
 
-    # Start bot with new loop
+    # Start bot
     log.info("Initializing bot")
-    aiorun.run(Bot.create_and_run(config), loop=loop)
+    aiorun.run(Bot.create_and_run(config, loop=loop), loop=loop)

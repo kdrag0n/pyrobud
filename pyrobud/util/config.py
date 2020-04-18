@@ -17,6 +17,13 @@ AsyncIOConfig = MutableMapping[str, bool]
 log = logging.getLogger("migrate")
 
 
+class Dummy:
+    pass
+
+
+DeleteValue = Dummy()
+
+
 def save(config: Config, _path: str) -> None:
     """Saves the given config to the given path as a TOML file."""
 
@@ -44,10 +51,15 @@ def save(config: Config, _path: str) -> None:
 # Source: https://stackoverflow.com/a/3233356
 def _recursive_update(d: MutableMapping, u: Mapping) -> MutableMapping:  # sourcery off
     for k, v in u.items():
+        if v is DeleteValue:
+            del d[k]
+            continue
+
         if isinstance(v, collections.abc.Mapping):
             d[k] = _recursive_update(d.get(k, {}), v)
         else:
             d[k] = v
+
     return d
 
 
@@ -77,6 +89,7 @@ upgrade_methods = [
     {"version": 7, "bot": {"redact_responses": True}},
     {"version": 8, "asyncio": {"use_uvloop": True}},
     {"version": 9, "asyncio": {"debug": False}},
+    {"version": 10, "asyncio": {"use_uvloop": DeleteValue, "disable_uvloop": False}},
 ]
 
 

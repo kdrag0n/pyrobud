@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from typing import Optional
 
 import aiohttp
 import telethon as tg
@@ -36,8 +37,13 @@ class Bot(
         self.http = aiohttp.ClientSession()
 
     @classmethod
-    async def create_and_run(cls, config: Config) -> "Bot":
+    async def create_and_run(
+        cls, config: Config, *, loop: Optional[asyncio.AbstractEventLoop] = None
+    ) -> "Bot":
         bot = None
+
+        if loop:
+            asyncio.set_event_loop(loop)
 
         try:
             bot = cls(config)
