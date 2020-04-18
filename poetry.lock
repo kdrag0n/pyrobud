@@ -190,7 +190,7 @@ description = "Git Object Database"
 name = "gitdb"
 optional = false
 python-versions = ">=3.4"
-version = "4.0.2"
+version = "4.0.4"
 
 [package.dependencies]
 smmap = ">=3.0.1,<4"
@@ -201,7 +201,7 @@ description = "Python Git Library"
 name = "gitpython"
 optional = false
 python-versions = ">=3.4"
-version = "3.1.0"
+version = "3.1.1"
 
 [package.dependencies]
 gitdb = ">=4.0.1,<5"
@@ -496,7 +496,7 @@ description = "A pure Python implementation of a sliding window memory map manag
 name = "smmap"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-version = "3.0.1"
+version = "3.0.2"
 
 [[package]]
 category = "main"
@@ -535,7 +535,7 @@ description = "Style preserving TOML library"
 name = "tomlkit"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-version = "0.5.11"
+version = "0.6.0"
 
 [[package]]
 category = "dev"
@@ -559,11 +559,11 @@ description = "HTTP library with thread-safe connection pooling, file post, and 
 name = "urllib3"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, <4"
-version = "1.25.8"
+version = "1.25.9"
 
 [package.extras]
 brotli = ["brotlipy (>=0.6.0)"]
-secure = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "certifi", "ipaddress"]
+secure = ["certifi", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "pyOpenSSL (>=0.14)", "ipaddress"]
 socks = ["PySocks (>=1.5.6,<1.5.7 || >1.5.7,<2.0)"]
 
 [[package]]
@@ -580,7 +580,7 @@ description = "Virtual Python Environment builder"
 name = "virtualenv"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,>=2.7"
-version = "20.0.17"
+version = "20.0.18"
 
 [package.dependencies]
 appdirs = ">=1.4.3,<2"
@@ -629,7 +629,7 @@ testing = ["jaraco.itertools", "func-timeout"]
 fast = ["uvloop"]
 
 [metadata]
-content-hash = "e7b7f32fdba3b8765323614cdea2ffb1fad2bbfe51a79ee5ed6537aa31265500"
+content-hash = "699e01ae4d5c43fe2b01e7a57fe37cc3fb1d7854f3dc5aeefcf51f644ce01e95"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -758,12 +758,12 @@ filelock = [
     {file = "filelock-3.0.12.tar.gz", hash = "sha256:18d82244ee114f543149c66a6e0c14e9c4f8a1044b5cdaadd0f82159d6a6ff59"},
 ]
 gitdb = [
-    {file = "gitdb-4.0.2-py3-none-any.whl", hash = "sha256:284a6a4554f954d6e737cddcff946404393e030b76a282c6640df8efd6b3da5e"},
-    {file = "gitdb-4.0.2.tar.gz", hash = "sha256:598e0096bb3175a0aab3a0b5aedaa18a9a25c6707e0eca0695ba1a0baf1b2150"},
+    {file = "gitdb-4.0.4-py3-none-any.whl", hash = "sha256:ba1132c0912e8c917aa8aa990bee26315064c7b7f171ceaaac0afeb1dc656c6a"},
+    {file = "gitdb-4.0.4.tar.gz", hash = "sha256:6f0ecd46f99bb4874e5678d628c3a198e2b4ef38daea2756a2bfd8df7dd5c1a5"},
 ]
 gitpython = [
-    {file = "GitPython-3.1.0-py3-none-any.whl", hash = "sha256:43da89427bdf18bf07f1164c6d415750693b4d50e28fc9b68de706245147b9dd"},
-    {file = "GitPython-3.1.0.tar.gz", hash = "sha256:e426c3b587bd58c482f0b7fe6145ff4ac7ae6c82673fc656f489719abca6f4cb"},
+    {file = "GitPython-3.1.1-py3-none-any.whl", hash = "sha256:71b8dad7409efbdae4930f2b0b646aaeccce292484ffa0bc74f1195582578b3d"},
+    {file = "GitPython-3.1.1.tar.gz", hash = "sha256:6d4f10e2aaad1864bb0f17ec06a2c2831534140e5883c350d58b4e85189dab74"},
 ]
 identify = [
     {file = "identify-1.4.14-py2.py3-none-any.whl", hash = "sha256:2bb8760d97d8df4408f4e805883dad26a2d076f04be92a10a3e43f09c6060742"},
@@ -970,8 +970,8 @@ six = [
     {file = "six-1.14.0.tar.gz", hash = "sha256:236bdbdce46e6e6a3d61a337c0f8b763ca1e8717c03b369e87a7ec7ce1319c0a"},
 ]
 smmap = [
-    {file = "smmap-3.0.1-py2.py3-none-any.whl", hash = "sha256:5fead614cf2de17ee0707a8c6a5f2aa5a2fc6c698c70993ba42f515485ffda78"},
-    {file = "smmap-3.0.1.tar.gz", hash = "sha256:171484fe62793e3626c8b05dd752eb2ca01854b0c55a1efc0dc4210fccb65446"},
+    {file = "smmap-3.0.2-py2.py3-none-any.whl", hash = "sha256:52ea78b3e708d2c2b0cfe93b6fc3fbeec53db913345c26be6ed84c11ed8bebc1"},
+    {file = "smmap-3.0.2.tar.gz", hash = "sha256:b46d3fc69ba5f367df96d91f8271e8ad667a198d5a28e215a6c3d9acd133a911"},
 ]
 speedtest-cli = [
     {file = "speedtest-cli-2.1.2.tar.gz", hash = "sha256:cf1d386222f94c324e3125ba9a0d187e46d4a13dca08c023bdb9a23096be2e54"},
@@ -987,8 +987,8 @@ toml = [
     {file = "toml-0.10.0.tar.gz", hash = "sha256:229f81c57791a41d65e399fc06bf0848bab550a9dfd5ed66df18ce5f05e73d5c"},
 ]
 tomlkit = [
-    {file = "tomlkit-0.5.11-py2.py3-none-any.whl", hash = "sha256:4e1bd6c9197d984528f9ff0cc9db667c317d8881288db50db20eeeb0f6b0380b"},
-    {file = "tomlkit-0.5.11.tar.gz", hash = "sha256:f044eda25647882e5ef22b43a1688fb6ab12af2fc50e8456cdfc751c873101cf"},
+    {file = "tomlkit-0.6.0-py2.py3-none-any.whl", hash = "sha256:e5d5f20809c2b09276a6c5d98fb0202325aee441a651db84ac12e0812ab7e569"},
+    {file = "tomlkit-0.6.0.tar.gz", hash = "sha256:74f976908030ff164c0aa1edabe3bf83ea004b3daa5b0940b9c86a060c004e9a"},
 ]
 typed-ast = [
     {file = "typed_ast-1.4.1-cp35-cp35m-manylinux1_i686.whl", hash = "sha256:73d785a950fc82dd2a25897d525d003f6378d1cb23ab305578394694202a58c3"},
@@ -1019,8 +1019,8 @@ typing-extensions = [
     {file = "typing_extensions-3.7.4.2.tar.gz", hash = "sha256:79ee589a3caca649a9bfd2a8de4709837400dfa00b6cc81962a1e6a1815969ae"},
 ]
 urllib3 = [
-    {file = "urllib3-1.25.8-py2.py3-none-any.whl", hash = "sha256:2f3db8b19923a873b3e5256dc9c2dedfa883e33d87c690d9c7913e1f40673cdc"},
-    {file = "urllib3-1.25.8.tar.gz", hash = "sha256:87716c2d2a7121198ebcb7ce7cccf6ce5e9ba539041cfbaeecfb641dc0bf6acc"},
+    {file = "urllib3-1.25.9-py2.py3-none-any.whl", hash = "sha256:88206b0eb87e6d677d424843ac5209e3fb9d0190d0ee169599165ec25e9d9115"},
+    {file = "urllib3-1.25.9.tar.gz", hash = "sha256:3018294ebefce6572a474f0604c2021e33b3fd8006ecd11d62107a5d2a963527"},
 ]
 uvloop = [
     {file = "uvloop-0.14.0-cp35-cp35m-macosx_10_11_x86_64.whl", hash = "sha256:08b109f0213af392150e2fe6f81d33261bb5ce968a288eb698aad4f46eb711bd"},
@@ -1034,8 +1034,8 @@ uvloop = [
     {file = "uvloop-0.14.0.tar.gz", hash = "sha256:123ac9c0c7dd71464f58f1b4ee0bbd81285d96cdda8bc3519281b8973e3a461e"},
 ]
 virtualenv = [
-    {file = "virtualenv-20.0.17-py2.py3-none-any.whl", hash = "sha256:00cfe8605fb97f5a59d52baab78e6070e72c12ca64f51151695407cc0eb8a431"},
-    {file = "virtualenv-20.0.17.tar.gz", hash = "sha256:c8364ec469084046c779c9a11ae6340094e8a0bf1d844330fc55c1cefe67c172"},
+    {file = "virtualenv-20.0.18-py2.py3-none-any.whl", hash = "sha256:5021396e8f03d0d002a770da90e31e61159684db2859d0ba4850fbea752aa675"},
+    {file = "virtualenv-20.0.18.tar.gz", hash = "sha256:ac53ade75ca189bc97b6c1d9ec0f1a50efe33cbf178ae09452dcd9fd309013c1"},
 ]
 yarl = [
     {file = "yarl-1.4.2-cp35-cp35m-macosx_10_13_x86_64.whl", hash = "sha256:3ce3d4f7c6b69c4e4f0704b32eca8123b9c58ae91af740481aa57d7857b5e41b"},
