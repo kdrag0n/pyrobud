@@ -52,7 +52,9 @@ def save(config: Config, _path: str) -> None:
 def _recursive_update(d: MutableMapping, u: Mapping) -> MutableMapping:  # sourcery off
     for k, v in u.items():
         if v is DeleteValue:
-            del d[k]
+            if k in d:
+                del d[k]
+
             continue
 
         if isinstance(v, collections.abc.Mapping):
