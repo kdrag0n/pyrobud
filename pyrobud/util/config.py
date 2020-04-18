@@ -89,7 +89,7 @@ upgrade_methods = [
     {"version": 7, "bot": {"redact_responses": True}},
     {"version": 8, "asyncio": {"use_uvloop": True}},
     {"version": 9, "asyncio": {"debug": False}},
-    {"version": 10, "asyncio": {"use_uvloop": DeleteValue, "disable_uvloop": False}},
+    {"version": 10, "asyncio": {"disable_uvloop": False}},
 ]
 
 
