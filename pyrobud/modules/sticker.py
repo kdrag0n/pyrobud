@@ -366,7 +366,7 @@ class StickerModule(module.Module):
                 str(offset),
                 "-",
                 stderr=asyncio.subprocess.PIPE,
-                input=png_bytes,
+                in_data=png_bytes,
                 timeout=15,
             )
         except asyncio.TimeoutError:
