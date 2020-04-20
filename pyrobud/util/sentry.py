@@ -77,7 +77,7 @@ def _send_filter(event: Event, hint: EventHint) -> Optional[Event]:
 
         return event
     except Exception as e:
-        log.error(f"Error running event filter", exc_info=e)
+        log.error("Error running event filter", exc_info=e)
 
         # Inject error and return
         if "extra" not in event:
