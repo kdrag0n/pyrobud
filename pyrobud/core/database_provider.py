@@ -18,17 +18,26 @@ class DatabaseProvider(MixinBase):
         # Initialize database
         db_path = self.config["bot"]["db_path"]
         try:
-            self._db = util.db.AsyncDB(plyvel.DB(db_path, create_if_missing=True))
+            self._init_db(db_path)
         except plyvel.IOError as e:
             if "Resource temporarily unavailable" in str(e):
                 raise OSError(
                     f"Database '{db_path}' is in use by another process! Make sure no other bot instances are running before starting this again."
                 )
+        except plyvel.CorruptionError:
+            self.log.warning("Database is corrupted, attempting to repair")
+            plyvel.repair_db(db_path)
+            self._init_db(db_path)
 
         self.db = self.get_db("bot")
 
         # Propagate initialization to other mixins
         super().__init__(**kwargs)
+
+    def _init_db(self: "Bot", db_path: str):
+        self._db = util.db.AsyncDB(
+            plyvel.DB(db_path, create_if_missing=True, paranoid_checks=True)
+        )
 
     def get_db(self: "Bot", prefix: str) -> util.db.AsyncDB:
         return self._db.prefixed_db(prefix + ".")
