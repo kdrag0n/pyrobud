@@ -162,7 +162,7 @@ Please read the rules _before_ participating.
                 await self.promote_bot(input_chat, target)
             except Exception as e:
                 status_header += (
-                    f"\n**WARNING**: Unable to promote @{target}: `{str(e)}`"
+                    f"\n**WARNING:** Unable to promote @{target}: `{str(e)}`"
                 )
                 await ctx.respond(status_header)
 

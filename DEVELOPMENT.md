@@ -127,7 +127,7 @@ There are several internal bot events that are not directly from Telegram:
   - Note that the module must be **ready to go** after this event, since
     Telegram event listeners are registered *before* the start event is
     dispatched to prevent missed events
-  - **Arguments**: none
+  - **Arguments:** none
 - `start`
   - **Called when the bot is ready to go**, after connecting to Telegram and
     performing basic bookkeeping tasks such as fetching the user ID
@@ -137,26 +137,26 @@ There are several internal bot events that are not directly from Telegram:
   - Telegram event handlers are registered *before* this event fires to prevent
     missed events, so the module's event handlers and commands
     **should still work** before this, albeit not at full potential
-  - **Arguments**: current epoch time in microseconds
+  - **Arguments:** current epoch time in microseconds
 - `stop`
   - **Called when the bot is about to stop**
   - Cleanup work should be performed here
   - Most shared bot resources such as the HTTP client session and database are
     still available at this stage, but the
     **Telegram client will have been shut down** already
-  - **Arguments**: none
+  - **Arguments:** none
 - `stopped`
   - **Called after the bot has stopped**
   - All shared bot resources will have been closed
   - Useful for performing any last-minute work, such as late cleanup or restarting
   - This is the last coroutine that will be called before the event loop is shut down
-  - **Arguments**: none
+  - **Arguments:** none
 - `stat_event`
   - **Called when a stat event should be logged**
   - Usually only the Stats module listens for this event because it's responsible
     for incrementing the stat counters
   - Any module can dispatch this event using `bot.log_stat()`
-  - **Arguments**: name of the event to log
+  - **Arguments:** name of the event to log
     - This can be any arbitrary string from any module
     - If the Stats module is loaded, the counter will be available under the
       `stats.[event_name]` global database key
@@ -164,7 +164,7 @@ There are several internal bot events that are not directly from Telegram:
 - `command`
   - **Called after a command has finished running successfully**
   - Failed commands will not dispatch this event
-  - **Arguments**:
+  - **Arguments:**
     - `command.Command` object describing the command that was invoked
     - [`telethon.events.NewMessage.Event`](https://telethon.readthedocs.io/en/latest/modules/events.html#telethon.events.newmessage.NewMessage.Event)
       object containing the message that invoked the command (same as the
