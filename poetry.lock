@@ -512,7 +512,7 @@ description = "Full-featured Telegram client library for Python 3"
 name = "telethon"
 optional = false
 python-versions = ">=3.5"
-version = "1.11.3"
+version = "1.12.0"
 
 [package.dependencies]
 pyaes = "*"
@@ -978,8 +978,8 @@ speedtest-cli = [
     {file = "speedtest_cli-2.1.2-py2.py3-none-any.whl", hash = "sha256:2335306da12014c2da750db3befa3ddf424a303ddbaa399fbfb6a1bf870a5532"},
 ]
 telethon = [
-    {file = "Telethon-1.11.3-py3-none-any.whl", hash = "sha256:d9a7fcb465561bd839a0ca609d01321cc0f76e07d96a3977280fd1623b26c6a9"},
-    {file = "Telethon-1.11.3.tar.gz", hash = "sha256:d065f130ad61b6b0d914fbd1d0ca239df8cd20299d3bdc92ce90f44e30579899"},
+    {file = "Telethon-1.12.0-py3-none-any.whl", hash = "sha256:6578ff4c99c0ab0c9a8c5a3b3f11ca3a5280b1792ea88554f09e0f3e03d544ae"},
+    {file = "Telethon-1.12.0.tar.gz", hash = "sha256:577bf0ffa6e5369798b6d632aef2c167c9ffccd29640b096c293e1cdffc787c6"},
 ]
 toml = [
     {file = "toml-0.10.0-py2.7.egg", hash = "sha256:f1db651f9657708513243e61e6cc67d101a39bad662eaa9b5546f789338e07a3"},
