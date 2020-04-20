@@ -26,13 +26,14 @@ class AntibotModule(module.Module):
         "wealth",
         "mytoken",
         "no scam",
-        "legit",
+        "legi",
         "trading",
         "binary option",
         "talk with you in private",
         "go_start",
         "s.tart",
         "cash out",
+        "withdraw",
     ]
 
     suspicious_entities = [
@@ -76,8 +77,16 @@ class AntibotModule(module.Module):
         if not msg.raw_text:
             return False
 
+        text = msg.raw_text
+        # Include link preview content as well
+        if msg.web_preview:
+            webpage = msg.web_preview
+            # Use a f-string so we don't need to deal with None values
+            text += f"{webpage.site_name}{webpage.title}{webpage.description}"
+
+        l_text = text.lower()
+
         # Many spam messages mention certain keywords, such as cryptocurrency exchanges
-        l_text = msg.raw_text.lower()
         return any(kw in l_text for kw in type(self).suspicious_keywords)
 
     def msg_content_suspicious(self, msg: tg.custom.Message) -> bool:
