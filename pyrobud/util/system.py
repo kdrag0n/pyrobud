@@ -6,8 +6,13 @@ ProcessCmdline = Union[str, bytes]
 ProcessStream = Union[int, IO, None]
 
 
-def is_venv() -> bool:
-    return hasattr(sys, "real_prefix") or sys.base_prefix != sys.prefix
+def get_venv_path() -> Optional[str]:
+    """Returns the current venv's path prefix, or None if not running in a venv."""
+
+    if hasattr(sys, "real_prefix") or sys.base_prefix != sys.prefix:
+        return sys.prefix
+
+    return None
 
 
 async def _spawn_exec(
@@ -37,7 +42,7 @@ async def _spawn_shell(
 
 
 async def _get_proc_output(
-    proc: asyncio.subprocess.Process, in_data: Optional[bytes], timeout: int
+    proc: asyncio.subprocess.Process, in_data: Optional[bytes], timeout: Optional[int]
 ) -> Tuple[bytes, bytes, Optional[int]]:
     try:
         stdout, stderr = await asyncio.wait_for(proc.communicate(in_data), timeout)
@@ -56,7 +61,7 @@ async def run_command(
     in_data: Optional[bytes] = None,
     stdout: ProcessStream = asyncio.subprocess.PIPE,
     stderr: ProcessStream = asyncio.subprocess.STDOUT,
-    timeout: int = 0,
+    timeout: Optional[int] = None,
     **kwargs: Any
 ) -> Tuple[bytes, bytes, Optional[int]]:
     """Runs the given command (with optional input) using asyncio subprocesses."""
@@ -70,7 +75,7 @@ async def run_command_shell(
     in_data: Optional[bytes] = None,
     stdout: ProcessStream = asyncio.subprocess.PIPE,
     stderr: ProcessStream = asyncio.subprocess.STDOUT,
-    timeout: int = 0,
+    timeout: Optional[int] = None,
     **kwargs: Any
 ) -> Tuple[bytes, bytes, Optional[int]]:
     """Runs the given command (with optional input) in a shell using asyncio subprocesses."""

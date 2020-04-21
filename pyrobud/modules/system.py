@@ -1,6 +1,7 @@
 import asyncio
 import os
 import sys
+from pathlib import Path
 from typing import ClassVar, Optional
 
 import speedtest
@@ -11,12 +12,10 @@ from .. import command, module, util
 class SystemModule(module.Module):
     name: ClassVar[str] = "System"
     restart_pending: bool
-    update_restart_pending: bool
     db: util.db.AsyncDB
 
     async def on_load(self):
         self.restart_pending = False
-        self.update_restart_pending = False
 
         self.db = self.bot.get_db("system")
 
@@ -108,13 +107,14 @@ class SystemModule(module.Module):
 
     @command.desc("Restart this bot")
     @command.alias("re", "rst")
-    async def cmd_restart(self, ctx: command.Context) -> None:
+    async def cmd_restart(self, ctx: command.Context, *, reason="manual") -> None:
         resp_msg = await ctx.respond("Restarting bot...")
 
         # Save time and status message so we can update it after restarting
         await self.db.put("restart_status_chat_id", resp_msg.chat_id)
         await self.db.put("restart_status_message_id", resp_msg.id)
         await self.db.put("restart_time", util.time.usec())
+        await self.db.put("restart_reason", reason)
 
         # Initiate the restart
         self.restart_pending = True
@@ -130,23 +130,26 @@ class SystemModule(module.Module):
             rs_message_id: Optional[int] = await self.db.get(
                 "restart_status_message_id"
             )
+            rs_reason: Optional[str] = await self.db.get("restart_reason")
 
             # Delete DB keys first in case message editing fails
             await self.db.delete("restart_time")
             await self.db.delete("restart_status_chat_id")
             await self.db.delete("restart_status_message_id")
+            await self.db.delete("restart_reason")
 
-            # Bail out if we're missing values
+            # Bail out if we're missing necessary values
             if rs_chat_id is None or rs_message_id is None:
                 return
 
-            # Calculate and show duration
+            # Show message
+            updated = "updated and " if rs_reason == "update" else ""
             duration = util.time.format_duration_us(util.time.usec() - rs_time)
-            self.log.info(f"Bot restarted in {duration}")
+            self.log.info(f"Bot {updated}restarted in {duration}")
             status_msg = await self.bot.client.get_messages(
                 rs_chat_id, ids=rs_message_id
             )
-            await self.bot.respond(status_msg, f"Bot restarted in {duration}.")
+            await self.bot.respond(status_msg, f"Bot {updated}restarted in {duration}.")
 
     async def on_stopped(self) -> None:
         # Restart the bot if applicable
@@ -164,15 +167,11 @@ class SystemModule(module.Module):
         if not util.git.have_git:
             return "__The__ `git` __command is required for self-updating.__"
 
-        if self.update_restart_pending:
-            return await self.cmd_restart(ctx)
-
         # Attempt to get the Git repo
         repo = await util.run_sync(util.git.get_repo)
         if not repo:
             return "__Unable to locate Git repository data.__"
 
-        await ctx.respond("Pulling changes...")
         if remote_name:
             # Attempt to get requested remote
             try:
@@ -189,14 +188,33 @@ class SystemModule(module.Module):
         old_commit = await util.run_sync(repo.commit)
 
         # Pull from remote
-        self.log.info(f"Pulling from Git remote '{remote.name}'")
+        await ctx.respond(f"Pulling changes from `{remote}`...")
         await util.run_sync(remote.pull)
 
-        for change in old_commit.diff():
-            if change.a_path == "poetry.lock":
-                self.update_restart_pending = True
-                return "Successfully pulled updates. Dependencies have changed, so please update them __before__ restarting this bot by re-running the `update` or `restart` command."
+        # Check for dependency changes
+        if any(change.apath == "poetry.lock" for change in old_commit.diff()):
+            # Update dependencies automatically if running in venv
+            prefix = util.system.get_venv_path()
+            if prefix:
+                pip = str(Path(prefix) / "bin" / "pip")
+
+                await ctx.respond("Updating dependencies...")
+                stdout, _, ret = await util.system.run_command(
+                    pip, "install", repo.working_tree_dir
+                )
+                if ret != 0:
+                    return f"""⚠️ Error updating dependencies:
+
+```{stdout.decode()}```
+
+Fix the issue manually and then restart the bot."""
+            else:
+                return f"""Successfully pulled updates.
+
+**Update dependencies manually** to avoid errors, then restart the bot for the update to take effect.
+
+Dependency updates are automatic if you're running the bot in a virtualenv."""
 
         # Restart after updating
-        await self.cmd_restart(ctx)
+        await self.cmd_restart(ctx, reason="update")
         return None
