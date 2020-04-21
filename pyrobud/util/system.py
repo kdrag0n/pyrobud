@@ -1,8 +1,13 @@
 import asyncio
+import sys
 from typing import IO, Any, Optional, Sequence, Tuple, Union
 
 ProcessCmdline = Union[str, bytes]
 ProcessStream = Union[int, IO, None]
+
+
+def is_venv() -> bool:
+    return hasattr(sys, "real_prefix") or sys.base_prefix != sys.prefix
 
 
 async def _spawn_exec(
