@@ -192,7 +192,7 @@ class SystemModule(module.Module):
         await util.run_sync(remote.pull)
 
         # Check for dependency changes
-        if any(change.apath == "poetry.lock" for change in old_commit.diff()):
+        if any(change.a_path == "poetry.lock" for change in old_commit.diff()):
             # Update dependencies automatically if running in venv
             prefix = util.system.get_venv_path()
             if prefix:
