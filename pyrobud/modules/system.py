@@ -191,8 +191,13 @@ class SystemModule(module.Module):
         await ctx.respond(f"Pulling changes from `{remote}`...")
         await util.run_sync(remote.pull)
 
+        # Return early if no changes were pulled
+        diff = old_commit.diff()
+        if not diff:
+            return "No updates found."
+
         # Check for dependency changes
-        if any(change.a_path == "poetry.lock" for change in old_commit.diff()):
+        if any(change.a_path == "poetry.lock" for change in diff):
             # Update dependencies automatically if running in venv
             prefix = util.system.get_venv_path()
             if prefix:
