@@ -43,10 +43,10 @@ def format_duration_us(t_us: Union[int, float]) -> str:
         rem_s = t_s % 60
         return "%dm %ds" % (t_m, rem_s)
 
-    if t_s >= 10:
+    if t_s >= 1:
         return "%d sec" % t_s
 
-    if t_ms >= 10:
+    if t_ms >= 1:
         return "%d ms" % t_ms
 
     return "%d μs" % t_us
