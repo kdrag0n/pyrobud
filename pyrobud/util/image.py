@@ -1,3 +1,4 @@
+import io
 import os
 from typing import IO, Mapping, Optional, Union
 
@@ -17,8 +18,8 @@ async def img_to_png(src: FileLike, dest: Optional[FileLike] = None) -> FileLike
 
     def _img_to_png() -> None:
         im = Image.open(src).convert("RGBA")
-        if isinstance(src, IO):
-            src.seek(0)
+        if isinstance(dest, io.BufferedIOBase):
+            dest.seek(0)
         im.save(dest, "png")
 
     await run_sync(_img_to_png)
