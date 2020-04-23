@@ -107,7 +107,7 @@ class CommandDispatcher(MixinBase):
             )
 
             # Ensure specified argument needs are met
-            if not (cmd.usage is None or cmd.usage_optional or ctx.input):
+            if cmd.usage is not None and not ctx.input:
                 err_base = f"⚠️ Missing parameters: {cmd.usage}"
 
                 if cmd.usage_reply:
@@ -116,15 +116,15 @@ class CommandDispatcher(MixinBase):
                         if reply_msg.text:
                             ctx.input = reply_msg.text
                             ctx.plain_input = reply_msg.raw_text
-                        else:
+                        elif not cmd.usage_optional:
                             await ctx.respond(
                                 f"{err_base}\n__The message you replied to doesn't contain text.__"
                             )
                             return
-                    else:
+                    elif not cmd.usage_optional:
                         await ctx.respond(f"{err_base} (replying is also supported)")
                         return
-                else:
+                elif not cmd.usage_optional:
                     await ctx.respond(err_base)
                     return
 
