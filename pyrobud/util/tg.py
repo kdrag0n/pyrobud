@@ -109,7 +109,11 @@ async def get_text_input(
 ) -> Tuple[bool, Optional[Union[str, bytes]]]:
     """Returns input text from various sources in the given command context."""
 
-    if ctx.msg.is_reply:
+    if ctx.msg.document:
+        text = await download_file(ctx, ctx.msg)
+    elif input_arg:
+        text = filter_code_block(input_arg)
+    elif ctx.msg.is_reply:
         reply_msg = await ctx.msg.get_reply_message()
 
         if reply_msg.document:
@@ -122,11 +126,6 @@ async def get_text_input(
                 "__Reply to a message with text or a text file, or provide text in command.__",
             )
     else:
-        if ctx.msg.document:
-            text = await download_file(ctx, ctx.msg)
-        elif input_arg:
-            text = filter_code_block(input_arg)
-        else:
-            return False, "__Reply to a message or provide text in command.__"
+        return False, "__Reply to a message or provide text in command.__"
 
     return True, text
