@@ -70,7 +70,7 @@ class Command:
 # Command invocation context
 class Context:
     bot: "Bot"
-    msg: tg.custom.Message
+    message: tg.custom.Message
     segments: Sequence[str]
     cmd_len: int
     invoker: str
@@ -82,10 +82,14 @@ class Context:
     args: Sequence[str]
 
     def __init__(
-        self, bot: "Bot", msg: tg.custom.Message, segments: Sequence[str], cmd_len: int
+        self,
+        bot: "Bot",
+        message: tg.custom.Message,
+        segments: Sequence[str],
+        cmd_len: int,
     ) -> None:
         self.bot = bot
-        self.msg = msg
+        self.message = message
         self.segments = segments
         self.cmd_len = cmd_len
         self.invoker = segments[0]
@@ -94,9 +98,9 @@ class Context:
         self.response = None
         self.response_mode = None
         # Single argument string (unparsed, i.e. complete with Markdown formatting symbols)
-        self.input = self.msg.text[self.cmd_len :]
+        self.input = self.message.text[self.cmd_len :]
         # Single argument string (parsed, i.e. plain text)
-        self.plain_input = self.msg.raw_text[self.cmd_len :]
+        self.plain_input = self.message.raw_text[self.cmd_len :]
 
     # Lazily resolve expensive fields
     def __getattr__(self, name: str) -> Any:
@@ -121,7 +125,7 @@ class Context:
         overflow: Optional[str] = None,
         max_pages: Optional[int] = None,
         redact: Optional[bool] = None,
-        msg: Optional[tg.custom.Message] = None,
+        message: Optional[tg.custom.Message] = None,
         reuse_response: bool = False,
         **kwargs: Any,
     ) -> tg.custom.Message:
@@ -135,13 +139,13 @@ class Context:
                 mode=mode,
                 max_pages=max_pages,
                 redact=redact,
-                msg=msg,
+                message=message,
                 reuse_response=reuse_response,
                 **kwargs,
             )
 
         self.response = await self.bot.respond(
-            msg or self.msg,
+            message or self.message,
             text,
             mode=mode,
             redact=redact,
@@ -212,7 +216,7 @@ class Context:
         self,
         *args: Any,
         mode: Optional[str] = None,
-        msg: Optional[tg.custom.Message] = None,
+        message: Optional[tg.custom.Message] = None,
         reuse_response: bool = False,
         **kwargs: Any,
     ) -> tg.custom.Message:
@@ -222,12 +226,12 @@ class Context:
             if mode is None:
                 mode = "reply"
 
-            if msg is None:
-                msg = self.response
+            if message is None:
+                message = self.response
 
             if reuse_response is None:
                 reuse_response = False
 
         return await self.respond(
-            *args, mode=mode, msg=msg, reuse_response=reuse_response, **kwargs
+            *args, mode=mode, message=message, reuse_response=reuse_response, **kwargs
         )
