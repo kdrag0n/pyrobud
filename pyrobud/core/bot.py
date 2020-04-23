@@ -3,6 +3,7 @@ import logging
 from typing import Optional
 
 import aiohttp
+
 import telethon as tg
 
 from ..util.config import Config
@@ -57,9 +58,11 @@ class Bot(
         self.stopping = True
 
         self.log.info("Stopping")
-        await self.dispatch_event("stop")
+        if self.loaded:
+            await self.dispatch_event("stop")
         await self.http.close()
         await self._db.close()
 
         self.log.info("Running post-stop hooks")
-        await self.dispatch_event("stopped")
+        if self.loaded:
+            await self.dispatch_event("stopped")

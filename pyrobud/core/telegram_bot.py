@@ -29,6 +29,7 @@ class TelegramBot(MixinBase):
     # Initialized during instantiation
     tg_config: TelegramConfig
     _mevent_handlers: MutableMapping[str, Tuple[TgEventHandler, EventType]]
+    loaded: bool
 
     # Initialized during startup
     client: tg.TelegramClient
@@ -40,6 +41,7 @@ class TelegramBot(MixinBase):
     def __init__(self: "Bot", **kwargs: Any) -> None:
         self.tg_config = self.config["telegram"]
         self._mevent_handlers = {}
+        self.loaded = False
 
         # Propagate initialization to other mixins
         super().__init__(**kwargs)
@@ -79,6 +81,7 @@ class TelegramBot(MixinBase):
         # Load modules
         self.load_all_modules()
         await self.dispatch_event("load")
+        self.loaded = True
 
         # Start Telegram client
         await self.client.start()

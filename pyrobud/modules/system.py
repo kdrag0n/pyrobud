@@ -16,7 +16,6 @@ class SystemModule(module.Module):
 
     async def on_load(self):
         self.restart_pending = False
-
         self.db = self.bot.get_db("system")
 
     @command.desc("Run a snippet in a shell")
