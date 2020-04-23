@@ -130,6 +130,7 @@ class ModerationModule(module.Module):
 
         last_time = datetime.now()
         total_count = len(all_members)
+        err_count = 0
         pruned_count = 0
         idx = 0
 
@@ -137,21 +138,27 @@ class ModerationModule(module.Module):
         await ctx.respond(status_text)
 
         for user in all_members:
-            if user.deleted:
-                ban_request: tg.tl.TLRequest
-                if isinstance(chat, tg.types.Chat):
-                    ban_request = tg.tl.functions.messages.DeleteChatUserRequest(
-                        chat.id, user
-                    )
-                else:
-                    rights = tg.tl.types.ChatBannedRights(
-                        until_date=None, view_messages=True
-                    )
-                    ban_request = tg.tl.functions.channels.EditBannedRequest(
-                        chat, user, rights
-                    )
+            if not user.deleted:
+                continue
 
+            ban_request: tg.tl.TLRequest
+            if isinstance(chat, tg.types.Chat):
+                ban_request = tg.tl.functions.messages.DeleteChatUserRequest(
+                    chat.id, user
+                )
+            else:
+                rights = tg.tl.types.ChatBannedRights(
+                    until_date=None, view_messages=True
+                )
+                ban_request = tg.tl.functions.channels.EditBannedRequest(
+                    chat, user, rights
+                )
+
+            try:
                 await self.bot.client(ban_request)
+            except tg.errors.UserAdminInvalidError:
+                err_count += 1
+            else:
                 pruned_count += 1
 
             percent_done = int((idx + 1) / total_count * 100)
@@ -159,7 +166,7 @@ class ModerationModule(module.Module):
             delta = now - last_time
             if delta.total_seconds() >= 5:
                 await ctx.respond(
-                    f"{status_text} {percent_done}% done ({idx + 1} of {total_count} processed; {pruned_count} banned)"
+                    f"{status_text} {percent_done}% done ({idx + 1} of {total_count} processed; {pruned_count} banned; {err_count} failed)"
                 )
 
             last_time = now
