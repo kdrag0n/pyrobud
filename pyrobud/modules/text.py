@@ -1,3 +1,5 @@
+import base64
+import binascii
 import random
 import string
 import unicodedata
@@ -103,7 +105,22 @@ class TextModule(module.Module):
         return "\n".join(chars)
 
     @command.desc("Replace the spaces in a string with clap emoji")
-    @command.usage("[text to filter]", reply=True)
+    @command.usage("[text to filter, or reply]", reply=True)
     async def cmd_clap(self, ctx: command.Context) -> str:
         text = ctx.input
         return "\n".join("👏".join(line.split()) for line in text.split("\n"))
+
+    @command.desc("Encode text into Base64")
+    @command.alias("b64encode", "b64e")
+    @command.usage("[text to encode, or reply]", reply=True)
+    async def cmd_base64encode(self, ctx: command.Context) -> str:
+        return base64.b64encode(ctx.input.encode("utf-8")).decode()
+
+    @command.desc("Decode Base64 data")
+    @command.alias("b64decode", "b64d")
+    @command.usage("[base64 text to decode, or reply]", reply=True)
+    async def cmd_base64decode(self, ctx: command.Context) -> str:
+        try:
+            return base64.b64decode(ctx.input).decode("utf-8", "replace")
+        except binascii.Error as e:
+            return f"⚠️ Invalid Base64 data: {e}"
