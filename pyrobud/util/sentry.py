@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, Dict, Optional, Type
 
 import plyvel
+
 import ratelimit
 import sentry_sdk
 import telethon as tg
@@ -64,6 +65,7 @@ def _send_filter(event: Event, hint: EventHint) -> Optional[Event]:
                 exc_msg.startswith("Automatic reconnection failed")
                 or exc_msg.startswith("Request was unsuccessful")
                 or "Connection to Telegram failed" in exc_msg
+                or "consecutive sign-in attempts failed" in exc_msg
             ):
                 return None
 
