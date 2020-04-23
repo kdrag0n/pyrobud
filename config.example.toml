@@ -49,6 +49,17 @@ sentry_dsn = ""
 # Valid options: edit, reply, repost
 response_mode = "edit"
 
+# How the bot handles responses too long for one message by default.
+# Note that this can be overridden on a per-command basis.
+# Valid options: split, truncate
+overflow_mode = "truncate"
+
+# Maximum number of pages per message before truncation takes place.
+# Only applicable if the overflow mode is "split".
+# This is a sanity check to prevent abnormally long messages from making the bot spam
+# and potentially getting your account banned/limited.
+overflow_page_limit = 4
+
 # Whether to redact sensitive information from messages the bot sends/responds to.
 # "Sensitive information" is defined as the Telegram API ID and hash as well as the
 # account's phone number.

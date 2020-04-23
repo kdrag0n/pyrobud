@@ -92,6 +92,7 @@ upgrade_methods = [
     {"version": 8, "asyncio": {"use_uvloop": True}},
     {"version": 9, "asyncio": {"debug": False}},
     {"version": 10, "asyncio": {"use_uvloop": DeleteValue, "disable_uvloop": False}},
+    {"version": 11, "bot": {"overflow_mode": "truncate", "overflow_page_limit": 4}},
 ]
 
 
