@@ -1,6 +1,6 @@
 # Config schema version. DO NOT TOUCH!
 # The config upgrader/migrator system will update this automatically as necessary.
-version = 9
+version = 11
 
 [telegram]
 # Client API ID used for authentication, obtained from https://my.telegram.org/apps
