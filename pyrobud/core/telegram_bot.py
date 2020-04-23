@@ -110,6 +110,9 @@ class TelegramBot(MixinBase):
         await self.client.catch_up()
         self.log.info("Finished catching up")
 
+        # Dispatch final late start event
+        await self.dispatch_event("started")
+
     async def run(self: "Bot") -> None:
         try:
             # Start client
