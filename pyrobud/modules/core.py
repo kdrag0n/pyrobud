@@ -10,6 +10,24 @@ OFFICIAL_SUPPORT_LINK = "https://t.me/pyrobud"
 class CoreModule(module.Module):
     name: ClassVar[str] = "Core"
 
+    async def on_load(self):
+        self.db = self.bot.get_db("core")
+
+    async def on_started(self) -> None:
+        if await self.db.get("first_start", True):
+            print(
+                f"""
+
+Congratulations on setting up your new bot!
+
+Please consider joining the official Telegram group in case you ever have
+issues, questions, suggestions, or anything else related to this bot:
+    {OFFICIAL_SUPPORT_LINK}
+
+"""
+            )
+            await self.db.put("first_start", False)
+
     @command.desc("List the commands")
     @command.usage("[filter: command or module name?]", optional=True)
     async def cmd_help(self, ctx: command.Context):
