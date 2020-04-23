@@ -4,7 +4,7 @@ version = 11
 
 [telegram]
 # Client API ID used for authentication, obtained from https://my.telegram.org/apps
-api_id = 12345
+api_id = 123456
 
 # Client API hash used for authentication, obtained from https://my.telegram.org/apps
 api_hash = "0123456789abcdef0123456789abcdef"
