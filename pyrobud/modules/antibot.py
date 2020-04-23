@@ -310,4 +310,9 @@ class AntibotModule(module.Module):
             await self.clear_group(ctx.msg.chat_id)
 
         status = "enabled" if state else "disabled"
-        return f"Antibot is now **{status}** in this group."
+        comment = (
+            " Note that only __new__ users will be affected to reduce the risk of false positives."
+            if state
+            else ""
+        )
+        return f"Antibot is now **{status}** in this group.{comment}"
