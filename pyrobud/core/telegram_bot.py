@@ -172,7 +172,7 @@ class TelegramBot(MixinBase):
     # Flexible response function with filtering, truncation, redaction, etc.
     async def respond(
         self: "Bot",
-        message: tg.custom.Message,
+        msg: tg.custom.Message,
         text: Optional[str] = None,
         *,
         mode: Optional[str] = None,
@@ -202,7 +202,7 @@ class TelegramBot(MixinBase):
             mode = self.config["bot"]["response_mode"]
 
         if mode == "edit":
-            return await message.edit(text=text, **kwargs)
+            return await msg.edit(text=text, **kwargs)
 
         if mode == "reply":
             if response is not None:
@@ -210,7 +210,7 @@ class TelegramBot(MixinBase):
                 return await response.edit(text=text, **kwargs)
 
             # Reply since we haven't done so yet
-            return await message.reply(text, **kwargs)
+            return await msg.reply(text, **kwargs)
 
         if mode == "repost":
             if response is not None:
@@ -218,10 +218,8 @@ class TelegramBot(MixinBase):
                 return await response.edit(text=text, **kwargs)
 
             # Repost since we haven't done so yet
-            response = await message.respond(
-                text, reply_to=message.reply_to_msg_id, **kwargs
-            )
-            await message.delete()
+            response = await msg.respond(text, reply_to=msg.reply_to_msg_id, **kwargs)
+            await msg.delete()
             return response
 
         raise ValueError(f"Unknown response mode '{mode}'")
