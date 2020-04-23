@@ -13,19 +13,6 @@ PNG_MAGIC = b"\x89\x50\x4e\x47\x0d\x0a\x1a\x0a"
 
 # Sticker bot info and return error strings
 STICKER_BOT_USERNAME = "Stickers"
-TOO_MANY_STICKERS_ERROR = (
-    "A pack can't have more than 120 stickers at the moment.",
-    "Sticker creation failed because the [{0}](https://t.me/addstickers/{0}) pack exceeds the maximum sticker count of 120.",
-)
-INVALID_FORMAT_ERROR = (
-    "Sorry, the file type is invalid.",
-    "Sticker creation failed because Telegram rejected the processed image file due to a format mismatch.",
-)
-IMAGE_TOO_BIG_ERROR = (
-    "Sorry, the file is too big.",
-    "Sticker creation failed because the processed image exceeds 512 KiB in size.",
-)
-TIMEOUT_ERROR = "Sticker creation failed after {0} seconds because [the bot](https://t.me/{1}) failed to respond within 1 minute."
 
 
 class LengthMismatchError(Exception):
@@ -50,12 +37,14 @@ class StickerModule(module.Module):
         target: str = STICKER_BOT_USERNAME,
     ) -> Tuple[bool, str]:
         commands = [
-            ("text", "/cancel"),
-            ("text", "/addsticker"),
-            ("text", pack_name),
-            ("file", sticker_data),
-            ("text", emoji),
-            ("text", "/done"),
+            # We don't check this response because it's just a precautionary measure
+            # Could be either failure (most likely) or success
+            ("text", "/cancel", None),
+            ("text", "/addsticker", "Choose the sticker pack"),
+            ("text", pack_name, "send me the sticker"),
+            ("file", sticker_data, "send me an emoji"),
+            ("text", emoji, "added your sticker"),
+            ("text", "/done", "done"),
         ]
 
         success = False
@@ -72,7 +61,7 @@ class StickerModule(module.Module):
                 return resp
 
             try:
-                for cmd_type, data in commands:
+                for cmd_type, data, expected_resp in commands:
                     if cmd_type == "text":
                         await conv.send_message(data)
                     elif cmd_type == "file":
@@ -90,17 +79,16 @@ class StickerModule(module.Module):
                             fut.result()
 
                         response = resp_task.result()
-                        if TOO_MANY_STICKERS_ERROR[0] in response.raw_text:
-                            return False, TOO_MANY_STICKERS_ERROR[1].format(pack_name)
-                        if INVALID_FORMAT_ERROR[0] in response.raw_text:
-                            return False, INVALID_FORMAT_ERROR[1]
-                        if IMAGE_TOO_BIG_ERROR[0] in response.raw_text:
-                            return False, IMAGE_TOO_BIG_ERROR[1]
+                        if expected_resp and expected_resp not in response.raw_text:
+                            return False, f'Sticker creation failed: "{response.text}"'
                     except asyncio.TimeoutError:
                         after = datetime.now()
                         delta_seconds = int((after - before).total_seconds())
 
-                        return False, TIMEOUT_ERROR.format(delta_seconds, target)
+                        return (
+                            False,
+                            f"Sticker creation timed out after {delta_seconds} seconds.",
+                        )
 
                 success = True
             finally:
