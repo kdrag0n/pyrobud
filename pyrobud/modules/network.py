@@ -3,6 +3,7 @@ import urllib.parse
 from typing import ClassVar, Optional
 
 import aiohttp
+
 import telethon as tg
 
 from .. import command, module, util
@@ -20,6 +21,7 @@ class NetworkModule(module.Module):
         return f"Request response time: {after - before:.0f} ms"
 
     @command.desc("Paste message text to Dogbin")
+    @command.alias("deldog", "dogbin")
     @command.usage(
         "[text to paste?, or upload/reply to message or file]", optional=True
     )
