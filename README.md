@@ -48,7 +48,7 @@ install that first. Below are instructions for some common operating systems:
 ### Using Docker
 
 Simply run `docker run --rm -itv "$PWD/data:/data" kdrag0n/pyrobud` to run the
-latest stable version with the data directory set to `data` in the current
+latest unstable version with the data directory set to `data` in the current
 working directory. Feel free to customize the data directory as you wish, as
 long as you create `config.toml` in your chosen data directory using the
 instructions below. The data section of the Docker command should always look
@@ -60,14 +60,11 @@ such support are welcome.
 
 ### Using pip
 
-Run `python3 -m pip install .` to install the bot along with all of its dependencies. After
-that, you can choose to either invoke it using the `pyrobud` command, or run the bot
-in-place (which is described later in the Usage section).
-
-It is highly recommended to install everything inside a virtual environment to
-minimize contamination of the system Python install, since many of the bot's
-dependencies are not typically packaged by Linux distributions. Such environments
-can easily be created using the following command: `python3 -m venv [target directory]`
+When using pip, it's highly recommended to install everything inside a virtual
+environment to minimize contamination of the system Python install, since many
+of the bot's dependencies are not typically packaged by Linux distributions.
+Such environments can easily be created using the following command:
+`python3 -m venv [target directory]`
 
 They can then be activated using `source [target directory]/bin/activate` or the
 equivalent command and script for your shell of choice.
@@ -77,6 +74,38 @@ but please be aware of the potential issues when doing so. The installed package
 may conflict with the system package manager's installed packages, which can
 cause trouble down the road and errors when upgrading conflicting packages.
 **You have been warned.**
+
+### Stable
+
+You can obtain the latest stable version from PyPI:
+
+`python3 -m pip install pyrobud`
+
+If you have or can install OpenSSL development headers, installing the `fast`
+variant is highly recommended:
+
+`python3 -m pip install pyrobud[fast]`
+
+Without the `cryptg` encryption acceleration library from the `fast` extras, the
+bot will be **extremely slow** when dealing with any files, even small ones.
+Download and upload speeds can be as slow as kilobytes per second without this
+library.
+
+### Bleeding-edge
+
+First, clone this Git repository locally:
+`git clone https://github.com/kdrag0n/pyrobud`
+
+After that, you can run `python3 -m pip install .` to install the bot along with
+the bare minimum dependencies. However, including the `fast` extras is highly
+recommended to improve performance: `python3 -m pip install .[fast]`
+
+Read the section above for more information on what `fast` does and why you
+should use it.
+
+Once it's installed, you can choose to invoke it using the `pyrobud` command, or
+run the bot in-place (which is described later in the Usage section). Running it
+in-place is recommended to allow for automatic updates via Git.
 
 #### Error: `Directory '.' is not installable. File 'setup.py' not found.`
 

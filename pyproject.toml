@@ -39,8 +39,7 @@ colorlog = "^4.1.0"
 telethon = "^1.10.10"
 tomlkit = ">=0.5.8,<0.7.0"
 # Performance
-cryptg = "^0.2.post0"
-uvloop = {version = "^0.14.0", optional = true}
+cryptg = {version = "^0.2.post0", optional = true}
 # Database
 msgpack = ">=0.6.2,<1.1.0"
 plyvel = "^1.1.0"
@@ -58,7 +57,7 @@ aiorun = ">=2019.11.1,<2021.0.0"
 beauty-print = "^0.6.0"
 
 [tool.poetry.extras]
-fast = ["uvloop"]
+fast = ["cryptg"]
 
 [tool.poetry.dev-dependencies]
 black = "^19.10b0"

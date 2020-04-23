@@ -33,6 +33,7 @@ WORKDIR /src
 # Install bot package and dependencies
 COPY . .
 RUN pip install .[fast]
+RUN pip install uvloop
 
 
 # Package everything
