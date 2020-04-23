@@ -240,19 +240,31 @@ async def cmd_test(self, ctx: command.Context) -> str:
 
 Not all commands return text, however, and some may need to pass additional
 arguments to `ctx.respond`. If that happens to be the case, call `ctx.respond`
-manually instead of returning a string. `ctx.respond` is flexible and supports
-several different response modse, which can be specified using the `mode` keyword
-argument:
+manually instead of returning a string.
 
-- `edit`
-  - Edits the invocation message with the response
-- `reply`
-  - Replies to the invocation message with the response
-- `repost`
-  - Deletes the invocation message and sends the response in reply to the same
-    message the original one replied to
+`ctx.respond` provides some keyword-only arguments to control its behavior:
 
-An example of this in a command that send media can be seen below:
+- Response mode: `mode`
+  - `edit`: Edit the invocation message with the response
+  - `reply`: Reply to the invocation message with the response
+  - `repost`: Delete the invocation message and send the response in reply to
+  the invocation message's replied-to message, if any
+
+- Overflow handling mode: `overflow`
+  - `truncate`: Send a single message that's as large as possible and discard
+  any remaining text with a truncation indicator ("... (truncated)")
+  - `split`: Split and send message into pages that are each as large as
+  possible
+
+- Maximum number of pages if using the `split` overflow mode: `max_pages`
+  - Messages that don't fit in this many pages will be truncated at the end.
+
+Default values are specified in the bot config. Generally, you shouldn't
+specify any of these arguments unless you have a good reason to do so, as it can
+be distracting to the user if some commands don't respect their config settings.
+
+An example of response mode being used in a command that sends media can be seen
+below:
 
 ```python
 @command.desc("Get a random cat picture")
