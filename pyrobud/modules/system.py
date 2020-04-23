@@ -106,13 +106,19 @@ class SystemModule(module.Module):
 
     @command.desc("Restart this bot")
     @command.alias("re", "rst")
-    async def cmd_restart(self, ctx: command.Context, *, reason="manual") -> None:
+    async def cmd_restart(
+        self,
+        ctx: command.Context,
+        *,
+        restart_time: Optional[int] = None,
+        reason="manual",
+    ) -> None:
         resp_msg = await ctx.respond("Restarting bot...")
 
         # Save time and status message so we can update it after restarting
         await self.db.put("restart_status_chat_id", resp_msg.chat_id)
         await self.db.put("restart_status_message_id", resp_msg.id)
-        await self.db.put("restart_time", util.time.usec())
+        await self.db.put("restart_time", restart_time or util.time.usec())
         await self.db.put("restart_reason", reason)
 
         # Initiate the restart
@@ -183,7 +189,8 @@ class SystemModule(module.Module):
             if remote is None:
                 return f"__Current branch__ `{repo.active_branch.name}` __is not tracking a remote.__"
 
-        # Save old commit for diffing
+        # Save time and old commit for diffing
+        update_time = util.time.usec()
         old_commit = await util.run_sync(repo.commit)
 
         # Pull from remote
@@ -220,5 +227,5 @@ Fix the issue manually and then restart the bot."""
 Dependency updates are automatic if you're running the bot in a virtualenv."""
 
         # Restart after updating
-        await self.cmd_restart(ctx, reason="update")
+        await self.cmd_restart(ctx, restart_time=update_time, reason="update")
         return None
