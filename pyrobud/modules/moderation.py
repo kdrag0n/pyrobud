@@ -157,7 +157,7 @@ class ModerationModule(module.Module):
             percent_done = int((idx + 1) / total_count * 100)
             now = datetime.now()
             delta = now - last_time
-            if delta.total_seconds() >= 0.25:
+            if delta.total_seconds() >= 5:
                 await ctx.respond(
                     f"{status_text} {percent_done}% done ({idx + 1} of {total_count} processed; {pruned_count} banned)"
                 )
