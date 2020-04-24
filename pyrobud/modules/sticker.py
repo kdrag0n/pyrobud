@@ -98,11 +98,12 @@ class StickerModule(module.Module):
 
         return True, f"https://t.me/addstickers/{pack_name}"
 
-    @command.desc("Kang a sticker into configured/provided pack")
-    @command.usage("[sticker pack short name?]", optional=True)
-    async def cmd_kang(self, ctx: command.Context) -> str:
+    @command.desc("Copy a sticker into another pack")
+    @command.alias("stickercopy", "scopy", "copys", "scp", "cps", "kang")
+    @command.usage("[sticker pack short name? if not set]", optional=True)
+    async def cmd_copysticker(self, ctx: command.Context) -> str:
         if not ctx.msg.is_reply:
-            return "__Reply to a sticker to kang it.__"
+            return "__Reply to a sticker to copy it.__"
 
         pack_name = ctx.input
         if pack_name is None:
@@ -116,7 +117,7 @@ class StickerModule(module.Module):
         if not reply_msg.sticker:
             return "__That message isn't a sticker.__"
 
-        await ctx.respond("Kanging sticker...")
+        await ctx.respond("Copying sticker...")
 
         sticker_bytes = await reply_msg.download_media(file=bytes)
         sticker_buf = io.BytesIO(sticker_bytes)
@@ -129,7 +130,7 @@ class StickerModule(module.Module):
         )
         if status:
             await self.bot.log_stat("stickers_created")
-            return f"[Sticker kanged]({result})."
+            return f"[Sticker copied]({result})."
 
         return result
 
