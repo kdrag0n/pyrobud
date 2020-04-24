@@ -100,12 +100,22 @@ class StickerModule(module.Module):
 
     @command.desc("Copy a sticker into another pack")
     @command.alias("stickercopy", "scopy", "copys", "scp", "cps", "kang")
-    @command.usage("[sticker pack short name? if not set]", optional=True)
+    @command.usage("[sticker pack short name? if not set] [emoji?]", optional=True)
     async def cmd_copysticker(self, ctx: command.Context) -> str:
         if not ctx.msg.is_reply:
             return "__Reply to a sticker to copy it.__"
 
-        pack_name = ctx.input
+        pack_name = None
+        emoji = ""
+
+        for arg in ctx.args:
+            if util.text.has_emoji(arg):
+                # Allow for emoji split across several arguments, since some clients
+                # automatically insert spaces
+                emoji += arg
+            else:
+                pack_name = arg
+
         if pack_name is None:
             pack_name = await self.settings_db.get("kang_pack")
             if pack_name is None:
@@ -126,7 +136,7 @@ class StickerModule(module.Module):
         sticker_buf.seek(0)
         sticker_buf.name = "sticker.png"
         status, result = await self.add_sticker(
-            sticker_buf, pack_name, emoji=reply_msg.file.emoji
+            sticker_buf, pack_name, emoji=emoji or reply_msg.file.emoji
         )
         if status:
             await self.bot.log_stat("stickers_created")
