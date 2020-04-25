@@ -101,7 +101,6 @@ Please read the rules _before_ participating.
             "/welcomemute on",
             "/welcomemutetime 2h",
             "/blacklistmode tban 2d",
-            '/addblacklist "http://t.cn/*" "This isn\'t the place for cryptocurrency advertising."',
             "/disconnect",
         ]
 
