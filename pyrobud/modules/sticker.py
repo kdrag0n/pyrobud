@@ -116,9 +116,9 @@ class StickerModule(module.Module):
             else:
                 pack_name = arg
 
-        if pack_name is None:
+        if not pack_name:
             pack_name = await self.settings_db.get("kang_pack")
-            if pack_name is None:
+            if not pack_name:
                 return "__Specify the name of the pack to add the sticker to.__"
         else:
             await self.settings_db.put("kang_pack", pack_name)
