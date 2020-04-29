@@ -135,6 +135,10 @@ class CommandDispatcher(MixinBase):
                 # Response shortcut
                 if ret is not None:
                     await ctx.respond(ret)
+            except tg.errors.MessageNotModifiedError:
+                cmd.module.log.warning(
+                    f"Command '{cmd.name}' triggered a message edit with no changes; make sure there is only a single bot instance running"
+                )
             except Exception as e:
                 cmd.module.log.error(f"Error in command '{cmd.name}'", exc_info=e)
                 await ctx.respond(
