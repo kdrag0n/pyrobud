@@ -16,7 +16,10 @@ class TextModule(module.Module):
     @command.alias("cp", "chr", "uc", "c")
     async def cmd_uni(self, ctx: command.Context) -> str:
         codepoint = ctx.input
-        return chr(int(codepoint, 16))
+        try:
+            return chr(int(codepoint, 16))
+        except ValueError:
+            return f"__Input is out of Unicode's range of__ `0x00000` __to__ `0xFFFFF` __range.__"
 
     @command.desc(
         "Get a character equivalent to a zero-width space that works on Telegram"
