@@ -28,7 +28,9 @@ class SystemModule(module.Module):
         before = util.time.usec()
 
         try:
-            stdout, _, ret = await util.system.run_command_shell(snip, timeout=120)
+            stdout, _, ret = await util.system.run_command(
+                snip, shell=True, timeout=120
+            )
         except asyncio.TimeoutError:
             return "🕑 Snippet failed to finish within 2 minutes."
 
@@ -37,14 +39,13 @@ class SystemModule(module.Module):
         el_us = after - before
         el_str = f"\nTime: {util.time.format_duration_us(el_us)}"
 
-        cmd_out = stdout.decode().strip()
-        if not cmd_out:
-            cmd_out = "(no output)"
-        elif cmd_out[-1:] != "\n":
-            cmd_out += "\n"
+        if not stdout:
+            stdout = "[no output]"
+        elif stdout[-1:] != "\n":
+            stdout += "\n"
 
         err = f"⚠️ Return code: {ret}" if ret != 0 else ""
-        return f"```{cmd_out}```{err}{el_str}"
+        return f"```{stdout}```{err}{el_str}"
 
     @command.desc("Get information about the host system")
     @command.alias("si")
@@ -61,12 +62,7 @@ class SystemModule(module.Module):
             return "❌ [neofetch](https://github.com/dylanaraps/neofetch) must be installed on the host system."
 
         err = f"⚠️ Return code: {ret}" if ret != 0 else ""
-        sysinfo = (
-            "\n".join(stdout.decode().strip().split("\n")[2:])
-            if ret == 0
-            else stdout.strip()
-        )
-
+        sysinfo = "\n".join(stdout.split("\n")[2:]) if ret == 0 else stdout
         return f"```{sysinfo}```{err}"
 
     @command.desc("Test Internet speed")
@@ -216,7 +212,7 @@ class SystemModule(module.Module):
                 if ret != 0:
                     return f"""⚠️ Error updating dependencies:
 
-```{stdout.decode()}```
+```{stdout}```
 
 Fix the issue manually and then restart the bot."""
             else:

@@ -366,6 +366,7 @@ class StickerModule(module.Module):
                 "-",
                 stderr=asyncio.subprocess.PIPE,
                 in_data=png_bytes,
+                text=util.system.StderrOnly,
                 timeout=15,
             )
         except asyncio.TimeoutError:
@@ -374,8 +375,9 @@ class StickerModule(module.Module):
             return "❌ The `corrupter` [program](https://github.com/r00tman/corrupter) must be installed on the host system."
 
         if ret != 0:
-            return f"⚠️ `corrupter` failed with return code {ret}. Error: ```{stderr.decode()}```"
+            return (
+                f"⚠️ `corrupter` failed with return code {ret}. Error: ```{stderr}```"
+            )
 
-        glitched_bytes = stdout
-        await ctx.respond(file=glitched_bytes, mode="repost")
+        await ctx.respond(file=stdout, mode="repost")
         return None
