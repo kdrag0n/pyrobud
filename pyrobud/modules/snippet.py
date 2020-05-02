@@ -46,18 +46,14 @@ class SnippetsModule(module.Module):
     @command.usage("[snippet name] [text?, or reply]")
     @command.alias("snippet", "snp")
     async def cmd_snip(self, ctx: command.Context) -> str:
+        content = None
         if ctx.msg.is_reply:
             reply_msg = await ctx.msg.get_reply_message()
-
             content = reply_msg.text
-            if not content:
-                if len(ctx.args) > 1:
-                    content = " ".join(ctx.args[1:])
-                else:
-                    return "__Reply to a message with text or provide text after snippet name.__"
-        else:
+
+        if not content:
             if len(ctx.args) > 1:
-                content = " ".join(ctx.args[1:])
+                content = ctx.input[len(ctx.args[0]) :].strip()
             else:
                 return "__Reply to a message with text or provide text after snippet name.__"
 
