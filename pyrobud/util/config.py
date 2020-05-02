@@ -17,11 +17,7 @@ AsyncIOConfig = MutableMapping[str, bool]
 log = logging.getLogger("migrate")
 
 
-class Dummy:
-    pass
-
-
-DeleteValue = Dummy()
+DeleteValue = object()
 
 
 def save(config: Config, _path: str) -> None:
