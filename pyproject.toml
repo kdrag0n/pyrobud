@@ -4,7 +4,7 @@
 
 [tool.poetry]
 name = "pyrobud"
-version = "2.0.0"
+version = "2.1.0"
 description = "A clean selfbot for Telegram with an emphasis on quality and practicality."
 authors = ["Danny Lin <danny@kdrag0n.dev>"]
 license = "MIT"
