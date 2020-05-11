@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import Any, Dict, Optional, Type
 
 import plyvel
-
 import ratelimit
 import sentry_sdk
 import telethon as tg
@@ -51,6 +50,7 @@ def _send_filter(event: Event, hint: EventHint) -> Optional[Event]:
                 plyvel.IOError,
                 tg.errors.FloodWaitError,
                 tg.errors.PhoneNumberInvalidError,
+                tg.errors.ApiIdInvalidError,
             ):
                 return None
 
