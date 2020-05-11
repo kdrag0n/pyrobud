@@ -24,6 +24,8 @@ class DatabaseProvider(MixinBase):
                 raise OSError(
                     f"Database '{db_path}' is in use by another process! Make sure no other bot instances are running before starting this again."
                 )
+            else:
+                raise
         except plyvel.CorruptionError:
             self.log.warning("Database is corrupted, attempting to repair")
             plyvel.repair_db(db_path)
