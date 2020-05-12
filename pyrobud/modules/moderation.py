@@ -111,8 +111,9 @@ class ModerationModule(module.Module):
         return util.text.join_list(lines)
 
     @command.desc("Prune deleted members in this group or the specified group")
+    @command.alias("prune")
     @command.usage("[target chat ID/username/...?]", optional=True)
-    async def cmd_prune(self, ctx: command.Context) -> str:
+    async def cmd_prunemembers(self, ctx: command.Context) -> str:
         if ctx.input:
             chat = await self.bot.client.get_entity(ctx.input)
             if isinstance(chat, tg.types.User):
