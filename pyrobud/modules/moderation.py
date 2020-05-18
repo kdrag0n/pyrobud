@@ -142,21 +142,8 @@ class ModerationModule(module.Module):
             if not user.deleted:
                 continue
 
-            ban_request: tg.tl.TLRequest
-            if isinstance(chat, tg.types.Chat):
-                ban_request = tg.tl.functions.messages.DeleteChatUserRequest(
-                    chat.id, user
-                )
-            else:
-                rights = tg.tl.types.ChatBannedRights(
-                    until_date=None, view_messages=True
-                )
-                ban_request = tg.tl.functions.channels.EditBannedRequest(
-                    chat, user, rights
-                )
-
             try:
-                await self.bot.client(ban_request)
+                await self.bot.client.kick_participant(chat, user)
             except tg.errors.UserAdminInvalidError:
                 err_count += 1
             else:
