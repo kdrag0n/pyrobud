@@ -71,7 +71,7 @@ description = "Beautifully print Python data"
 name = "beauty-print"
 optional = false
 python-versions = ">=3.6"
-version = "0.6.0"
+version = "0.6.1"
 
 [[package]]
 category = "dev"
@@ -667,8 +667,7 @@ attrs = [
     {file = "attrs-19.3.0.tar.gz", hash = "sha256:f7b7ce16570fe9965acd6d30101a28f62fb4a7f9e926b3bbc9b61f8b04247e72"},
 ]
 beauty-print = [
-    {file = "beauty-print-0.6.0.tar.gz", hash = "sha256:e268cc80d269be2b0a794d29c73d411d682a73a817d4bf7f7ed77b28b2a77856"},
-    {file = "beauty_print-0.6.0-py3-none-any.whl", hash = "sha256:1cf6095485171c904c98dc893c05fda3dfca87bc4bd92b3f5961375ca93f0b4a"},
+    {file = "beauty_print-0.6.1-py3-none-any.whl", hash = "sha256:d2e18700fb12821a093f2bbfc86c88e32c1442a022a7acd8fbe6ee4ea41a133d"},
 ]
 black = [
     {file = "black-19.10b0-py36-none-any.whl", hash = "sha256:1b30e59be925fafc1ee4565e5e08abef6b03fe455102883820fe5ee2e4734e0b"},
