@@ -71,7 +71,7 @@ async def download_file(
     msg: tg.custom.Message,
     dest: Union[tg.hints.FileLike, os.PathLike, Type[bytes]] = bytes,
     file_type: str = "file",
-) -> Union[str, bytes, None]:
+) -> Any:
     """Downloads the file embedded in the given message with live progress updates."""
 
     last_percent = -5
@@ -110,14 +110,16 @@ async def get_text_input(
     """Returns input text from various sources in the given command context."""
 
     if ctx.msg.document:
-        text = await download_file(ctx, ctx.msg)
+        bin_data = await download_file(ctx, ctx.msg)
+        text = bin_data.decode(errors="replace")
     elif input_arg:
         text = filter_code_block(input_arg)
     elif ctx.msg.is_reply:
         reply_msg = await ctx.msg.get_reply_message()
 
         if reply_msg.document:
-            text = await download_file(ctx, reply_msg)
+            bin_data = await download_file(ctx, reply_msg)
+            text = bin_data.decode(errors="replace")
         elif reply_msg.text:
             text = filter_code_block(reply_msg.text)
         else:

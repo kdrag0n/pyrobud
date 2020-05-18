@@ -1,9 +1,9 @@
 import asyncio
+import io
 import urllib.parse
 from typing import ClassVar, Optional
 
 import aiohttp
-
 import telethon as tg
 
 from .. import command, module, util
@@ -67,15 +67,17 @@ class NetworkModule(module.Module):
             expires = "2d"
 
         reply_msg = await ctx.msg.get_reply_message()
-        if not reply_msg.document:
+        if not reply_msg.file:
             return "__That message doesn't contain a file.__"
 
         data = await util.tg.download_file(ctx, reply_msg)
+        buf = io.BytesIO(data)
+        buf.name = reply_msg.file.name
 
         await ctx.respond("Uploading file to [file.io](https://file.io/)...")
 
         async with self.bot.http.post(
-            f"https://file.io/?expires={expires}", data={"file": data}
+            f"https://file.io/?expires={expires}", data={"file": buf}
         ) as resp:
             resp_data = await resp.json()
 
