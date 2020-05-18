@@ -58,9 +58,6 @@ class SnippetsModule(module.Module):
                 return "__Reply to a message with text or provide text after snippet name.__"
 
         name = ctx.args[0]
-        if await self.db.has(name):
-            return f"__Snippet '{name}' already exists!__"
-
         await self.db.put(name, content.strip())
         return f"Snippet saved as `{name}`."
 
