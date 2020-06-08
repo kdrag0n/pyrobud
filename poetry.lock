@@ -30,7 +30,7 @@ description = "Boilerplate for asyncio applications"
 name = "aiorun"
 optional = false
 python-versions = ">=3.5"
-version = "2020.2.1"
+version = "2020.6.1"
 
 [package.extras]
 dev = ["pytest", "pytest-cov"]
@@ -251,6 +251,7 @@ idna = ">=2.0"
 [[package]]
 category = "dev"
 description = "Read metadata from Python packages"
+marker = "python_version < \"3.8\""
 name = "importlib-metadata"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
@@ -617,6 +618,7 @@ multidict = ">=4.0"
 [[package]]
 category = "dev"
 description = "Backport of pathlib-compatible object wrapper for zip files"
+marker = "python_version < \"3.8\""
 name = "zipp"
 optional = false
 python-versions = ">=3.6"
@@ -649,8 +651,8 @@ aiohttp = [
     {file = "aiohttp-3.6.2.tar.gz", hash = "sha256:259ab809ff0727d0e834ac5e8a283dc5e3e0ecc30c4d80b3cd17a4139ce1f326"},
 ]
 aiorun = [
-    {file = "aiorun-2020.2.1-py3-none-any.whl", hash = "sha256:7e9f5960b919efb6e5c147a3e75cf8a693f0d8245c12361d1e4e08c9b2d1b15e"},
-    {file = "aiorun-2020.2.1.tar.gz", hash = "sha256:2c0410edb7d26c27ef38653078ad6d3ee6985b77f379254210c2dd703f7d76d6"},
+    {file = "aiorun-2020.6.1-py3-none-any.whl", hash = "sha256:60c7d219899072ff5ba33bffc0b257b63bc62947e20e4e3f9ce3a7bc7299823d"},
+    {file = "aiorun-2020.6.1.tar.gz", hash = "sha256:90c59155711011f97bb5daaec581bb41110ea76860e709e86c1f2612aa2e409d"},
 ]
 appdirs = [
     {file = "appdirs-1.4.4-py2.py3-none-any.whl", hash = "sha256:a841dacd6b99318a741b166adb07e19ee71a274450e68237b4650ca1055ab128"},
