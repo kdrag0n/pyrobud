@@ -63,7 +63,7 @@ fast = ["cryptg"]
 [tool.poetry.dev-dependencies]
 black = "^19.10b0"
 isort = {version = "^4.3.21", extras = ["pyproject"]}
-mypy = "^0.780"
+mypy = "^0.781"
 pre-commit = "^2.1.1"
 
 [tool.poetry.scripts]
