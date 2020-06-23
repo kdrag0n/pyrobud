@@ -98,8 +98,8 @@ Please read the rules _before_ participating.
             "/setflood 13",
             "/setfloodmode tmute 3h",
             "/reports on",
-            "/welcomemute on",
-            "/welcomemutetime 2h",
+            "/captchamode text",
+            "/captchatime 13w",
             "/blacklistmode tban 2d",
             "/disconnect",
         ]
