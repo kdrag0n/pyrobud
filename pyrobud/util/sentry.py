@@ -46,6 +46,7 @@ def _send_filter(event: Event, hint: EventHint) -> Optional[Event]:
                 KeyboardInterrupt,
                 ConnectionError,
                 IOError,
+                EOFError,
                 sqlite3.OperationalError,
                 plyvel.IOError,
                 tg.errors.FloodWaitError,

@@ -84,7 +84,13 @@ class TelegramBot(MixinBase):
         self.loaded = True
 
         # Start Telegram client
-        await self.client.start()
+        try:
+            await self.client.start()
+        except EOFError:
+            self.log.error(
+                "Unable to get input for authorization! Make sure you're running this bot in an interactive shell. This can be done with the '-i' argument if you are using Docker."
+            )
+            raise
 
         # Get info
         user = await self.client.get_me()
