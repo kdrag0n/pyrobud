@@ -81,15 +81,21 @@ You can obtain the latest stable version from PyPI:
 
 `python3 -m pip install pyrobud`
 
-If you have or can install OpenSSL development headers, installing the `fast`
-variant is highly recommended:
+If are able to install libffi and OpenSSL development headers, installing the
+fast variant is highly recommended:
 
 `python3 -m pip install pyrobud[fast]`
 
-Without the `cryptg` encryption acceleration library from the `fast` extras, the
-bot will be **extremely slow** when dealing with any files, even small ones.
-Download and upload speeds can be as slow as kilobytes per second without this
-library.
+The native dependencies can be installed on Ubuntu with the following command:
+
+`apt install libffi-dev libssl-dev`
+
+You will need to find the corresponding packages on your OS or distribution of
+choice in order for the fast variant to install successfully.
+
+Without the fast variant's `cryptg` encryption accelerator, the bot will be
+**extremely slow** when dealing with any files — even small ones. Download and
+upload speeds can be as slow as kilobytes per second without it.
 
 ### Bleeding-edge
 
