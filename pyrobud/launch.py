@@ -34,7 +34,7 @@ def setup_asyncio(config: util.config.Config) -> asyncio.AbstractEventLoop:
         except ImportError:
             pass
 
-    loop = asyncio.get_event_loop()
+    loop = asyncio.new_event_loop()
 
     if asyncio_config["debug"]:
         log.info("Enabling asyncio debug mode")
