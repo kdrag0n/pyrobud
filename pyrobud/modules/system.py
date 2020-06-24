@@ -54,10 +54,10 @@ class SystemModule(module.Module):
 
         try:
             stdout, _, ret = await util.system.run_command(
-                "neofetch", "--stdout", timeout=10
+                "neofetch", "--stdout", timeout=60
             )
         except asyncio.TimeoutError:
-            return "🕑 `neofetch` failed to finish within 10 seconds."
+            return "🕑 `neofetch` failed to finish within 1 minute."
         except FileNotFoundError:
             return "❌ [neofetch](https://github.com/dylanaraps/neofetch) must be installed on the host system."
 
