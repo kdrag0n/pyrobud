@@ -101,6 +101,7 @@ class CommandDispatcher(MixinBase):
             # Construct invocation context
             ctx = command.Context(
                 self,
+                msg,
                 msg.message,
                 msg.segments,
                 len(self.prefix) + len(msg.segments[0]) + 1,

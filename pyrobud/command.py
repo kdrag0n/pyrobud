@@ -70,6 +70,7 @@ class Command:
 # Command invocation context
 class Context:
     bot: "Bot"
+    event: tg.events.common.EventCommon
     msg: tg.custom.Message
     segments: Sequence[str]
     cmd_len: int
@@ -82,9 +83,15 @@ class Context:
     args: Sequence[str]
 
     def __init__(
-        self, bot: "Bot", msg: tg.custom.Message, segments: Sequence[str], cmd_len: int
+        self,
+        bot: "Bot",
+        event: tg.events.common.EventCommon,
+        msg: tg.custom.Message,
+        segments: Sequence[str],
+        cmd_len: int,
     ) -> None:
         self.bot = bot
+        self.event = event
         self.msg = msg
         self.segments = segments
         self.cmd_len = cmd_len
