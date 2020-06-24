@@ -104,6 +104,7 @@ Expected parameters: {args_desc}"""
         return f"Uptime: {util.time.format_duration_us(delta_us)}"
 
     @command.desc("Get or change this bot prefix")
+    @command.alias("setprefix", "getprefix")
     @command.usage("[new prefix?]", optional=True)
     async def cmd_prefix(self, ctx: command.Context) -> str:
         new_prefix = ctx.input
