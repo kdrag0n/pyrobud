@@ -46,6 +46,12 @@ class DebugModule(module.Module):
                 "listeners": self.bot.listeners,
                 "modules": self.bot.modules,
                 "stdout": out_buf,
+                # Convenience aliases
+                "context": ctx,
+                "msg": ctx.msg,
+                "message": ctx.msg,
+                "event": ctx.event,
+                "db": self.bot.db,
                 # Helper functions
                 "send": send,
                 "print": _print,
