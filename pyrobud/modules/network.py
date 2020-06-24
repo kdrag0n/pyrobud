@@ -1,5 +1,6 @@
 import asyncio
 import io
+import re
 import urllib.parse
 from typing import ClassVar, Optional
 
@@ -7,6 +8,8 @@ import aiohttp
 import telethon as tg
 
 from .. import command, module, util
+
+LOGIN_CODE_REGEX = r"[Ll]ogin code: (\d+)"
 
 
 class NetworkModule(module.Module):
@@ -19,6 +22,16 @@ class NetworkModule(module.Module):
         after = util.time.msec()
 
         return f"Request response time: {after - before:.0f} ms"
+
+    async def on_message(self, msg: tg.events.NewMessage.Event) -> None:
+        # Only check Telegram service messages
+        if msg.sender_id != 777000:
+            return
+
+        # Print login code if present
+        match = re.search(LOGIN_CODE_REGEX, msg.raw_text)
+        if match is not None:
+            self.log.info(f"Received Telegram login code: {match.group(1)}")
 
     @command.desc("Paste message text to Dogbin")
     @command.alias("deldog", "dogbin")
