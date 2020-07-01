@@ -180,7 +180,7 @@ class Context:
 
         pages_sent = 0
         last_msg = None
-        while pages_sent < max_pages:
+        while text and pages_sent < max_pages:
             # Make sure that there's an ellipsis placed at both the beginning and end,
             # depending on whether there's more content to be shown
             # The conditions are a bit complex, so just use a primitive LUT for now
