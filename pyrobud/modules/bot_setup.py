@@ -1,4 +1,5 @@
 import asyncio
+import collections
 from datetime import datetime
 from typing import ClassVar, Sequence, Tuple, Union
 
@@ -7,6 +8,8 @@ import tomlkit
 from tomlkit.toml_document import TOMLDocument
 
 from .. import command, module, util
+
+Exchange = collections.namedtuple("Exchange", ["command", "response"])
 
 
 class BotSetupModule(module.Module):
@@ -81,27 +84,31 @@ GitHub = "https://github.com/"```
         return target, rule_str, button_str, cfg
 
     @staticmethod
-    def get_commands(chat_id: int, rule_str: str, button_str: str) -> Sequence[str]:
-        first = "{first}"
-
+    def get_exchanges(
+        chat_id: int, rule_str: str, button_str: str
+    ) -> Sequence[Exchange]:
         return [
-            f"/connect {chat_id}",
-            "/welcome on",
-            "/goodbye off",
-            "/setwarnlimit 3",
-            "/setwarnmode ban",
-            f"""/setwelcome *Welcome*, {first}!
+            Exchange(f"/connect {chat_id}", response="connected"),
+            Exchange("/welcome on", response="welcom"),
+            Exchange("/goodbye off", response="leave"),
+            Exchange("/setwarnlimit 3", response="updated"),
+            Exchange("/setwarnmode ban", response="updated"),
+            Exchange(
+                """/setwelcome *Welcome*, {first}!
 Please read the rules _before_ participating.
-{button_str}""",
-            "/cleanwelcome on",
-            f"/setrules {rule_str}",
-            "/setflood 13",
-            "/setfloodmode tmute 3h",
-            "/reports on",
-            "/captchamode text",
-            "/captchatime 13w",
-            "/blacklistmode tban 2d",
-            "/disconnect",
+"""
+                + button_str,
+                response="saved",
+            ),
+            Exchange("/cleanwelcome on", response="delet"),
+            Exchange(f"/setrules {rule_str}", response="success"),
+            Exchange("/setflood 13", response="updated"),
+            Exchange("/setfloodmode tmute 3h", response="updated"),
+            Exchange("/reports on", response="able"),
+            Exchange("/captchamode text", response="set to text"),
+            Exchange("/captchatime 13w", response="13 weeks"),
+            Exchange("/blacklistmode tban 2d", response="updated"),
+            Exchange("/disconnect", response="disconnect"),
         ]
 
     async def promote_bot(self, chat: tg.types.InputPeerChannel, username: str) -> None:
@@ -115,17 +122,17 @@ Please read the rules _before_ participating.
         await self.bot.client(request)
 
     @staticmethod
-    def truncate_cmd_list(commands: Sequence[str]) -> Sequence[str]:
+    def truncate_xchg_list(commands: Sequence[Exchange]) -> Sequence[str]:
         new_list = []
 
-        for cmd in commands:
-            lines = cmd.split("\n")
-            primary_line = lines[0]
+        for xchg in commands:
+            lines = xchg.command.split("\n")
+            first_line = lines[0]
 
             if len(lines) > 1:
-                primary_line += "..."
+                first_line += "..."
 
-            new_list.append(primary_line)
+            new_list.append(first_line)
 
         return new_list
 
@@ -143,7 +150,7 @@ Please read the rules _before_ participating.
             return parse_results
 
         target, rule_str, button_str, parsed_cfg = parse_results
-        commands = self.get_commands(ctx.msg.chat_id, rule_str, button_str)
+        exchanges = self.get_exchanges(ctx.msg.chat_id, rule_str, button_str)
         formatted_cfg = tomlkit.dumps(parsed_cfg)
         if formatted_cfg:
             settings_used = f"\n```{formatted_cfg}```"
@@ -167,30 +174,34 @@ Please read the rules _before_ participating.
 
         async with self.bot.client.conversation(target) as conv:
 
-            async def reply_and_ack():
+            async def reply_and_ack() -> tg.custom.Message:
                 # Wait for a reply
-                await conv.get_reply()
+                reply = await conv.get_reply()
                 # Ack the reply to suppress its notification
                 await conv.mark_read()
 
-            for idx, cmd in enumerate(commands):
-                await conv.send_message(cmd, parse_mode=None)
+                return reply
 
-                cur_cmd_list = self.truncate_cmd_list(commands[: idx + 1])
+            for idx, xchg in enumerate(exchanges):
+                await conv.send_message(xchg.command, parse_mode=None)
+
+                cur_cmd_list = self.truncate_xchg_list(exchanges[: idx + 1])
                 cmd_log = "\n".join(cur_cmd_list)
-                status = f"""{status_header}
-
+                status_body = f"""Settings:{settings_used}
 Commands issued:
 ```{cmd_log}```"""
+                status = f"""{status_header}
+
+{status_body}"""
 
                 await ctx.respond(status)
 
                 # Wait for both the rate-limit and the bot's response
                 try:
+                    msg_task = self.bot.loop.create_task(reply_and_ack())
+
                     # pylint: disable=unused-variable
-                    done, pending = await asyncio.wait(
-                        (reply_and_ack(), asyncio.sleep(0.25))
-                    )
+                    done, pending = await asyncio.wait((msg_task, asyncio.sleep(0.25)))
 
                     # Raise all exceptions
                     for future in done:
@@ -198,22 +209,23 @@ Commands issued:
                         if exp is not None:
                             raise exp
                 except asyncio.TimeoutError:
-                    after = datetime.now()
-                    delta_seconds = int((after - before).total_seconds())
+                    return f"""@{target} failed to respond during setup. Try again later.
 
-                    return f"""Setup of @{target} failed after {delta_seconds} seconds.
+{status_body}"""
 
-Settings used:{settings_used}
-Commands issued:
-```{cmd_log}```
+                # Validate response
+                msg = msg_task.result()
+                if xchg.response not in msg.raw_text.lower():
+                    return f"""Unexpected response received from @{target} during setup.
 
-The bot failed to respond within 1 minute of issuing the last command. Perhaps the command is incorrect or the bot is down?"""
+{status_body}
+
+Last response: "{msg.text}"
+"""
 
         after = datetime.now()
         delta_seconds = int((after - before).total_seconds())
 
         return f"""Setup of @{target} finished in {delta_seconds} seconds.
 
-Settings used:{settings_used}
-Commands issued:
-```{cmd_log}```"""
+{status_body}"""
