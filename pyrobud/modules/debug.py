@@ -210,6 +210,11 @@ Time: {el_str}"""
                         f"Forwarded message author ID: `{reply_msg.forward.from_id}`"
                     )
 
+                if reply_msg.forward.channel_id:
+                    lines.append(
+                        f"Forwarded message channel ID: `{reply_msg.forward.channel_id}`"
+                    )
+
                 f_chat_id = None
                 if hasattr(reply_msg.forward.saved_from_peer, "channel_id"):
                     f_chat_id = reply_msg.forward.saved_from_peer.channel_id
