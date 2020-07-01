@@ -1,5 +1,6 @@
 import asyncio
 import os
+from datetime import datetime
 from typing import Any, Optional, Tuple, Type, Union
 
 import bprint
@@ -74,23 +75,24 @@ async def download_file(
 ) -> Any:
     """Downloads the file embedded in the given message with live progress updates."""
 
-    last_percent = -5
+    last_update_time = None
 
     def prog_func(current_bytes: int, total_bytes: int) -> None:
-        nonlocal last_percent
+        nonlocal last_update_time
 
         if not ctx:
             return
 
-        # Only edit message if progress >= 5% to mitigate API flooding
+        # Only edit message once every 5 seconds to avoid ratelimits
         percent = int((current_bytes / total_bytes) * 100)
-        if abs(percent - last_percent) >= 5:
+        now = datetime.now()
+        if last_update_time is None or (now - last_update_time).total_seconds() >= 5:
             loop = asyncio.get_event_loop()
             loop.create_task(
                 ctx.respond(f"Downloading {file_type}... {percent}% complete")
             )
 
-        last_percent = percent
+            last_update_time = now
 
     return await msg.download_media(file=dest, progress_callback=prog_func)
 
