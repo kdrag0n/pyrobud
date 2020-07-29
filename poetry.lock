@@ -287,9 +287,10 @@ description = "A Python utility / library to sort Python imports."
 name = "isort"
 optional = false
 python-versions = ">=3.6,<4.0"
-version = "5.1.4"
+version = "5.2.1"
 
 [package.extras]
+colors = ["colorama (>=0.4.3,<0.5.0)"]
 pipfile_deprecated_finder = ["pipreqs", "requirementslib", "tomlkit (>=0.5.3)"]
 requirements_deprecated_finder = ["pipreqs", "pip-api"]
 
@@ -622,7 +623,7 @@ testing = ["jaraco.itertools", "func-timeout"]
 fast = ["cryptg"]
 
 [metadata]
-content-hash = "b0073e03403228ce47836b00b151273213f9c22358589feacd8c6065656d9a80"
+content-hash = "525c329e693cd8b61295fa38a8d260d5de2e0c25a4f2c58906b27e6ea11ab570"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -788,8 +789,8 @@ importlib-resources = [
     {file = "importlib_resources-3.0.0.tar.gz", hash = "sha256:19f745a6eca188b490b1428c8d1d4a0d2368759f32370ea8fb89cad2ab1106c3"},
 ]
 isort = [
-    {file = "isort-5.1.4-py3-none-any.whl", hash = "sha256:ae3007f72a2e9da36febd3454d8be4b175d6ca17eb765841d5fe3d038aede79d"},
-    {file = "isort-5.1.4.tar.gz", hash = "sha256:145072eedc4927cc9c1f9478f2d83b2fc1e6469df4129c02ef4e8c742207a46c"},
+    {file = "isort-5.2.1-py3-none-any.whl", hash = "sha256:a4401d357b0f7a9064781da345e6e2f075ebc09fbebf605740163140d5ac418c"},
+    {file = "isort-5.2.1.tar.gz", hash = "sha256:761a8f490d8bbcd3549b5618ed423468bbdece603cce44b290ee274c9a360893"},
 ]
 meval = [
     {file = "meval-2.5-py3-none-any.whl", hash = "sha256:24430865001b5596864a7c28f423294edadaac57af9ab6964dda3eabc8762577"},
