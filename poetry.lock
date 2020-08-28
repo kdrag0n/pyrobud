@@ -78,18 +78,24 @@ description = "The uncompromising code formatter."
 name = "black"
 optional = false
 python-versions = ">=3.6"
-version = "19.10b0"
+version = "20.8b1"
 
 [package.dependencies]
 appdirs = "*"
-attrs = ">=18.1.0"
-click = ">=6.5"
+click = ">=7.1.2"
+mypy-extensions = ">=0.4.3"
 pathspec = ">=0.6,<1"
-regex = "*"
-toml = ">=0.9.4"
+regex = ">=2020.1.8"
+toml = ">=0.10.1"
 typed-ast = ">=1.4.0"
+typing-extensions = ">=3.7.4"
+
+[package.dependencies.dataclasses]
+python = "<3.7"
+version = ">=0.6"
 
 [package.extras]
+colorama = ["colorama (>=0.4.3)"]
 d = ["aiohttp (>=3.3.2)", "aiohttp-cors"]
 
 [[package]]
@@ -166,6 +172,15 @@ version = "0.2.post1"
 [package.dependencies]
 cffi = ">=1.0.0"
 pycparser = "*"
+
+[[package]]
+category = "dev"
+description = "A backport of the dataclasses module for Python 3.6"
+marker = "python_version < \"3.7\""
+name = "dataclasses"
+optional = false
+python-versions = "*"
+version = "0.6"
 
 [[package]]
 category = "dev"
@@ -626,7 +641,7 @@ testing = ["jaraco.itertools", "func-timeout"]
 fast = ["cryptg"]
 
 [metadata]
-content-hash = "cef25020904737f8c1630e3009fc613ce8d7783611b25edcdaaa8de05f748453"
+content-hash = "aec04d485f74dbde58aff9a2a63fb21dd55adefcb24cb99b9c6ae929945ce0a3"
 python-versions = "^3.6"
 
 [metadata.files]
@@ -664,8 +679,8 @@ beauty-print = [
     {file = "beauty_print-0.6.1-py3-none-any.whl", hash = "sha256:d2e18700fb12821a093f2bbfc86c88e32c1442a022a7acd8fbe6ee4ea41a133d"},
 ]
 black = [
-    {file = "black-19.10b0-py36-none-any.whl", hash = "sha256:1b30e59be925fafc1ee4565e5e08abef6b03fe455102883820fe5ee2e4734e0b"},
-    {file = "black-19.10b0.tar.gz", hash = "sha256:c2edb73a08e9e0e6f65a0e6af18b059b8b1cdd5bef997d7a0b181df93dc81539"},
+    {file = "black-20.8b1-py3-none-any.whl", hash = "sha256:70b62ef1527c950db59062cda342ea224d772abdf6adc58b86a45421bab20a6b"},
+    {file = "black-20.8b1.tar.gz", hash = "sha256:1c02557aa099101b9d21496f8a914e9ed2222ef70336404eeeac8edba836fbea"},
 ]
 certifi = [
     {file = "certifi-2020.6.20-py2.py3-none-any.whl", hash = "sha256:8fc0819f1f30ba15bdb34cceffb9ef04d99f420f68eb75d901e9560b8749fc41"},
@@ -752,6 +767,10 @@ cryptg = [
     {file = "cryptg-0.2.post1-cp38-cp38-win_amd64.whl", hash = "sha256:1d45c14e16684ea9e1a063eb15d9d1fbac54d4fbae5e30b60aa0e5f45beea4af"},
     {file = "cryptg-0.2.post1-pp36-pypy36_pp73-manylinux1_x86_64.whl", hash = "sha256:7b744b9562e225717a126a97b16ea668c73b3f560703db0ff2ed18cc97ee3e03"},
     {file = "cryptg-0.2.post1-pp36-pypy36_pp73-manylinux2010_x86_64.whl", hash = "sha256:dab485e8aa29b328e3f202a2352e5473f824e7072d98c98292fffccb464caedd"},
+]
+dataclasses = [
+    {file = "dataclasses-0.6-py3-none-any.whl", hash = "sha256:454a69d788c7fda44efd71e259be79577822f5e3f53f029a22d08004e951dc9f"},
+    {file = "dataclasses-0.6.tar.gz", hash = "sha256:6988bd2b895eef432d562370bb707d540f32f7360ab13da45340101bc2307d84"},
 ]
 distlib = [
     {file = "distlib-0.3.1-py2.py3-none-any.whl", hash = "sha256:8c09de2c67b3e7deef7184574fc060ab8a793e7adbb183d942c389c8b13c52fb"},
