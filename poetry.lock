@@ -111,7 +111,7 @@ version = "2020.6.20"
 category = "main"
 description = "Foreign Function Interface for Python calling C code."
 name = "cffi"
-optional = false
+optional = true
 python-versions = "*"
 version = "1.14.3"
 
@@ -433,7 +433,7 @@ version = "0.4.8"
 category = "main"
 description = "C parser in Python"
 name = "pycparser"
-optional = false
+optional = true
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "2.20"
 
@@ -478,7 +478,7 @@ description = "Python client for Sentry (https://sentry.io)"
 name = "sentry-sdk"
 optional = false
 python-versions = "*"
-version = "0.17.5"
+version = "0.17.6"
 
 [package.dependencies]
 certifi = "*"
@@ -1004,8 +1004,8 @@ rsa = [
     {file = "rsa-4.6.tar.gz", hash = "sha256:109ea5a66744dd859bf16fe904b8d8b627adafb9408753161e766a92e7d681fa"},
 ]
 sentry-sdk = [
-    {file = "sentry-sdk-0.17.5.tar.gz", hash = "sha256:02f2a72698453f722b102562eb6430d2a82d6c6c40f2b991ed69e7628142de6a"},
-    {file = "sentry_sdk-0.17.5-py2.py3-none-any.whl", hash = "sha256:02400b4aeb3db676611ff05442d4421766f18512509255590fa60acee5cb4c5c"},
+    {file = "sentry-sdk-0.17.6.tar.gz", hash = "sha256:1a086486ff9da15791f294f6e9915eb3747d161ef64dee2d038a4d0b4a369b24"},
+    {file = "sentry_sdk-0.17.6-py2.py3-none-any.whl", hash = "sha256:45486deb031cea6bbb25a540d7adb4dd48cd8a1cc31e6a5ce9fb4f792a572e9a"},
 ]
 six = [
     {file = "six-1.15.0-py2.py3-none-any.whl", hash = "sha256:8b74bedcbbbaca38ff6d7491d76f2b06b3592611af620f8426e82dddb04a5ced"},
