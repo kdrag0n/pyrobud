@@ -227,7 +227,7 @@ description = "Python Git Library"
 name = "gitpython"
 optional = false
 python-versions = ">=3.4"
-version = "3.1.8"
+version = "3.1.9"
 
 [package.dependencies]
 gitdb = ">=4.0.1,<5"
@@ -798,8 +798,8 @@ gitdb = [
     {file = "gitdb-4.0.5.tar.gz", hash = "sha256:c9e1f2d0db7ddb9a704c2a0217be31214e91a4fe1dea1efad19ae42ba0c285c9"},
 ]
 gitpython = [
-    {file = "GitPython-3.1.8-py3-none-any.whl", hash = "sha256:1858f4fd089abe92ae465f01d5aaaf55e937eca565fb2c1fce35a51b5f85c910"},
-    {file = "GitPython-3.1.8.tar.gz", hash = "sha256:080bf8e2cf1a2b907634761c2eaefbe83b69930c94c66ad11b65a8252959f912"},
+    {file = "GitPython-3.1.9-py3-none-any.whl", hash = "sha256:138016d519bf4dd55b22c682c904ed2fd0235c3612b2f8f65ce218ff358deed8"},
+    {file = "GitPython-3.1.9.tar.gz", hash = "sha256:a03f728b49ce9597a6655793207c6ab0da55519368ff5961e4a74ae475b9fa8e"},
 ]
 identify = [
     {file = "identify-1.5.5-py2.py3-none-any.whl", hash = "sha256:da683bfb7669fa749fc7731f378229e2dbf29a1d1337cbde04106f02236eb29d"},
