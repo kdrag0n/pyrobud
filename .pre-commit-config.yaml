@@ -5,7 +5,7 @@ repos:
         name: isort
         stages: [commit]
         language: system
-        entry: poetry run isort -y
+        entry: poetry run isort
         types: [python]
 
       - id: black
