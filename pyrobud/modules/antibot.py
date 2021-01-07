@@ -99,7 +99,7 @@ class AntibotModule(module.Module):
     def msg_type_suspicious(msg: tg.custom.Message) -> bool:
         return bool(msg.contact or msg.geo or msg.game)
 
-    async def msg_data_is_suspicious(self, msg: tg.custom.Message) -> bool:
+    async def msg_data_is_suspicious(self, msg: tg.custom.Message) -> int:
         incoming = not msg.out
         has_date = msg.date
         forwarded = msg.forward
@@ -113,7 +113,7 @@ class AntibotModule(module.Module):
                 # We can assume these messages are safe since only admins can link channels
                 sender = await msg.get_sender()
                 if sender is None:
-                    return False
+                    return 0
 
                 # Spambots don't forward their own messages; they mass-forward
                 # messages from central coordinated channels for maximum efficiency
@@ -124,23 +124,26 @@ class AntibotModule(module.Module):
                     msg.forward.from_id == sender.id
                     or msg.forward.from_name == tg.utils.get_display_name(sender)
                 ):
-                    return False
+                    return 0
 
                 # Screen forwarded messages more aggressively
-                return (
-                    msg.photo
-                    or self.msg_type_suspicious(msg)
-                    or self.msg_content_suspicious(msg)
-                )
+                if self.msg_type_suspicious(msg) or self.msg_content_suspicious(msg):
+                    return 10
+                elif msg.photo and not msg.text:
+                    return 5
 
-            # Skip suspicious entity/photo check for non-forwarded messages
-            return self.msg_type_suspicious(msg) or self.msg_has_suspicious_keyword(msg)
+            # Skip suspicious entity check for non-forwarded messages
+            if self.msg_type_suspicious(msg) or self.msg_has_suspicious_keyword(msg):
+                return 10
+            elif msg.photo and not msg.text:
+                return 5
 
-        return False
+        return 0
 
     async def msg_is_suspicious(self, msg: tg.custom.Message) -> bool:
         # Check if the data in the message is suspicious
-        if not await self.msg_data_is_suspicious(msg):
+        data_score = await self.msg_data_is_suspicious(msg)
+        if data_score <= 0:
             return False
 
         # Load message metadata entities
@@ -148,7 +151,7 @@ class AntibotModule(module.Module):
         sender = await msg.get_sender()
 
         # Messages forwarded from a linked channel by Telegram don't have a sender
-        # We can assume these messages are safe since only admins can link channels
+        # We can assume these messages are safe because only admins can link channels
         if sender is None:
             return False
 
@@ -168,18 +171,24 @@ class AntibotModule(module.Module):
             return False
 
         delta = msg.date - participant.date
-        if delta.total_seconds() <= await self.db.get("threshold_time", 30):
-            # Suspicious message was sent shortly after joining
-            return True
+        just_joined = delta.total_seconds() <= await self.db.get("threshold_time", 15)
 
         join_time_sec = int(participant.date.replace(tzinfo=timezone.utc).timestamp())
-        if join_time_sec > await self.group_db.get(f"{msg.chat_id}.enable_time", 0):
+        first_msg_eligible = join_time_sec > await self.group_db.get(
+            f"{msg.chat_id}.enable_time", 0
+        )
+        if first_msg_eligible:
             # We started tracking first messages in this group before the user
             # joined, so we can run the first message check
-            if not await self.user_db.get(
+            is_first_msg = not await self.user_db.get(
                 f"{sender.id}.has_spoken_in_{msg.chat_id}", False
-            ):
+            )
+            if is_first_msg and data_score >= 10:
                 # Suspicious message was the user's first message in this group
+                return True
+
+            # Less suspicious first messages sent right after joining also count
+            if is_first_msg and just_joined and data_score >= 5:
                 return True
 
         # Allow this message
@@ -241,7 +250,7 @@ class AntibotModule(module.Module):
 
     async def on_chat_action(self, action: tg.events.ChatAction.Event) -> None:
         # Remove has-spoken-in flag for departing users
-        if action.user_left and await self.is_enabled(action):
+        if (action.user_left or action.user_kicked) and await self.is_enabled(action):
             await self.user_db.delete(
                 f"{action.user_id}.has_spoken_in_{action.chat_id}"
             )
