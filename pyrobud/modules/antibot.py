@@ -164,16 +164,18 @@ class AntibotModule(module.Module):
             # User was already banned or deleted; we don't need to proceed
             return False
 
-        participant = ch_participant.participant
+        ptcp = ch_participant.participant
 
-        # Exempt the group creator
-        if isinstance(participant, tg.tl.types.ChannelParticipantCreator):
+        # Exempt the group creator and admins
+        if isinstance(ptcp, tg.tl.types.ChannelParticipantCreator) or isinstance(
+            ptcp, tg.types.ChannelParticipantAdmin
+        ):
             return False
 
-        delta = msg.date - participant.date
+        delta = msg.date - ptcp.date
         just_joined = delta.total_seconds() <= await self.db.get("threshold_time", 15)
 
-        join_time_sec = int(participant.date.replace(tzinfo=timezone.utc).timestamp())
+        join_time_sec = int(ptcp.date.replace(tzinfo=timezone.utc).timestamp())
         first_msg_eligible = join_time_sec > await self.group_db.get(
             f"{msg.chat_id}.enable_time", 0
         )
