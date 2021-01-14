@@ -194,14 +194,15 @@ Commands issued:
 
 {status_body}"""
 
-                await ctx.respond(status)
-
-                # Wait for both the rate-limit and the bot's response
+                # Wait for the rate-limit, the bot's response, and the send
                 try:
-                    msg_task = self.bot.loop.create_task(reply_and_ack())
+                    reply_task = self.bot.loop.create_task(reply_and_ack())
+                    send_task = self.bot.loop.create_task(ctx.respond(status))
 
                     # pylint: disable=unused-variable
-                    done, pending = await asyncio.wait((msg_task, asyncio.sleep(0.25)))
+                    done, pending = await asyncio.wait(
+                        (reply_task, send_task, asyncio.sleep(0.25))
+                    )
 
                     # Raise all exceptions
                     for future in done:
@@ -214,7 +215,7 @@ Commands issued:
 {status_body}"""
 
                 # Validate response
-                msg = msg_task.result()
+                msg = reply_task.result()
                 if xchg.response not in msg.raw_text.lower():
                     return f"""Unexpected response received from @{target} during setup.
 
