@@ -506,7 +506,7 @@ python-versions = "*"
 
 [[package]]
 name = "telethon"
-version = "1.19.1"
+version = "1.19.2"
 description = "Full-featured Telegram client library for Python 3"
 category = "main"
 optional = false
@@ -717,6 +717,7 @@ cffi = [
     {file = "cffi-1.14.4-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:840793c68105fe031f34d6a086eaea153a0cd5c491cde82a74b420edd0a2b909"},
     {file = "cffi-1.14.4-cp39-cp39-manylinux1_i686.whl", hash = "sha256:b18e0a9ef57d2b41f5c68beefa32317d286c3d6ac0484efd10d6e07491bb95dd"},
     {file = "cffi-1.14.4-cp39-cp39-manylinux1_x86_64.whl", hash = "sha256:045d792900a75e8b1e1b0ab6787dd733a8190ffcf80e8c8ceb2fb10a29ff238a"},
+    {file = "cffi-1.14.4-cp39-cp39-manylinux2014_aarch64.whl", hash = "sha256:7ef7d4ced6b325e92eb4d3502946c78c5367bc416398d387b39591532536734e"},
     {file = "cffi-1.14.4-cp39-cp39-win32.whl", hash = "sha256:ba4e9e0ae13fc41c6b23299545e5ef73055213e466bd107953e4a013a5ddd7e3"},
     {file = "cffi-1.14.4-cp39-cp39-win_amd64.whl", hash = "sha256:f032b34669220030f905152045dfa27741ce1a6db3324a5bc0b96b6c7420c87b"},
     {file = "cffi-1.14.4.tar.gz", hash = "sha256:1a465cbe98a7fd391d47dce4b8f7e5b921e6cd805ef421d04f5f66ba8f06086c"},
@@ -1096,8 +1097,8 @@ speedtest-cli = [
     {file = "speedtest_cli-2.1.2-py2.py3-none-any.whl", hash = "sha256:2335306da12014c2da750db3befa3ddf424a303ddbaa399fbfb6a1bf870a5532"},
 ]
 telethon = [
-    {file = "Telethon-1.19.1-py3-none-any.whl", hash = "sha256:fad015c7a57e0781b9bb6f74d99e6e31553f26a225ea640e3b1191157b32e89e"},
-    {file = "Telethon-1.19.1.tar.gz", hash = "sha256:50241471921ca45e1fe2009972365ca1fd0f3b8ae310fde6030f1452348d299a"},
+    {file = "Telethon-1.19.2-py3-none-any.whl", hash = "sha256:c63576c908206e81674a7dcc046096ae9b9028443b3456fb89d1f0dc09dffb67"},
+    {file = "Telethon-1.19.2.tar.gz", hash = "sha256:4fed5bff46d998dc0ef497e2eb3fade69695996cfb9b22345e6c0775e82852ea"},
 ]
 toml = [
     {file = "toml-0.10.2-py2.py3-none-any.whl", hash = "sha256:806143ae5bfb6a3c6e736a764057db0e6a0e05e338b5630894a5f779cabb4f9b"},
