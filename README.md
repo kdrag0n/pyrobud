@@ -45,6 +45,9 @@ install that first. Below are instructions for some common operating systems:
 | Termux       | `apt install leveldb`        |
 | FreeBSD      | `pkg install leveldb`        |
 
+> At the time of writing this note, macOS's package installer *brew* requires a different command to install leveldb.  
+`brew install --build-from-source leveldb`
+
 ### Using Docker
 
 Simply run `docker run --rm -itv "$PWD/data:/data" kdrag0n/pyrobud` to run the
