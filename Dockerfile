@@ -21,7 +21,8 @@ RUN apk add --no-cache \
         libjpeg-turbo-dev \
         lcms2-dev \
         libwebp-dev \
-        openssl-dev
+        openssl-dev \
+        cargo
 RUN mkdir -p /opt/venv
 WORKDIR /opt/venv
 RUN python3 -m venv /opt/venv
