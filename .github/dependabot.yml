@@ -1,0 +1,26 @@
+version: 2
+updates:
+- package-ecosystem: pip
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "10:00"
+    timezone: America/Los_Angeles
+  open-pull-requests-limit: 10
+  allow:
+  - dependency-type: direct
+  - dependency-type: indirect
+  ignore:
+  - dependency-name: pillow
+    versions:
+    - 8.1.1
+  - dependency-name: gitpython
+    versions:
+    - 3.1.14
+  - dependency-name: sentry-sdk
+    versions:
+    - 0.20.0
+    - 0.20.1
+  - dependency-name: telethon
+    versions:
+    - 1.19.4
