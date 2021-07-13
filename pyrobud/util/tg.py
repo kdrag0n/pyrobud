@@ -20,8 +20,6 @@ SKIP_ATTR_NAMES = (
     "phone",
 )
 SKIP_ATTR_VALUES = (False,)
-SKIP_ATTR_TYPES = (tg.types.FileLocationToBeDeprecated,)
-
 
 def mention_user(user: tg.types.User) -> str:
     """Returns a string that mentions the given user, regardless of whether they have a username."""
