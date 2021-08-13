@@ -20,7 +20,7 @@ SKIP_ATTR_NAMES = (
     "phone",
 )
 SKIP_ATTR_VALUES = (False,)
-SKIP_ATTR_TYPES = (tg.types.FileLocationToBeDeprecated,)
+SKIP_ATTR_TYPES = ()
 
 
 def mention_user(user: tg.types.User) -> str:
