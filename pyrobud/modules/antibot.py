@@ -2,6 +2,7 @@ import asyncio
 from datetime import timedelta, timezone
 from typing import ClassVar, Union
 
+import regex
 import telethon as tg
 
 from .. import command, module, util
@@ -61,12 +62,24 @@ OBFUSCATED_TRANS_TABLES = [
     str.maketrans(NORMAL_CHARSET, charset) for charset in OBFUSCATED_CHARSETS
 ]
 
+CHINESE_PATTERN = regex.compile(r".*\p{IsHan}.*", regex.UNICODE)
 
-def decode_obfuscated_text(text):
+
+def decode_obfuscated_text(text: str):
     for trans in OBFUSCATED_TRANS_TABLES:
         text = text.translate(trans)
 
     return text
+
+
+def msg_text_highly_suspicious(msg: tg.custom.Message):
+    return (
+        msg.entities
+        and any(
+            type(entity) == tg.tl.types.MessageEntityBold for entity in msg.entities
+        )
+        and CHINESE_PATTERN.match(msg.raw_text)
+    )
 
 
 class AntibotModule(module.Module):
@@ -122,10 +135,21 @@ class AntibotModule(module.Module):
         return any(kw in text for kw in SUSPICIOUS_KEYWORDS)
 
     def msg_content_suspicious(self, msg: tg.custom.Message) -> bool:
-        # Consolidate message content checks
-        return self.msg_has_suspicious_entity(msg) or self.msg_has_suspicious_keyword(
-            msg
-        )
+        # Forwarded messages are subject to more aggressive entity checks
+        suspicious_entity = self.msg_has_suspicious_entity(msg)
+        if msg.forward and suspicious_entity:
+            return True
+
+        # All messages are subject to keyword checks
+        if self.msg_has_suspicious_keyword(msg):
+            return True
+
+        # Messages with bold text, Chinese characters (in groups where English is the primary language), *and* suspicious entities
+        if msg_text_highly_suspicious(msg) and suspicious_entity:
+            return True
+
+        # Allow otherwise
+        return False
 
     @staticmethod
     def msg_type_suspicious(msg: tg.custom.Message) -> bool:
@@ -151,21 +175,14 @@ class AntibotModule(module.Module):
                 # messages from central coordinated channels for maximum efficiency
                 # This protects users who forward questions with links/images to
                 # various support chats asking for help (arguably, that's spammy,
-                # it's out of the scope of this function)
+                # but it's out of scope for this function)
                 if (
                     msg.forward.from_id == sender.id
                     or msg.forward.from_name == tg.utils.get_display_name(sender)
                 ):
                     return 0
 
-                # Screen forwarded messages more aggressively
-                if self.msg_type_suspicious(msg) or self.msg_content_suspicious(msg):
-                    return 10
-                elif msg.photo and not msg.text:
-                    return 5
-
-            # Skip suspicious entity check for non-forwarded messages
-            if self.msg_type_suspicious(msg) or self.msg_has_suspicious_keyword(msg):
+            if self.msg_type_suspicious(msg) or self.msg_content_suspicious(msg):
                 return 10
             elif msg.photo and not msg.text:
                 return 5
