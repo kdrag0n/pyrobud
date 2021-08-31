@@ -184,7 +184,7 @@ class AntibotModule(module.Module):
 
             if self.msg_type_suspicious(msg) or self.msg_content_suspicious(msg):
                 return 10
-            elif msg.photo and not msg.text:
+            elif msg.photo and (not msg.text or self.msg_has_suspicious_entity(msg)):
                 return 5
 
         return 0
@@ -222,7 +222,7 @@ class AntibotModule(module.Module):
             return False
 
         delta = msg.date - ptcp.date
-        just_joined = delta.total_seconds() <= await self.db.get("threshold_time", 15)
+        just_joined = delta.total_seconds() <= await self.db.get("threshold_time", 30)
 
         join_time_sec = int(ptcp.date.replace(tzinfo=timezone.utc).timestamp())
         first_msg_eligible = join_time_sec > await self.group_db.get(
