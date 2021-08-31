@@ -8,41 +8,41 @@ from .. import command, module, util
 
 MessageEvent = Union[tg.events.NewMessage.Event, tg.events.ChatAction.Event]
 
+SUSPICIOUS_KEYWORDS = [
+    "invest",
+    "profit",
+    "binance",
+    "binanse",
+    "bitcoin",
+    "testnet",
+    "bitmex",
+    "wealth",
+    "mytoken",
+    "no scam",
+    "legi",
+    "trading",
+    "binary option",
+    "talk with you in private",
+    "go_start",
+    "s.tart",
+    "cash out",
+    "withdraw",
+]
+
+SUSPICIOUS_ENTITIES = [
+    tg.tl.types.MessageEntityUrl,
+    tg.tl.types.MessageEntityTextUrl,
+    tg.tl.types.MessageEntityEmail,
+    tg.tl.types.MessageEntityPhone,
+    tg.tl.types.MessageEntityCashtag,
+]
+
 
 class AntibotModule(module.Module):
     name: ClassVar[str] = "Antibot"
     db: util.db.AsyncDB
     group_db: util.db.AsyncDB
     user_db: util.db.AsyncDB
-
-    suspicious_keywords = [
-        "invest",
-        "profit",
-        "binance",
-        "binanse",
-        "bitcoin",
-        "testnet",
-        "bitmex",
-        "wealth",
-        "mytoken",
-        "no scam",
-        "legi",
-        "trading",
-        "binary option",
-        "talk with you in private",
-        "go_start",
-        "s.tart",
-        "cash out",
-        "withdraw",
-    ]
-
-    suspicious_entities = [
-        tg.tl.types.MessageEntityUrl,
-        tg.tl.types.MessageEntityTextUrl,
-        tg.tl.types.MessageEntityEmail,
-        tg.tl.types.MessageEntityPhone,
-        tg.tl.types.MessageEntityCashtag,
-    ]
 
     async def on_load(self) -> None:
         self.db = self.bot.get_db("antibot")
@@ -69,9 +69,7 @@ class AntibotModule(module.Module):
             return False
 
         # Messages containing certain entities are more likely to be spam
-        return any(
-            type(entity) in type(self).suspicious_entities for entity in msg.entities
-        )
+        return any(type(entity) in SUSPICIOUS_ENTITIES for entity in msg.entities)
 
     def msg_has_suspicious_keyword(self, msg: tg.custom.Message) -> bool:
         if not msg.raw_text:
@@ -87,7 +85,7 @@ class AntibotModule(module.Module):
         l_text = text.lower()
 
         # Many spam messages mention certain keywords, such as cryptocurrency exchanges
-        return any(kw in l_text for kw in type(self).suspicious_keywords)
+        return any(kw in l_text for kw in SUSPICIOUS_KEYWORDS)
 
     def msg_content_suspicious(self, msg: tg.custom.Message) -> bool:
         # Consolidate message content checks
