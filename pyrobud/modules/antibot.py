@@ -36,6 +36,7 @@ SUSPICIOUS_ENTITIES = [
     tg.tl.types.MessageEntityEmail,
     tg.tl.types.MessageEntityPhone,
     tg.tl.types.MessageEntityCashtag,
+    tg.tl.types.MessageEntityMention,
 ]
 
 NORMAL_CHARSET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~ `!@#$%^&*()-_=+[]{}|;:'\",<.>/?\\"
