@@ -16,7 +16,7 @@ class AntibotModule(module.Module):
     user_db: util.db.AsyncDB
 
     suspicious_keywords = [
-        "investment",
+        "invest",
         "profit",
         "binance",
         "binanse",
