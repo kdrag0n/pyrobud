@@ -335,10 +335,15 @@ class AntibotModule(module.Module):
         if not ctx.msg.is_channel:
             return "__Please convert this group to a supergroup in order to enable antibot.__"
 
+        last_state = await self.group_db.get(f"{ctx.msg.chat_id}.enabled", False)
         if ctx.input:
             state = ctx.input.lower() in util.INPUT_YES
         else:
-            state = not await self.group_db.get(f"{ctx.msg.chat_id}.enabled", False)
+            state = last_state
+
+        state_text = "enabled" if state else "disabled"
+        if state == last_state:
+            return f"Antibot is currently **{state_text}** in this group."
 
         if state:
             # Check for required permissions
@@ -365,10 +370,9 @@ class AntibotModule(module.Module):
         else:
             await self.clear_group(ctx.msg.chat_id)
 
-        status = "enabled" if state else "disabled"
         comment = (
             " Note that only __new__ users will be affected to reduce the risk of false positives."
             if state
             else ""
         )
-        return f"Antibot is now **{status}** in this group.{comment}"
+        return f"Antibot is now **{state_text}** in this group.{comment}"
