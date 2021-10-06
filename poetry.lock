@@ -20,7 +20,7 @@ speedups = ["aiodns", "brotlipy", "cchardet"]
 
 [[package]]
 name = "aiorun"
-version = "2020.12.1"
+version = "2021.8.1"
 description = "Boilerplate for asyncio applications"
 category = "main"
 optional = false
@@ -650,7 +650,7 @@ fast = ["cryptg"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "bf91a55cd47367a152d70ba58ffdd023fd73cfee4ceda0d896cfbbf99b3ff2d2"
+content-hash = "eb038843d48d7455f913fa065ac4ef54ec38b0790ddfc2f945a296f4e0f4e4d7"
 
 [metadata.files]
 aiohttp = [
@@ -693,8 +693,8 @@ aiohttp = [
     {file = "aiohttp-3.7.4.post0.tar.gz", hash = "sha256:493d3299ebe5f5a7c66b9819eacdcfbbaaf1a8e84911ddffcdc48888497afecf"},
 ]
 aiorun = [
-    {file = "aiorun-2020.12.1-py3-none-any.whl", hash = "sha256:7ca5f8f908585e6e4e6070c04abd0632a110432ddcd4809ad88724dd59aa91ba"},
-    {file = "aiorun-2020.12.1.tar.gz", hash = "sha256:88435f37dada709c79ab484f723297fd9c53fde154edfcbc7738988cdec9fd1b"},
+    {file = "aiorun-2021.8.1-py3-none-any.whl", hash = "sha256:99c45ac4e53d82cf5d1afcb8d7f1855fd18d7774bd8590dbe4d6037e54c3a040"},
+    {file = "aiorun-2021.8.1.tar.gz", hash = "sha256:b3be8323dd2723f46d3e6cd691bcb7418cf895ca4e297c7f047183dbba67302d"},
 ]
 appdirs = [
     {file = "appdirs-1.4.4-py2.py3-none-any.whl", hash = "sha256:a841dacd6b99318a741b166adb07e19ee71a274450e68237b4650ca1055ab128"},
