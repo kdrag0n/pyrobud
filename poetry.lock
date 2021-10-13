@@ -197,7 +197,7 @@ python-versions = "*"
 
 [[package]]
 name = "emoji"
-version = "1.6.0"
+version = "1.6.1"
 description = "Emoji for Python"
 category = "main"
 optional = false
@@ -834,7 +834,7 @@ distlib = [
     {file = "distlib-0.3.3.zip", hash = "sha256:d982d0751ff6eaaab5e2ec8e691d949ee80eddf01a62eaa96ddb11531fe16b05"},
 ]
 emoji = [
-    {file = "emoji-1.6.0.tar.gz", hash = "sha256:379610aeeb10c62876d89472e6ed514971512a51224d4845c117681258eda845"},
+    {file = "emoji-1.6.1.tar.gz", hash = "sha256:53d61a8e4c025f6c295ab99c842302c66d47952199c4fde66dd060dee3ad4324"},
 ]
 filelock = [
     {file = "filelock-3.3.0-py3-none-any.whl", hash = "sha256:bbc6a0382fe8ec4744ecdf6683a2e07f65eb10ff1aff53fc02a202565446cde0"},
