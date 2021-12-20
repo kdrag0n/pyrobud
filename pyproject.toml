@@ -37,7 +37,7 @@ python = "^3.6"
 aiohttp = "^3.6.2"
 colorlog = ">=4.1,<6.0"
 telethon = "^1.10.10"
-tomlkit = ">=0.5.8,<0.8.0"
+tomlkit = ">=0.5.8,<0.9.0"
 # Performance
 cryptg = {version = "^0.2.post0", optional = true}
 # Database
