@@ -427,7 +427,7 @@ test = ["appdirs (==1.4.4)", "pytest (>=6)", "pytest-cov (>=2.7)", "pytest-mock 
 
 [[package]]
 name = "plyvel"
-version = "1.3.0"
+version = "1.4.0"
 description = "Plyvel, a fast and feature-rich Python interface to LevelDB"
 category = "main"
 optional = false
@@ -1211,11 +1211,12 @@ platformdirs = [
     {file = "platformdirs-2.4.0.tar.gz", hash = "sha256:367a5e80b3d04d2428ffa76d33f124cf11e8fff2acdaa9b43d545f5c7d661ef2"},
 ]
 plyvel = [
-    {file = "plyvel-1.3.0-cp36-cp36m-manylinux2010_x86_64.whl", hash = "sha256:ca7cc1017e1ddea1293a00df7b1816b060cfe2cd3b324cbaaaeb78ae107328c7"},
-    {file = "plyvel-1.3.0-cp37-cp37m-manylinux2010_x86_64.whl", hash = "sha256:ccc0bb6237b1f4f49338419b006fac1cd39089dcaccb93b7a8756b83be0c9317"},
-    {file = "plyvel-1.3.0-cp38-cp38-manylinux2010_x86_64.whl", hash = "sha256:43fa2850b39ab97b5c1a042295a4e14f7daa0d6902b04d88aa9fb3bb50c74043"},
-    {file = "plyvel-1.3.0-cp39-cp39-manylinux2010_x86_64.whl", hash = "sha256:d04a56191f4bccd156963248d4f598cf2487137eb414a6be5874cfb2787d747c"},
-    {file = "plyvel-1.3.0.tar.gz", hash = "sha256:a7a09033a0fd33ca47094e8bbe01714abfcf644f4b7a337d3970e91a2599e2c4"},
+    {file = "plyvel-1.4.0-cp310-cp310-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:0741be98096db98929ba507c5d99be6b9e009e38fb1361e755e52e69b2a6a496"},
+    {file = "plyvel-1.4.0-cp36-cp36m-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:daef3f2076db41fa0a0fcbb3eabf1a36445739e101367356b7ad3c455b77b44d"},
+    {file = "plyvel-1.4.0-cp37-cp37m-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:61d6dc2edff07412be0bcfb20cd3a6cb0b2ac6e136e0d53ce91a2d9b10e89ebc"},
+    {file = "plyvel-1.4.0-cp38-cp38-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:b4a4e25b75852a379744f14e743f17ae78513d0ba4f354be54199735487c71d7"},
+    {file = "plyvel-1.4.0-cp39-cp39-manylinux_2_12_x86_64.manylinux2010_x86_64.whl", hash = "sha256:d50eb65421e40d788868943bbaa0e1b62e806a07323a21ce9a4b7bf6bea022ec"},
+    {file = "plyvel-1.4.0.tar.gz", hash = "sha256:4ea98bea04ebf0f44747bacdfafefc8827787106fbb787f0aedc46482b2dfd53"},
 ]
 pre-commit = [
     {file = "pre_commit-2.1.1-py2.py3-none-any.whl", hash = "sha256:09ebe467f43ce24377f8c2f200fe3cd2570d328eb2ce0568c8e96ce19da45fa6"},
