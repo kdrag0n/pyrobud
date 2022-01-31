@@ -40,7 +40,7 @@ class StickerModule(module.Module):
             # We don't check this response because it's just a precautionary measure
             # Could be either failure (most likely) or success
             ("text", "/cancel", None),
-            ("text", "/addsticker", "Choose the sticker pack"),
+            ("text", "/addsticker", "Choose a sticker set"),
             ("text", pack_name, "send me the sticker"),
             ("file", sticker_data, "send me an emoji"),
             ("text", emoji, "added your sticker"),
