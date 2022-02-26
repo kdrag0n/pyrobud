@@ -53,7 +53,7 @@ pillow = ">=6.2.2,<9.0.0"
 speedtest-cli = "^2.1.2"
 # Debug module
 meval = "^2.5"
-aiorun = ">=2019.11.1,<2021.0.0"
+aiorun = ">=2019.11.1,<2022.0.0"
 beauty-print = "^0.6.0"
 emoji = ">=0.5.4,<1.7.0"
 regex = "^2021.8.28"
