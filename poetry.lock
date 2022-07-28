@@ -214,7 +214,7 @@ python-versions = "*"
 
 [[package]]
 name = "emoji"
-version = "1.7.0"
+version = "2.0.0"
 description = "Emoji for Python"
 category = "main"
 optional = false
@@ -668,7 +668,7 @@ fast = ["cryptg"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "ba5efd8c157a88cd41472dc2249564bfaa8c9a7e96fa7a6210a1d99c16d10ba4"
+content-hash = "64c1d8de51b28cbce566cb17358c8f9b92a7e39b6c95af3c8e6c5d767cae9d27"
 
 [metadata.files]
 aiohttp = [
@@ -910,7 +910,7 @@ distlib = [
     {file = "distlib-0.3.5.tar.gz", hash = "sha256:a7f75737c70be3b25e2bee06288cec4e4c221de18455b2dd037fe2a795cab2fe"},
 ]
 emoji = [
-    {file = "emoji-1.7.0.tar.gz", hash = "sha256:65c54533ea3c78f30d0729288998715f418d7467de89ec258a31c0ce8660a1d1"},
+    {file = "emoji-2.0.0.tar.gz", hash = "sha256:297fac7ec9e86f7b602792c28eb6f04819ba67ab88a34c56afcde52243a9a105"},
 ]
 filelock = [
     {file = "filelock-3.4.1-py3-none-any.whl", hash = "sha256:a4bc51381e01502a30e9f06dd4fa19a1712eab852b6fb0f84fd7cce0793d8ca3"},
