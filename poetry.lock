@@ -23,7 +23,7 @@ speedups = ["aiodns", "brotli", "cchardet"]
 
 [[package]]
 name = "aiorun"
-version = "2021.10.1"
+version = "2022.4.1"
 description = "Boilerplate for asyncio applications"
 category = "main"
 optional = false
@@ -668,7 +668,7 @@ fast = ["cryptg"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.6"
-content-hash = "ba5efd8c157a88cd41472dc2249564bfaa8c9a7e96fa7a6210a1d99c16d10ba4"
+content-hash = "d70197aca04ce4ba4fd2e0972d1ec8cfa562dc9d6777d68bbcd0717952244650"
 
 [metadata.files]
 aiohttp = [
@@ -746,8 +746,8 @@ aiohttp = [
     {file = "aiohttp-3.8.1.tar.gz", hash = "sha256:fc5471e1a54de15ef71c1bc6ebe80d4dc681ea600e68bfd1cbce40427f0b7578"},
 ]
 aiorun = [
-    {file = "aiorun-2021.10.1-py3-none-any.whl", hash = "sha256:49c3b0ca9aa4c8ace443691d31d3114ad7a3abe7af19abb13725309dec2e3c2c"},
-    {file = "aiorun-2021.10.1.tar.gz", hash = "sha256:bb621493e008cd072a9b19de09a615513be2f48b594ee16ee726da5255fa4267"},
+    {file = "aiorun-2022.4.1-py3-none-any.whl", hash = "sha256:3a7925d66c394f6812a0150495fda8d359b4cdf24cf0c223f005b61ad02baaa7"},
+    {file = "aiorun-2022.4.1.tar.gz", hash = "sha256:6aafa65c4004c1697088d8f09a9a68e8d486a5403f2e35956f5f0173ce7501f5"},
 ]
 aiosignal = [
     {file = "aiosignal-1.2.0-py3-none-any.whl", hash = "sha256:26e62109036cd181df6e6ad646f91f0dcfd05fe16d0cb924138ff2ab75d64e3a"},
