@@ -512,7 +512,7 @@ pyasn1 = ">=0.1.3"
 
 [[package]]
 name = "sentry-sdk"
-version = "1.9.1"
+version = "1.9.2"
 description = "Python client for Sentry (https://sentry.io)"
 category = "main"
 optional = false
@@ -1392,8 +1392,8 @@ rsa = [
     {file = "rsa-4.8.tar.gz", hash = "sha256:5c6bd9dc7a543b7fe4304a631f8a8a3b674e2bbfc49c2ae96200cdbe55df6b17"},
 ]
 sentry-sdk = [
-    {file = "sentry-sdk-1.9.1.tar.gz", hash = "sha256:0c8d2e1a02c4d438aec762cd82c1f785f6477a9436fd6279996be0b0f139dd5a"},
-    {file = "sentry_sdk-1.9.1-py2.py3-none-any.whl", hash = "sha256:6167aa8f39d50661cee560db76b71c256a1b5ad68c3fcdc9df20c4c9b3796c8c"},
+    {file = "sentry-sdk-1.9.2.tar.gz", hash = "sha256:9921e76e29135aa1fa65fe231aaaef47355f85470c5ec59ce32715e22e6340b6"},
+    {file = "sentry_sdk-1.9.2-py2.py3-none-any.whl", hash = "sha256:011155f11ab828a977fe8a60c5b534c30f49d70c9938362536d206bb230bb519"},
 ]
 smmap = [
     {file = "smmap-5.0.0-py3-none-any.whl", hash = "sha256:2aba19d6a040e78d8b09de5c57e96207b09ed71d8e55ce0959eeee6c8e190d94"},
