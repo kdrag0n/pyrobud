@@ -35,7 +35,7 @@ python = "^3.6"
 
 # Core
 aiohttp = "^3.6.2"
-colorlog = ">=4.1,<6.0"
+colorlog = ">=4.1,<7.0"
 telethon = "^1.10.10"
 tomlkit = ">=0.5.8,<0.12.0"
 # Performance
